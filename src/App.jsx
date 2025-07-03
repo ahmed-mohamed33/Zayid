@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Components
 import Navbar from "./components/common/Nav";
-import Footer from "./components/common/Footer";
+import Footer from "./components/common/Footer.jsx";
 
 // Pages
 import HomePage from "./pages/HomePage";
@@ -11,6 +11,7 @@ import RegisterPage from "./pages/RegisterPage";
 
 function App() {
   return (
+     <div dir="rtl">
     <Router>
       <Navbar /> 
 
@@ -23,6 +24,7 @@ function App() {
 
       <Footer /> 
     </Router>
+    </div>
   );
 }
 
