@@ -1,10 +1,19 @@
 import './index.css';
+import SelectCategoryPage from './selectCategory/page/SelectCategoryPage.jsx';
+import StartStep from './selectCategory/page/start.jsx';
+import StepOverview from './selectCategory/page/StepOverview.jsx';
 import SignUp from './signUp/page/SignUp.jsx';
+import { Routes, Route } from 'react-router-dom';
 
 export default function App() {
   return (
     <>
-      <SignUp />
+      <Routes>
+        <Route path="/selectCategory" element={<SelectCategoryPage />} />
+        <Route path="/overview" element={<StepOverview />} />
+        <Route path="/start" element={<StartStep />} />
+      </Routes>
+      {/* <SignUp /> */}
     </>
   );
 }
