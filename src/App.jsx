@@ -8,6 +8,7 @@ import Footer from "./components/common/Footer.jsx";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import AuctionPage from "./Pages/auctionPage.jsx";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/auction" element={<AuctionPage/>} />
 
       </Routes>
 

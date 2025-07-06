@@ -3,6 +3,7 @@ import React from "react";
 import img from "../../assets/images/Frame.jpg";
 import users from "../../assets/images/profile-2user.png";
 import timer from "../../assets/images/timer.png";
+import { Link } from "react-router-dom";
 
 function MazadCard({ image, price, title, usersInMAzad ,time }) {
   return (
@@ -28,10 +29,12 @@ function MazadCard({ image, price, title, usersInMAzad ,time }) {
           </div>
 
         </div>
+        <Link to="/auction">
         <button className="btn w-full bg-[#4F5D75]  text-white mt-2 flex items-center justify-center">
           <h2 className=" mx-2">زايد الان</h2>
           <img src={img} />
         </button>
+        </Link>
       </div>
     </div>
   );

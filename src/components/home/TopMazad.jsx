@@ -15,7 +15,7 @@ function TopMazad() {
     { image: img, price: '3,500', title: 'ساعة ذكية' },
     { image: img, price: '3,500', title: 'ساعة ذكية' },
     { image: img, price: '3,500', title: 'ساعة ذكية' },
-    { image: img, price: '3,500', title: 'ساعة ذكية' }, // أضفت عنصر زيادة لتجريب السلايدر
+    { image: img, price: '3,500', title: 'ساعة ذكية' },
   ];
 
   const settings = {
