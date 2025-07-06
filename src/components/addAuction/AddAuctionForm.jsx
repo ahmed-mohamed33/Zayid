@@ -5,7 +5,7 @@ import DollarIcon from '../../assets/icons/dollar-circle.svg';
 import InformationIcon from '../../assets/icons/information.svg';
 import CalendarIcon from '../../assets/icons/calendar-2.svg';
 import LocationIcon from '../../assets/icons/location.svg';
-
+import CatigorySelector from './ProductCatigorySelector'
 
 function AddAuctionForm() {
   const [productName, setProductName] = useState('');
@@ -16,15 +16,14 @@ function AddAuctionForm() {
 
   const formStyle ={
     backgroundColor: '#ffffff',
-    padding: '52px 56px',
-    width: '73%',
+    padding: '24px',
     borderRadius: '24px'
   };
   
   return (
     <div style={formStyle}>
       <div style={{color: '#2d3142', fontSize: '28px', fontWeight: '700', marginBottom: '24px'}}>إضافة منتج للمزايدة</div>
-      <div style={{display:'flex', marginBottom: '24px'}}>
+      <div style={{display:'flex', marginBottom: '24px', gap: '8px'}}>
         <img src={InformationIcon} alt="info" width={24} height={24} />
         <div style={{color:'#fa6300'}}>كل البيانات مطلوبة</div>
       </div>
@@ -34,6 +33,7 @@ function AddAuctionForm() {
       value={productName}
       onChange={(e) => setProductName(e.target.value)}
       />
+      <CatigorySelector/>
       <InputField
         label="وصف المنتج"
         placeholder="اكتب وصف المنتج"
@@ -47,10 +47,11 @@ function AddAuctionForm() {
         // value={initialPrice}
         // onChange={(e) => setInitialPrice(e.target.value)}
       />
-      <div style={{display:'flex', marginBottom: '24px'}}>
+      <div style={{display:'flex', marginBottom: '24px', gap: '8px'}}>
         <img src={InformationIcon} alt="info" width={24} height={24} />
         <div style={{color:'#fa6300'}}>يجب ان تكون الصور واضحة وموافقة للوصف وإلا سيتم رفض المزاد</div>
       </div>
+
       <div style={{color: '#2d3142', fontSize: '24px', fontWeight: '700', marginBottom: '24px'}}>تفاصيل المزاد</div>
       <InputField
         label="السعر الابتدائي"
@@ -70,6 +71,14 @@ function AddAuctionForm() {
       />
       <InputField
         label="تاريخ ووقت البدء"
+        placeholder="يوم/ شهر/ سنة"
+        variant="icon"
+        icon={<img src={CalendarIcon} alt="CalendarIcon" width={24} height={24} />}
+        // value={initialPrice}
+        // onChange={(e) => setInitialPrice(e.target.value)}
+      />
+      <InputField
+        label="تاريخ ووقت الانتهاء"
         placeholder="يوم/ شهر/ سنة"
         variant="icon"
         icon={<img src={CalendarIcon} alt="CalendarIcon" width={24} height={24} />}
