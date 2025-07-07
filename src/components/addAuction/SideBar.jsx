@@ -4,28 +4,9 @@ import AuctionPreview from './AuctionPreview';
 
 export default function SideBar() {
   return (
-    <>
-      <style>
-        {`
-          .sidebar-container {
-            width: 30%;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-          }
-
-          @media (max-width: 768px) {
-            .sidebar-container {
-              width: 100%;
-            }
-          }
-        `}
-      </style>
-
-      <div className="sidebar-container">
-        <SideBarTips />
-        <AuctionPreview />
-      </div>
-    </>
+    <div className="flex flex-col gap-6 w-[30%] max-md:w-full">
+      <SideBarTips />
+      <AuctionPreview />
+    </div>
   );
 }

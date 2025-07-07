@@ -13,84 +13,52 @@ const categories = [
 
 export default function ProductCategorySelector() {
   return (
-    <>
-      <style>
-        {`
-          .category-container {
-            display: grid;
-            gap: 1rem;
-            grid-template-columns: repeat(2, 1fr);
-            margin: 2rem auto;
-            width: 100%;
-          }
-
-          .category-button {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            align-items: center;
-            padding: 12px 16px;
-            border: 1px solid #B9B9B9;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 18px;
-            width: 100%;
-          }
-
-          .category-button:hover {
-            border-color: #FA6300;
-
-          }
-
-          .category-button.selected {
-            border-color: #FA6300;
-            font-weight: bold;
-            color: #FA6300;
-          }
-          .category-button.selected .icon,
-          .category-button.selected .label {
-            color: #FA6300;
-          }
-
-          .icon {
-            font-size: 18px;
-            color: #2D3142;
-          }
-          
-          .label {
-            font-size: 18px;
-            font-weight: medium;
-            color: #2D3142;
-          }
-          
-
-          @media (min-width: 600px) {
-            .category-container {
-              grid-template-columns: repeat(3, 1fr);
-            }
-          }
-
-          @media (min-width: 900px) {
-            .category-container {
-              grid-template-columns: repeat(4, 1fr);
-            }
-          }
-        `}
-      </style>
-
-      <div > 
-        <div className="category-container">
-          {categories.map((cat, i) => (
-            <button
-              key={i}
-              className={`category-button ${cat.selected ? 'selected' : ''}`}
+    <div>
+      <div
+        className="
+          grid gap-2 grid-cols-2
+          w-full
+          my-8
+          sm:grid-cols-3
+          md:grid-cols-4
+          mx-auto
+        "
+      >
+        {categories.map((cat, i) => (
+          <button
+            key={i}
+            className={`
+              flex gap-2 justify-center items-center
+              px-4 py-3
+              border border-[#B9B9B9]
+              rounded-lg
+              cursor-pointer
+              text-[18px]
+              w-full
+              h-[56px]
+              hover:border-[#FA6300]
+              ${cat.selected ? 'border-[#FA6300] font-bold text-[#FA6300]' : ''}
+            `}
+          >
+            <span
+              className={`
+                text-[18px]
+                ${cat.selected ? 'text-[#FA6300]' : 'text-[#2D3142]'}
+              `}
             >
-              <span className="icon">{cat.icon}</span>
-              <span className="label">{cat.label}</span>
-            </button>
-          ))}
-        </div>
+              {cat.icon}
+            </span>
+            <span
+              className={`
+                text-[18px] font-medium
+                ${cat.selected ? 'text-[#FA6300]' : 'text-[#2D3142]'}
+              `}
+            >
+              {cat.label}
+            </span>
+          </button>
+        ))}
       </div>
-    </>
+    </div>
   );
 }

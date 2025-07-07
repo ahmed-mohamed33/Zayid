@@ -13,19 +13,12 @@ function AddAuctionForm() {
   const [initialPrice, setInitialPrice] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-
-  const formStyle ={
-    backgroundColor: '#ffffff',
-    padding: '24px',
-    borderRadius: '24px'
-  };
-  
   return (
-    <div style={formStyle}>
-      <div style={{color: '#2d3142', fontSize: '28px', fontWeight: '700', marginBottom: '24px'}}>إضافة منتج للمزايدة</div>
-      <div style={{display:'flex', marginBottom: '24px', gap: '8px'}}>
+    <div className="bg-white p-6 rounded-3xl">
+      <div className="text-[#2d3142] text-2xl font-bold mb-6">إضافة منتج للمزايدة</div>
+      <div className="flex mb-6 gap-2">
         <img src={InformationIcon} alt="info" width={24} height={24} />
-        <div style={{color:'#fa6300'}}>كل البيانات مطلوبة</div>
+        <div className="text-[#fa6300]">كل البيانات مطلوبة</div>
       </div>
       <InputField
       label="اسم المنتج"
@@ -47,12 +40,12 @@ function AddAuctionForm() {
         // value={initialPrice}
         // onChange={(e) => setInitialPrice(e.target.value)}
       />
-      <div style={{display:'flex', marginBottom: '24px', gap: '8px'}}>
+      <div className="flex mb-6 gap-2">
         <img src={InformationIcon} alt="info" width={24} height={24} />
-        <div style={{color:'#fa6300'}}>يجب ان تكون الصور واضحة وموافقة للوصف وإلا سيتم رفض المزاد</div>
+        <div className="text-[#fa6300]">يجب ان تكون الصور واضحة وموافقة للوصف وإلا سيتم رفض المزاد</div>
       </div>
 
-      <div style={{color: '#2d3142', fontSize: '24px', fontWeight: '700', marginBottom: '24px'}}>تفاصيل المزاد</div>
+      <div className="text-[#2d3142] text-xl font-bold mb-6">تفاصيل المزاد</div>
       <InputField
         label="السعر الابتدائي"
         placeholder="ادخل السعر الابتدائي"
@@ -108,26 +101,21 @@ function AddAuctionForm() {
         // value={initialPrice}
         // onChange={(e) => setInitialPrice(e.target.value)}
       />
-      <div style={{display:'flex', marginBottom: '24px'}}>
+      <div className="flex mb-6">
         <input
           type="checkbox"
           id="terms"
           checked={agreeTerms}
           onChange={(e) => setAgreeTerms(e.target.checked)}
-          style={{ marginLeft: '8px' }}
+          className="ml-2"
         />
-        <div style={{color:'#2d3142'}}> اوافق علي الشروط و الاحكام *</div>
+        <div className="text-[#2d3142]"> اوافق علي الشروط و الاحكام *</div>
       </div>
-      <button style={{
-        backgroundColor: '#FA6300', 
-        width: '100%', 
-        height: '48px', 
-        borderRadius:'8px', 
-        color:'#fff', 
-        fontSize:'18px', 
-        fontWeight:'700'}}>إضافة مزاد</button>
+      <button className="bg-[#FA6300] w-full h-12 rounded-lg text-white text-lg font-bold">
+        إضافة مزاد
+      </button>
     </div>
   )
 }
 
-export default AddAuctionForm
+export default AddAuctionForm;

@@ -12,66 +12,61 @@ function InputField({
   name,
   accept,
 }) {
-  const containerStyle = {
-    border: '1px solid #bfc0c0',
-    borderRadius: '8px',
-    display: 'flex',
-    flexDirection: variant === 'textarea' ? 'column' : 'row',
-    alignItems: variant === 'textarea' ? 'flex-start' : 'center',
-    padding: '0 16px',
-    height: variant === 'textarea' ? '112px' : '56px',
-    width: '100%',
-    marginBottom: '16px',
-    position: 'relative',
-    backgroundColor: '#fff',
-  };
+  const containerClass = `
+    border border-[#bfc0c0]
+    rounded-lg
+    flex
+    ${variant === 'textarea' ? 'flex-col items-start' : 'flex-row items-center'}
+    px-4
+    ${variant === 'textarea' ? 'h-[112px]' : 'h-[56px]'}
+    w-full
+    mb-4
+    relative
+    bg-white
+  `;
 
-  const inputStyle = {
-    border: 'none',
-    outline: 'none',
-    fontSize: '16px',
-    color: '#2D3142',
-    backgroundColor: 'transparent',
-    width: '100%',
-    height: '100%',
-    resize: variant === 'textarea' ? 'none' : 'none',
-    padding: variant === 'textarea' ? '12px 0' : '0',
-  };
+  const inputClass = `
+    border-none
+    outline-none
+    text-[16px]
+    text-[#2D3142]
+    bg-transparent
+    w-full
+    h-full
+    ${variant === 'textarea' ? 'resize-none py-3' : ''}
+  `;
 
-  const labelStyle = {
-    fontSize: '18px',
-    fontWeight: '400',
-    color: '#2d3142',
-    marginBottom: '4px',
-    display: 'block',
-  };
+  const labelClass = `
+    text-[18px]
+    font-normal
+    text-[#2d3142]
+    mb-1
+    block
+  `;
 
   if (variant === 'file') {
     return (
-      <div style={{ width: '100%', marginBottom: '16px' }}>
-        {label && <label style={labelStyle}>{label}</label>}
+      <div className="w-full mb-4">
+        {label && <label className={labelClass}>{label}</label>}
 
         <label
           htmlFor={name}
-          style={{
-            border: '1px dashed #BFC0C0',
-            borderRadius: '8px',
-            padding: '16px',
-            height: '112px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            textAlign: 'center',
-            color: '#6B6E74',
-            fontSize: '14px',
-          }}
+          className="
+            border border-dashed border-[#BFC0C0]
+            rounded-lg
+            p-4
+            h-[112px]
+            flex flex-col items-center justify-center
+            cursor-pointer
+            text-center
+            text-[#6B6E74]
+            text-[14px]
+          "
         >
           <img
             src={uploadIcon}
             alt="Upload"
-            style={{ width: '32px', height: '32px', marginBottom: '12px' }}
+            className="w-8 h-8 mb-3"
           />
           اسحب الملف هنا أو اضغط للتحميل
         </label>
@@ -82,11 +77,11 @@ function InputField({
           accept={accept}
           name={name}
           onChange={onChange}
-          style={{ display: 'none' }}
+          className="hidden"
         />
 
         {value && (
-          <p style={{ fontSize: '12px', color: '#4F5D75', marginTop: '8px' }}>
+          <p className="text-[12px] text-[#4F5D75] mt-2">
             تم اختيار: {value.name}
           </p>
         )}
@@ -95,12 +90,12 @@ function InputField({
   }
 
   return (
-    <div style={{ width: '100%' }}>
-      {label && <label style={labelStyle}>{label}</label>}
+    <div className="w-full">
+      {label && <label className={labelClass}>{label}</label>}
 
-      <div style={containerStyle}>
+      <div className={containerClass}>
         {variant === 'icon' && icon && (
-          <span style={{ marginLeft: '4px' }}>{icon}</span>
+          <span className="ml-1">{icon}</span>
         )}
 
         {variant === 'textarea' ? (
@@ -108,7 +103,7 @@ function InputField({
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            style={inputStyle}
+            className={inputClass}
           />
         ) : (
           <input
@@ -116,7 +111,7 @@ function InputField({
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            style={inputStyle}
+            className={inputClass}
           />
         )}
       </div>

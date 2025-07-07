@@ -1,57 +1,35 @@
 import React from 'react'
 import SparkleIcon from '../../assets/icons/sparkle.svg';
 
-const tipStyle ={
-  fontSize: '16px',
-  fontWeight: 'medium',
-  color: '#2D3142',
-}
-const iconStyle ={
-  color: '#4F5D75',
-  width: '16px',
-  height: '16px'
-}
-const lineStyle ={
-  display: 'flex',
-  gap: '4px',
-  justifyContent: 'right',
-  alignItems: 'center',
-}
+const tipStyle = "text-[16px] font-medium text-[#2D3142]";
+const iconStyle = "text-[#4F5D75] w-4 h-4";
+const lineStyle = "flex gap-1 justify-start items-center";
 
 export default function sideBarTips() {
 
   return (
-    <div style={{
-      backgroundColor: '#fff', 
-      borderRight: '4px solid #fa6300',
-      borderRadius: '16px',
-      padding: '24px',
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '20px',
-      }}>
+    <div className="bg-white border-r-4 border-[#fa6300] rounded-[16px] p-6 w-full flex flex-col gap-5">
       
-      <h3 style={{fontSize: '24px', fontWeight:'bold', color: '#2D3142'}}>نصائح لإنشاء مزاد ناجح</h3>
-      <div style={lineStyle}>
-        <img src={SparkleIcon} style={iconStyle}></img>
-        <div style={tipStyle}>استخدم صوراً واضحة وعالية الجودة للمنتج</div>
+      <h3 className="text-[24px] font-bold text-[#2D3142]">نصائح لإنشاء مزاد ناجح</h3>
+      <div className={lineStyle}>
+        <img src={SparkleIcon} className={iconStyle} />
+        <div className={tipStyle}>استخدم صوراً واضحة وعالية الجودة للمنتج</div>
       </div>
-      <div style={lineStyle}>
-        <img src={SparkleIcon} style={iconStyle}></img>
-        <div style={tipStyle}>قدم وصفاً تفصيلياً يشمل المواصفات والحالة</div>
+      <div className={lineStyle}>
+        <img src={SparkleIcon} className={iconStyle} />
+        <div className={tipStyle}>قدم وصفاً تفصيلياً يشمل المواصفات والحالة</div>
       </div>
-      <div style={lineStyle}>
-        <img src={SparkleIcon} style={iconStyle}></img>
-        <div style={tipStyle}>حدد سعراً ابتدائياً منطقياً لجذب المزايدين</div>
+      <div className={lineStyle}>
+        <img src={SparkleIcon} className={iconStyle} />
+        <div className={tipStyle}>حدد سعراً ابتدائياً منطقياً لجذب المزايدين</div>
       </div>
-      <div style={lineStyle}>
-        <img src={SparkleIcon} style={iconStyle}></img>
-        <div style={tipStyle}>اختر مدة مناسبة للمزاد (3-7 أيام مثالية)</div>
+      <div className={lineStyle}>
+        <img src={SparkleIcon} className={iconStyle} />
+        <div className={tipStyle}>اختر مدة مناسبة للمزاد (3-7 أيام مثالية)</div>
       </div>
-      <div style={lineStyle}>
-        <img src={SparkleIcon} style={iconStyle}></img>
-        <div style={tipStyle}>كن واضحاً بشأن سياسة الشحن والاسترجاع</div>
+      <div className={lineStyle}>
+        <img src={SparkleIcon} className={iconStyle} />
+        <div className={tipStyle}>كن واضحاً بشأن سياسة الشحن والاسترجاع</div>
       </div>
     </div>
   )
