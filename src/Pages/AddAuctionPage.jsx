@@ -4,31 +4,20 @@ import SideBar from '../components/addAuction/SideBar';
 
 function AddAuctionPage() {
   return (
-    <>
-      <style>
-        {`
-          .auction-page {
-            background-color: #f1f1f1;
-            padding: 40px 56px;
-            display: flex;
-            flex-direction: row;
-            gap: 24px;
-          }
+    <div
+      className="
+        bg-[#f1f1f1]
+        py-10 px-7
+        flex flex-row gap-[24px]
 
-          @media (max-width: 768px) {
-            .auction-page {
-              flex-direction: column;
-              padding: 24px;
-            }
-          }
-        `}
-      </style>
-
-      <div className="auction-page">
-        <AddAuctionForm />
-        <SideBar />
-      </div>
-    </>
+        max-md:flex-col
+        max-md:px-[24px]
+        max-md:py-[24px]
+      "
+    >
+      <AddAuctionForm />
+      <SideBar />
+    </div>
   );
 }
 

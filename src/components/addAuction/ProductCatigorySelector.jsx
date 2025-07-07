@@ -35,7 +35,6 @@ export default function ProductCategorySelector() {
               cursor-pointer
               text-[18px]
               w-full
-              h-[56px]
               hover:border-[#FA6300]
               ${cat.selected ? 'border-[#FA6300] font-bold text-[#FA6300]' : ''}
             `}
