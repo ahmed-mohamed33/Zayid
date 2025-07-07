@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import highestBid from '../../assets/icons/highestBid.svg';
-import calendar from '../../assets/icons/calendar.svg';
-import participants from '../../assets/icons/participants.svg';
-import noOfBids from '../../assets/icons/noOfBids.svg';
+import React, { useState, useEffect, useRef } from 'react';
+import highestBidIcon from '../../assets/icons/highestBid.svg';
+import calendarIcon from '../../assets/icons/calendar.svg';
+import participantsIcon from '../../assets/icons/participants.svg';
+import noOfBidsIcon from '../../assets/icons/noOfBids.svg';
 
 
 
 
 const BiddingChat = () => {
+  const [auctionTime, setAuctionTime] = useState('2 ايام و 4 ساعات');
+  const [highestBid, setHighestBid] = useState('2.500 ج.م');
+  const [noOfBids, setNoOfBids] = useState(12);
   const [bidAmount, setBidAmount] = useState('');
   const [bids, setBids] = useState([
     {
@@ -16,35 +19,40 @@ const BiddingChat = () => {
       amount: '2500',
       time: 'منذ دقيقة',
       avatar: 'م'}]);
-  const user = {isAdmin: false};
-
+  const user = {isAdmin: true};
+  const bidsContainerRef = useRef(null);
+  useEffect(() => {
+    if (bidsContainerRef.current) {
+      bidsContainerRef.current.scrollTop = bidsContainerRef.current.scrollHeight;
+    }
+  }, [bids]);
 
   const stats = [
     {
-      label: 'ينتهي خلال : 2 ايام و 4 ساعات',
+      label: `ينتهي خلال : ${auctionTime}`,
       icon: (
-        <img src={calendar} alt="calendar" className="w-5 h-5" />
+        <img src={calendarIcon} alt="calendar" className="w-5 h-5" />
       ),
       color: 'border-[#FA6300] bg-[rgba(250,99,0,0.1)] text-[#702D00]'
     },
     {
       label: 'عدد المشاركين : 12',
       icon: (
-        <img src={participants} alt="participants" className="w-5 h-5" />
+        <img src={participantsIcon} alt="participants" className="w-5 h-5" />
       ),
       color: 'border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]'
     },
     {
-      label: 'عدد المزايدات : 12',
+      label: `عدد المزايدات : ${noOfBids}`,
       icon: (
-        <img src={noOfBids} alt="noOfBids" className="w-4 h-4" />
+        <img src={noOfBidsIcon} alt="noOfBids" className="w-4 h-4" />
       ),
       color: 'border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]'
     },
     {
-      label: 'اعلي عرض : 2.500 ج.م',
+      label: `اعلي عرض : ${highestBid}`,
       icon: (
-        <img src={highestBid} alt="highestBid" className="w-6 h-6" />
+        <img src={highestBidIcon} alt="highestBid" className="w-6 h-6" />
       ),
       color: 'border-[#4CAF80] bg-[rgba(68,164,111,0.1)] text-[#2A6046]'
     },
@@ -53,21 +61,27 @@ const BiddingChat = () => {
   ];
 
   const handleBidSubmit = async ()  => {
-    if (bidAmount > 0 && bidAmount > bids[bids.length - 1].amount) {
+    if (Number(bidAmount) > 0 && Number(bidAmount) > Number(bids[bids.length - 1].amount)) {
       console.log('Bid submitted:', bidAmount);
       setBids([...bids, {
         id: bids.length + 1,
         user: 'مستخدم رقم #8421',
-        amount: bidAmount,
+        amount: Number(bidAmount),
         time: 'منذ دقيقة',
         avatar: bids.length %2 === 0 ? 'م' : 'س'
       }]);
 
-
+      setHighestBid(Number(bidAmount));
       setBidAmount('');
+      setNoOfBids(bids.length + 1);
     }else{
       alert('السعر المضاف أقل من أفضل سعر حالي');
     }
+  };
+
+  const handleEndAuction = () => {
+    setAuctionTime('انتهى');
+
   };
 
   return (
@@ -97,7 +111,7 @@ const BiddingChat = () => {
 
       {/* Bidding History */}
       <div className="bg-[#FCF6F6] rounded-lg p-6 mb-4">
-        <div className="space-y-1.5 max-h-[300px] overflow-y-auto ">
+        <div ref={bidsContainerRef} className="space-y-1.5 max-h-[300px] overflow-y-auto scroll-smooth">
           {bids.map((bid, index) => (
             <div
               key={bid.id}
@@ -152,7 +166,7 @@ const BiddingChat = () => {
       {/* end of bidding input */}
       {user.isAdmin && (
         <div className="flex justify-center items-center mt-4 w-full">
-        <button className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-4 py-3 rounded-lg transition-colors duration-200 w-[340px] justify-items-center">
+        <button onClick={handleEndAuction} className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-4 py-3 rounded-lg transition-colors duration-200 w-[340px] justify-items-center">
         انهاء المزاد
         </button> 
       </div>
