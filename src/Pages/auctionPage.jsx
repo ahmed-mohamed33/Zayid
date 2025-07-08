@@ -6,6 +6,7 @@ import ProductInspection from "../components/auction/productInspection";
 import CardsInfo from "../components/auction/CardsInfo";
 import PreviewOptions from "../components/auction/PreviewOptions";
 import Insurancepayment from "../components/auction/Insurancepayment";
+import BiddingChat from "../components/auction/BiddingChat";
 
 function AuctionPage() {
   const product = {
@@ -29,8 +30,9 @@ function AuctionPage() {
       <ProductDescription description={product.description} />
       <ProductInspection />
       <CardsInfo />
-      <PreviewOptions />
-      <Insurancepayment />
+      {/* <PreviewOptions /> */}
+      {/* <Insurancepayment /> */}
+      <BiddingChat /> 
     </div>
   );
 }
