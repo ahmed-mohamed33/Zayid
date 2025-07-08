@@ -1,5 +1,5 @@
 import React from 'react';
-import CardsInfo from './CardsInfo';
+// import CardsInfo from './CardsInfo';
 
 function ProductDetails({ product }) {
   return (
