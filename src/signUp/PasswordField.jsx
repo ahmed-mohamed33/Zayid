@@ -31,7 +31,7 @@ export default function PasswordField({ name, label, placeholder, showPassword, 
           className={styles.inputBase}
         />
         <div className={styles.inputIcon}>
-          <img src="src\assets\icons\lock.svg" alt="lock" className="input-icon" />
+          <img src="src\assets\icons\lock-register.svg" alt="lock" className="input-icon" />
         </div>
         <button
           type="button"

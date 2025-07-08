@@ -3,7 +3,7 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 import CustomFileUpload from "../signUp/CustomFileUpload";
 import InputField from "../signUp/InputField";
@@ -12,7 +12,7 @@ import DateField from "../signUp/DateField";
 import CompanyFields from "../signUp/CompanyFields";
 import { auth, db } from "../config/Firebase";
 
-// Form validation schema
+// Form validation schema 
 const validationSchema = Yup.object({
   fullName: Yup.string().required("الاسم مطلوب"),
   email: Yup.string().email("بريد إلكتروني غير صحيح").required("الإيميل مطلوب"),
@@ -103,6 +103,21 @@ export default function SignUp() {
     return isValid;
   };
 
+  // Move this function inside the component
+  const checkNationalIDAvailability = async (nationalID) => {
+    if (nationalID.length === 14) {
+      try {
+        const docRef = doc(db, "Users", nationalID);
+        const docSnap = await getDoc(docRef);
+        return !docSnap.exists();
+      } catch (error) {
+        console.error("Error checking national ID:", error);
+        return true; 
+      }
+    }
+    return true;
+  };
+
   // Handle form submission
   const handleSubmit = async (values) => {
     if (!validateForm()) return;
@@ -110,6 +125,16 @@ export default function SignUp() {
     try {
       setIsLoading(true);
       setError("");
+
+      // Check if national ID already exists
+      const nationalIDDocRef = doc(db, "Users", values.nationalID);
+      const nationalIDDoc = await getDoc(nationalIDDocRef);
+      
+      if (nationalIDDoc.exists()) {
+        setError("هذا الرقم القومي مسجل بالفعل في النظام");
+        setIsLoading(false); 
+        return;
+      }
 
       // Create user authentication
       const userCredential = await createUserWithEmailAndPassword(
@@ -137,7 +162,7 @@ export default function SignUp() {
       }
 
       // Store user data in Firestore
-      await setDoc(doc(db, "Users", userCredential.user.uid), userData);
+      await setDoc(doc(db, "Users", values.nationalID), userData);
 
       // Navigate to dashboard
       navigate("/");
@@ -305,12 +330,13 @@ export default function SignUp() {
         {/* Login Link */}
         <p className="mt-10 text-center text-sm/6">
           لديك حساب بالفعل؟
-          <a
-            href="#"
-            className="ms-0.5 font-semibold text-black hover:text-black"
+          <button
+            type="button"
+            onClick={() => navigate("/login")}
+            className="ms-0.5 font-semibold text-black hover:text-black hover:underline cursor-pointer"
           >
             سجل الدخول
-          </a>
+          </button>
         </p>
       </div>
     </div>
