@@ -1,0 +1,318 @@
+import React, { useState } from "react";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
+import { useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+
+import CustomFileUpload from "../signUp/CustomFileUpload";
+import InputField from "../signUp/InputField";
+import PasswordField from "../signUp/PasswordField";
+import DateField from "../signUp/DateField";
+import CompanyFields from "../signUp/CompanyFields";
+import { auth, db } from "../config/Firebase";
+
+// Form validation schema
+const validationSchema = Yup.object({
+  fullName: Yup.string().required("الاسم مطلوب"),
+  email: Yup.string().email("بريد إلكتروني غير صحيح").required("الإيميل مطلوب"),
+  phone: Yup.string()
+    .matches(/^01[0125][0-9]{8}$/, "رقم الهاتف غير صحيح")
+    .required("رقم الهاتف مطلوب"),
+  password: Yup.string().min(6, "كلمة المرور قصيرة").required("مطلوبة"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("password")], "كلمة المرور غير متطابقة")
+    .required("يرجى تأكيد كلمة المرور"),
+  birthDate: Yup.string().required("تاريخ الميلاد مطلوب"),
+  nationalID: Yup.string()
+    .matches(/^\d{14}$/, "الرقم القومي يجب أن يكون 14 رقمًا")
+    .required("الرقم القومي مطلوب"),
+});
+
+// Form initial values
+const initialValues = {
+  fullName: "",
+  email: "",
+  phone: "",
+  password: "",
+  confirmPassword: "",
+  birthDate: "",
+  nationalID: "",
+};
+
+export default function SignUp() {
+  const navigate = useNavigate();
+
+  // Form state
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+  const [checkboxError, setCheckboxError] = useState("");
+
+  // File upload state
+  const [idImageFile, setIdImageFile] = useState(null);
+  const [companyImageFile, setCompanyImageFile] = useState(null);
+  const [companyName, setCompanyName] = useState("");
+  const [companyImageError, setCompanyImageError] = useState("");
+
+  // Toggle password visibility
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
+
+  // Handle Firebase errors
+  const getFirebaseErrorMessage = (errorCode) => {
+    switch (errorCode) {
+      case "auth/email-already-in-use":
+        return "هذا البريد الإلكتروني مسجل بالفعل";
+      case "auth/invalid-email":
+        return "البريد الإلكتروني غير صالح";
+      case "auth/operation-not-allowed":
+        return "التسجيل بالبريد الإلكتروني غير مفعل";
+      case "auth/weak-password":
+        return "كلمة المرور ضعيفة جداً";
+      default:
+        return "حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى";
+    }
+  };
+
+  // Validate form before submission
+  const validateForm = () => {
+    let isValid = true;
+
+    if (!isChecked) {
+      setCheckboxError("يجب الموافقة على الشروط قبل المتابعة");
+      isValid = false;
+    } else {
+      setCheckboxError("");
+    }
+
+    if (companyName.trim() !== "" && !companyImageFile) {
+      setCompanyImageError("يرجى رفع صورة السجل التجاري");
+      isValid = false;
+    } else {
+      setCompanyImageError("");
+    }
+
+    if (!idImageFile) {
+      setError("يرجى رفع صورة الهوية الوطنية");
+      isValid = false;
+    } else {
+      setError("");
+    }
+
+    return isValid;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (values) => {
+    if (!validateForm()) return;
+
+    try {
+      setIsLoading(true);
+      setError("");
+
+      // Create user authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
+
+      // Prepare user data
+      const userData = {
+        fullName: values.fullName,
+        email: values.email,
+        phone: values.phone,
+        birthDate: values.birthDate,
+        nationalID: values.nationalID,
+        nationalIDImage: idImageFile,
+        createdAt: new Date().toISOString(),
+        userId: userCredential.user.uid,
+      };
+
+      // Add company data if provided
+      if (companyName.trim() !== "") {
+        userData.companyName = companyName;
+        userData.commercialRecordImage = companyImageFile;
+      }
+
+      // Store user data in Firestore
+      await setDoc(doc(db, "Users", userCredential.user.uid), userData);
+
+      // Navigate to dashboard
+      navigate("/");
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError(getFirebaseErrorMessage(error.code));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-auth">
+      <div className="w-full max-w-[794px] px-[56px] py-[52px] mx-auto bg-white rounded-md flex flex-col items-start">
+        {/* Header */}
+        <img
+          alt="logo-zayid"
+          src="src\assets\icons\logo-zayid.png"
+          className="size-logo"
+        />
+        <h3 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
+          إنشاء حساب جديد
+        </h3>
+        <p className="mt-6 font-normal text-[#5F626F]">
+          أنشئ حسابك للمشاركة في المزادات
+        </p>
+
+        {/* Info Notice */}
+        <div className="flex items-center mt-6">
+          <img
+            src="src\assets\icons\information.svg"
+            alt="information icon"
+            className="size-icon-info"
+          />
+          <p className="text-[#FA6300]">
+            كل البيانات المطلوبة يجب أن تطابق بطاقة الرقم القومي
+          </p>
+        </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="w-full mt-4 p-3 rounded bg-red-100 text-red-700">
+            {error}
+          </div>
+        )}
+
+        {/* Registration Form */}
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
+        >
+          <Form className="w-full space-y-6 mt-6">
+            {/* Personal Information */}
+            <InputField
+              name="fullName"
+              type="text"
+              label="الاسم الكامل"
+              placeholder="ادخل الاسم كاملا"
+              icon="src\assets\icons\profile.svg"
+              autoComplete="name"
+            />
+
+            <InputField
+              name="email"
+              type="email"
+              label="البريد الإلكتروني"
+              placeholder="ادخل البريد الالكتروني"
+              icon="src\assets\icons\sms.svg"
+              autoComplete="email"
+            />
+
+            <InputField
+              name="phone"
+              type="tel"
+              label="رقم الهاتف"
+              placeholder="ادخل رقم الهاتف"
+              icon="src\assets\icons\call.svg"
+              autoComplete="tel"
+            />
+
+            {/* Password Fields */}
+            <PasswordField
+              name="password"
+              label="كلمة المرور"
+              placeholder="ادخل كلمة المرور"
+              showPassword={showPassword}
+              toggleShowPassword={toggleShowPassword}
+            />
+
+            <PasswordField
+              name="confirmPassword"
+              label="تأكيد كلمة المرور"
+              placeholder="ادخل كلمة المرور مرة أخرى"
+              showPassword={showPassword}
+              toggleShowPassword={toggleShowPassword}
+            />
+
+            {/* Birth Date */}
+            <DateField name="birthDate" label="تاريخ الميلاد" />
+
+            {/* National ID */}
+            <InputField
+              name="nationalID"
+              type="text"
+              label="الرقم القومي"
+              placeholder="ادخل الرقم القومي"
+              icon="src\assets\icons\security-user.svg"
+            />
+
+            {/* ID Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                صورة بطاقة الرقم القومي
+              </label>
+              <CustomFileUpload
+                onImageSelect={setIdImageFile}
+                documentType="nationalId"
+              />
+            </div>
+
+            {/* Company Information */}
+            <CompanyFields
+              companyName={companyName}
+              setCompanyName={setCompanyName}
+              setCompanyImageFile={setCompanyImageFile}
+              companyImageError={companyImageError}
+            />
+
+            {/* Terms Agreement */}
+            <div className="mt-4 flex items-start gap-2">
+              <input
+                id="agreeTerms"
+                type="checkbox"
+                checked={isChecked}
+                onChange={(e) => setIsChecked(e.target.checked)}
+                className="mt-1"
+              />
+              <label htmlFor="agreeTerms" className="text-sm text-gray-700">
+                أوافق على الشروط والأحكام
+              </label>
+            </div>
+
+            {checkboxError && (
+              <p className="text-sm text-red-600 mt-1">{checkboxError}</p>
+            )}
+
+            {/* Submit Button */}
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`flex w-full justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold shadow-xs ${
+                  isLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-col-btn-prim hover:bg-[#cc5200]"
+                }`}
+              >
+                {isLoading ? "جاري التسجيل..." : "إنشاء حساب"}
+              </button>
+            </div>
+          </Form>
+        </Formik>
+
+        {/* Login Link */}
+        <p className="mt-10 text-center text-sm/6">
+          لديك حساب بالفعل؟
+          <a
+            href="#"
+            className="ms-0.5 font-semibold text-black hover:text-black"
+          >
+            سجل الدخول
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+}
