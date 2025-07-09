@@ -9,6 +9,9 @@ import HomePage from "./Pages/HomePage";
 
 import RegisterPage from "./Pages/RegisterPage";
 import Payment from "./Pages/Payment.jsx";
+import Login from "./Pages/Login.jsx";
+import Products from "./Pages/products.jsx";
+import Forget from "./Pages/forget.jsx";
 
 import AuctionPage from "./Pages/Auctionpage.jsx";
 import AuctionsFireBaseTest from "./Pages/AuctionsFireBaseTest.jsx";
@@ -26,12 +29,23 @@ function App() {
 
         <Routes>
           <Route path="/" element={<HomePage />} />
-         
+
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/forgetpass" element={<Forget />} />
+
           <Route path="/payment" element={<Payment />} />
           <Route path="/auction" element={<AuctionPage />} />
-          <Route path="/auctionsFireBaseTest" element={<AuctionsFireBaseTest />} />
-          <Route path="/loginFireBaseTest" element={<LoginPageFireBaseTest />} />
+
+          <Route
+            path="/auctionsFireBaseTest"
+            element={<AuctionsFireBaseTest />}
+          />
+          <Route
+            path="/loginFireBaseTest"
+            element={<LoginPageFireBaseTest />}
+          />
           <Route path="/selectCategory" element={<SelectCategoryPage />} />
           <Route path="/signUp" element={<SignUp />} />
           <Route path="/stepOverview" element={<StepOverview />} />
