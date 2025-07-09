@@ -5,6 +5,7 @@ import Sidebar from "../components/Mazadat/Sidebar";
 import MazadCard from "../components/common/MazadCard";
 import smartWatch from "../assets/images/smartWatch.png";
 
+
 const products = [
   {
     image: smartWatch,
@@ -81,7 +82,7 @@ const products = [
 
 const PRODUCTS_PER_PAGE = 6;
 
-const HomePage = () => {
+const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
 
@@ -189,4 +190,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default Products;

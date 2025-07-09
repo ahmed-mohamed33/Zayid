@@ -40,7 +40,7 @@ const Sidebar = () => {
             key={cat.label}
             type="button"
             onClick={() => setActiveCategory(idx)}
-            className={`flex flex-row-reverse items-center justify-between rounded-lg px-4 py-2 text-sm font-medium transition-colors w-full text-right ${
+            className={`flex flex-row-reverse items-center justify-end rounded-lg px-4 py-2 text-sm font-medium transition-colors w-full text-right ${
               activeCategory === idx
                 ? 'bg-[#5F626F] text-white '
                 : 'bg-[#F3F4F6] text-[#2D3142] hover:bg-[#E5E7EB]'
