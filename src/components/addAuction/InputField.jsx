@@ -11,16 +11,17 @@ function InputField({
   icon,
   name,
   accept,
+  error, // ✅ أضفناها
 }) {
   const containerClass = `
-    border border-[#bfc0c0]
+    border ${error ? 'border-red-500' : 'border-[#bfc0c0]'}
     rounded-lg
     flex
     ${variant === 'textarea' ? 'flex-col items-start' : 'flex-row items-center'}
     px-4
     ${variant === 'textarea' ? 'h-[112px]' : 'h-[56px]'}
     w-full
-    mb-4
+    mb-1
     relative
     bg-white
   `;
@@ -51,8 +52,8 @@ function InputField({
 
         <label
           htmlFor={name}
-          className="
-            border border-dashed border-[#BFC0C0]
+          className={`
+            border ${error ? 'border-red-500' : 'border-dashed border-[#BFC0C0]'}
             rounded-lg
             p-4
             h-[112px]
@@ -61,13 +62,9 @@ function InputField({
             text-center
             text-[#6B6E74]
             text-[14px]
-          "
+          `}
         >
-          <img
-            src={uploadIcon}
-            alt="Upload"
-            className="w-8 h-8 mb-3"
-          />
+          <img src={uploadIcon} alt="Upload" className="w-8 h-8 mb-3" />
           اسحب الملف هنا أو اضغط للتحميل
         </label>
 
@@ -85,12 +82,14 @@ function InputField({
             تم اختيار: {value.name}
           </p>
         )}
+
+        {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
       </div>
     );
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full mb-4">
       {label && <label className={labelClass}>{label}</label>}
 
       <div className={containerClass}>
@@ -115,6 +114,8 @@ function InputField({
           />
         )}
       </div>
+
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
   );
 }

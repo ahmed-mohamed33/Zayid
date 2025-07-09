@@ -1,7 +1,17 @@
-import { FaGem, FaPaintBrush, FaLaptop, FaHome, FaCouch, FaCar, FaWrench, FaTh } from 'react-icons/fa';
+import React, { useState } from 'react';
+import {
+  FaGem,
+  FaPaintBrush,
+  FaLaptop,
+  FaHome,
+  FaCouch,
+  FaCar,
+  FaWrench,
+  FaTh,
+} from 'react-icons/fa';
 
 const categories = [
-  { label: "عقارات وأراضي", icon: <FaHome />, selected: true },
+  { label: "عقارات وأراضي", icon: <FaHome /> },
   { label: "إلكترونيات", icon: <FaLaptop /> },
   { label: "تحف وأعمال فنية", icon: <FaPaintBrush /> },
   { label: "مجوهرات", icon: <FaGem /> },
@@ -11,7 +21,7 @@ const categories = [
   { label: "أخرى", icon: <FaTh /> },
 ];
 
-export default function ProductCategorySelector() {
+export default function ProductCategorySelector({ selectedCategory, setSelectedCategory, error }) {
   return (
     <div>
       <div
@@ -24,40 +34,40 @@ export default function ProductCategorySelector() {
           mx-auto
         "
       >
-        {categories.map((cat, i) => (
-          <button
-            key={i}
-            className={`
-              flex gap-2 justify-center items-center
-              px-4 py-3
-              border border-[#B9B9B9]
-              rounded-lg
-              cursor-pointer
-              text-[18px]
-              w-full
-              hover:border-[#FA6300]
-              ${cat.selected ? 'border-[#FA6300] font-bold text-[#FA6300]' : ''}
-            `}
-          >
-            <span
+        {categories.map((cat, i) => {
+          const isSelected = selectedCategory === cat.label;
+
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setSelectedCategory(cat.label)}
               className={`
-                text-[18px]
-                ${cat.selected ? 'text-[#FA6300]' : 'text-[#2D3142]'}
-              `}
-            >
-              {cat.icon}
-            </span>
-            <span
-              className={`
+                flex gap-2 justify-center items-center
+                px-4 py-3
+                border rounded-lg w-full
                 text-[18px] font-medium
-                ${cat.selected ? 'text-[#FA6300]' : 'text-[#2D3142]'}
+                cursor-pointer
+                transition
+                hover:border-[#FA6300]
+                ${isSelected
+                  ? 'border-[#FA6300] text-[#FA6300] font-bold'
+                  : 'border-[#B9B9B9] text-[#2D3142]'
+                }
               `}
             >
-              {cat.label}
-            </span>
-          </button>
-        ))}
+              <span className={isSelected ? 'text-[#FA6300]' : 'text-[#2D3142]'}>
+                {cat.icon}
+              </span>
+              <span>{cat.label}</span>
+            </button>
+          );
+        })}
       </div>
+
+      {/* ✅ عرض رسالة الخطأ لو فيه */}
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
   );
 }
+
