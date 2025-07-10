@@ -11,7 +11,7 @@ function InputField({
   icon,
   name,
   accept,
-  error, // ✅ أضفناها
+  error, 
 }) {
   const containerClass = `
     border ${error ? 'border-red-500' : 'border-[#bfc0c0]'}
@@ -73,15 +73,18 @@ function InputField({
           type="file"
           accept={accept}
           name={name}
+          multiple 
           onChange={onChange}
           className="hidden"
         />
 
-        {value && (
-          <p className="text-[12px] text-[#4F5D75] mt-2">
-            تم اختيار: {value.name}
-          </p>
-        )}
+      {value && value.length > 0 && (
+        <ul className="text-[12px] text-[#4F5D75] mt-2 list-disc list-inside">
+          {Array.from(value).map((file, i) => (
+            <li key={i}>{file.name}</li>
+          ))}
+        </ul>
+      )}
 
         {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
       </div>

@@ -65,7 +65,6 @@ export default function ProductCategorySelector({ selectedCategory, setSelectedC
         })}
       </div>
 
-      {/* ✅ عرض رسالة الخطأ لو فيه */}
       {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
   );

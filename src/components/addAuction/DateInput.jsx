@@ -5,14 +5,15 @@ function DateInputField({ label, value, onChange, error }) {
   return (
     <div className="relative w-full mb-4">
       <style>{`
-        input[type="date"]::-webkit-calendar-picker-indicator {
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
           opacity: 0;
           display: none;
         }
-        input[type="date"]::-moz-calendar-picker-indicator {
+        input[type="datetime-local"]::-moz-calendar-picker-indicator {
           display: none;
         }
       `}</style>
+
 
       {label && (
         <label className="text-[18px] font-normal text-[#2d3142] mb-1 block">
@@ -22,7 +23,7 @@ function DateInputField({ label, value, onChange, error }) {
 
       <div className="relative">
         <input
-          type="date"
+          type="datetime-local"
           value={value}
           onChange={onChange}
           className={`w-full h-[56px] pr-12 pl-4 rounded-lg border ${

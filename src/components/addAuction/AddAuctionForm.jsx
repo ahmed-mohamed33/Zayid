@@ -20,7 +20,7 @@ function AddAuctionForm() {
   const [inspectionDate, setInspectionDate] = useState('');
   const [termsText, setTermsText] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [images, setImages] = useState(null);
+  const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
   const [category, setCategory] = useState('');
 
@@ -34,13 +34,15 @@ function AddAuctionForm() {
     if (!inspectionDate.trim()) newErrors.inspectionDate = 'هذا الحقل مطلوب';
     if (!termsText.trim()) newErrors.termsText = 'هذا الحقل مطلوب';
     if (!agreeTerms) newErrors.terms = 'يجب الموافقة على الشروط';
-    if (!images) newErrors.images = 'هذا الحقل مطلوب';
+    if (!images || images.length === 0) newErrors.images = 'هذا الحقل مطلوب';
     if (!category.trim()) newErrors.category = 'يجب اختيار تصنيف المنتج';
-
+    if (!initialPrice.trim()) newErrors.initialPrice = 'هذا الحقل مطلوب';
+    if (!minIncrement.trim()) newErrors.minIncrement = 'هذا الحقل مطلوب';
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
+      console.log('hello');
       /////////////لو مفيش ايرورز يبعت للفاير بيز
     }
   };
@@ -69,9 +71,15 @@ function AddAuctionForm() {
 
       <ProductCategorySelector
         selectedCategory={category}
-        setSelectedCategory={setCategory}
+        setSelectedCategory={(val) => {
+          setCategory(val);
+          if (errors.category && val.trim()) {
+            setErrors(prev => ({ ...prev, category: null }));
+          }
+        }}
         error={errors.category}
       />
+
 
 
       <InputField
@@ -94,12 +102,13 @@ function AddAuctionForm() {
         name="productImage"
         value={images}
         onChange={(e) => {
-          const file = e.target.files?.[0];
-          setImages(file);
-          if (errors.images && file) {
+          const files = e.target.files;
+          setImages(files);
+          if (errors.images && files.length > 0) {
             setErrors(prev => ({ ...prev, images: null }));
           }
         }}
+
         error={errors.images}
       />
 
