@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import Nav from "../components/common/Nav";
-import Footer from "../components/common/Footer";
 import Sidebar from "../components/Mazadat/Sidebar";
 import MazadCard from "../components/common/MazadCard";
 import smartWatch from "../assets/images/smartWatch.png";
@@ -48,7 +46,7 @@ const products = [
     usersInMAzad: 8,
     time: 5,
   },
-  // Add more products for pagination demo
+
   {
     image: smartWatch,
     price: "3,500 جنيه",
@@ -96,7 +94,7 @@ const Products = () => {
     }
   };
 
-  // Pagination UI logic for ellipsis
+
   const renderPagination = () => {
     let pages = [];
     if (totalPages <= 5) {
@@ -168,7 +166,7 @@ const Products = () => {
 
   return (
     <div className="bg-[#F6F6F6] min-h-screen flex flex-col">
-      <Nav />
+
       <main className="container mx-auto flex flex-row flex-1 gap-6 py-12 px-7">
         {/* Sidebar */}
         <section className="flex-1 flex flex-col gap-8">
@@ -212,7 +210,7 @@ const Products = () => {
           </div>
         </section>
       </main>
-      <Footer />
+                
     </div>
   );
 };

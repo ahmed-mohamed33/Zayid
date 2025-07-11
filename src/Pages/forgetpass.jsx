@@ -1,5 +1,5 @@
 import React from 'react'
-import SmsIcon from '../assets/svg/sms.svg';
+import SmsIcon from '../assets/icons/sms.svg';
 import Logo from '../assets/images/Logo.png';
 import { useFormik } from 'formik';
 
@@ -7,7 +7,7 @@ import { useFormik } from 'formik';
 
 
 
-export default function Forget() {
+export default function Forgetpass() {
 
     const validate = values => {
     const errors = {};
@@ -26,7 +26,7 @@ export default function Forget() {
         },
         validate,
         onSubmit: values => {
-          // Handle login
+          // Handle forget password
           alert(JSON.stringify(values, null, 2));
         },
       });
@@ -40,8 +40,8 @@ export default function Forget() {
           </div>
           {/* Heading */}
           <div className="flex flex-col items-start w-full">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">تسجيل الدخول</h2>
-            <p className="text-gray-500 mb-8 text-center">قم بتسجيل الدخول للوصول إلى حسابك</p>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">استرجاع كلمة المرور</h2>
+            <p className="text-gray-500 mb-8 text-center">ادخل البريد الالكتروني المرتبط بحسابك لاسترجاع كلمة المرور</p>
           </div>
           {/* Email Input */}
           <div className="w-full mb-2">
@@ -73,3 +73,4 @@ export default function Forget() {
     </div>
   )
 }
+

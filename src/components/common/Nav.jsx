@@ -1,10 +1,11 @@
 import React from 'react';
 import LogoImg from '../../assets/images/Logo.webp';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ulStyle = "link link-hover mx-2.5 text-gray-700 hover:text-[#FA6300] transition-colors duration-200";
 
 function Nav() {
+  const navigate = useNavigate();
   return (
     <div className="Navbar flex items-center py-3 px-7 bg-[#F1F1F1] justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] z-10 sticky top-0 w-full">
       <div className="rightSide flex items-center">
@@ -19,7 +20,7 @@ function Nav() {
         </ul>
       </div>
       <div className="leftSide">
-        <button className="btn bg-[#FA6300] text-white ">تسجيل دخول</button>
+        <button className="btn bg-[#FA6300] text-white  " onClick={() => navigate('/login')}>تسجيل دخول</button>
       </div>
     </div>
   );

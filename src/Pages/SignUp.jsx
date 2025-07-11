@@ -1,33 +1,15 @@
 import React, { useState } from "react";
 import { Formik, Form } from "formik";
-import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-
+import { getDatabase, ref, set, get, child } from "firebase/database";
 import CustomFileUpload from "../signUp/CustomFileUpload";
 import InputField from "../signUp/InputField";
 import PasswordField from "../signUp/PasswordField";
 import DateField from "../signUp/DateField";
 import CompanyFields from "../signUp/CompanyFields";
-import { auth, db } from "../config/Firebase";
-
-// Form validation schema 
-const validationSchema = Yup.object({
-  fullName: Yup.string().required("الاسم مطلوب"),
-  email: Yup.string().email("بريد إلكتروني غير صحيح").required("الإيميل مطلوب"),
-  phone: Yup.string()
-    .matches(/^01[0125][0-9]{8}$/, "رقم الهاتف غير صحيح")
-    .required("رقم الهاتف مطلوب"),
-  password: Yup.string().min(6, "كلمة المرور قصيرة").required("مطلوبة"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password")], "كلمة المرور غير متطابقة")
-    .required("يرجى تأكيد كلمة المرور"),
-  birthDate: Yup.string().required("تاريخ الميلاد مطلوب"),
-  nationalID: Yup.string()
-    .matches(/^\d{14}$/, "الرقم القومي يجب أن يكون 14 رقمًا")
-    .required("الرقم القومي مطلوب"),
-});
+import { auth } from "../config/Firebase";
+import { signupValidationSchema } from "../utils/validationSchemas";
 
 // Form initial values
 const initialValues = {
@@ -56,10 +38,8 @@ export default function SignUp() {
   const [companyName, setCompanyName] = useState("");
   const [companyImageError, setCompanyImageError] = useState("");
 
-  // Toggle password visibility
   const toggleShowPassword = () => setShowPassword((prev) => !prev);
 
-  // Handle Firebase errors
   const getFirebaseErrorMessage = (errorCode) => {
     switch (errorCode) {
       case "auth/email-already-in-use":
@@ -75,7 +55,6 @@ export default function SignUp() {
     }
   };
 
-  // Validate form before submission
   const validateForm = () => {
     let isValid = true;
 
@@ -103,22 +82,6 @@ export default function SignUp() {
     return isValid;
   };
 
-  // Move this function inside the component
-  const checkNationalIDAvailability = async (nationalID) => {
-    if (nationalID.length === 14) {
-      try {
-        const docRef = doc(db, "Users", nationalID);
-        const docSnap = await getDoc(docRef);
-        return !docSnap.exists();
-      } catch (error) {
-        console.error("Error checking national ID:", error);
-        return true; 
-      }
-    }
-    return true;
-  };
-
-  // Handle form submission
   const handleSubmit = async (values) => {
     if (!validateForm()) return;
 
@@ -126,24 +89,22 @@ export default function SignUp() {
       setIsLoading(true);
       setError("");
 
-      // Check if national ID already exists
-      const nationalIDDocRef = doc(db, "Users", values.nationalID);
-      const nationalIDDoc = await getDoc(nationalIDDocRef);
-      
-      if (nationalIDDoc.exists()) {
+      const dbRef = ref(getDatabase());
+      const nationalIDSnapshot = await get(
+        child(dbRef, `users/${values.nationalID}`)
+      );
+      if (nationalIDSnapshot.exists()) {
         setError("هذا الرقم القومي مسجل بالفعل في النظام");
-        setIsLoading(false); 
+        setIsLoading(false);
         return;
       }
 
-      // Create user authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         values.email,
         values.password
       );
 
-      // Prepare user data
       const userData = {
         fullName: values.fullName,
         email: values.email,
@@ -152,19 +113,22 @@ export default function SignUp() {
         nationalID: values.nationalID,
         nationalIDImage: idImageFile,
         createdAt: new Date().toISOString(),
+        isVerified: false,
+        isAdmin: false,
+        isCompany: false,
+        isActive: true,
         userId: userCredential.user.uid,
       };
 
-      // Add company data if provided
       if (companyName.trim() !== "") {
+        userData.isCompany = true;
         userData.companyName = companyName;
         userData.commercialRecordImage = companyImageFile;
       }
 
-      // Store user data in Firestore
-      await setDoc(doc(db, "Users", values.nationalID), userData);
+      const db = getDatabase();
+      await set(ref(db, `users/${values.nationalID}`), userData);
 
-      // Navigate to dashboard
       navigate("/");
     } catch (error) {
       console.error("Registration error:", error);
@@ -212,7 +176,7 @@ export default function SignUp() {
         {/* Registration Form */}
         <Formik
           initialValues={initialValues}
-          validationSchema={validationSchema}
+          validationSchema={signupValidationSchema}
           onSubmit={handleSubmit}
         >
           <Form className="w-full space-y-6 mt-6">
@@ -317,7 +281,7 @@ export default function SignUp() {
                 disabled={isLoading}
                 className={`flex w-full justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold shadow-xs ${
                   isLoading
-                    ? "bg-gray-400 cursor-not-allowed"
+                    ? "bg-slate-500 cursor-not-allowed text-white"
                     : "bg-col-btn-prim hover:bg-[#cc5200]"
                 }`}
               >
