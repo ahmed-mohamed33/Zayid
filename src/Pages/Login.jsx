@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Logo from '../assets/images/Logo.png';
 import logbg from '../assets/images/logbg.png';
 import SmsIcon from '../assets/icons/sms.svg';
@@ -7,13 +7,14 @@ import EyeIcon from '../assets/icons/eye.svg';
 import EyeOffIcon from '../assets/icons/eye-off.svg';
 import { useFormik } from 'formik';
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../utils/firebaseUtils';
+import { UserContext } from '../context/UserContext';
 import { loginValidationSchema } from '../utils/validationSchemas';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const navigate = useNavigate();
+  const { login } = useContext(UserContext);
 
   const formik = useFormik({
     initialValues: {
@@ -24,15 +25,10 @@ export default function Login() {
     onSubmit: async (values) => {
       try {
         setLoginError('');
-        const result = await loginUser(values.email, values.password);
-        
-        if (result.success) {
-      navigate('/');
-        } else {
-          setLoginError('خطأ في البريد الإلكتروني أو كلمة المرور');
-        }
+        await login(values.email, values.password);
+        navigate('/');
       } catch (error) {
-        setLoginError('حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.');
+        setLoginError('خطأ في البريد الإلكتروني أو كلمة المرور');
       }
     },
   });
@@ -105,7 +101,7 @@ export default function Login() {
                 onClick={() => setShowPassword((prev) => !prev)}
                 tabIndex={-1}
               >
-                <img src={showPassword ? EyeIcon : EyeOffIcon } alt="show/hide password" className="w-5 h-5" />
+                <img src={showPassword ? EyeIcon : EyeOffIcon} alt="show/hide password" className="w-5 h-5" />
               </button>
             </div>
             {formik.touched.password && formik.errors.password ? (

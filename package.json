@@ -25,6 +25,7 @@
     "slick-carousel": "^1.8.1",
     "swiper": "^11.2.10",
     "tailwindcss": "^4.1.11",
+    "uuid": "^11.1.0",
     "yup": "^1.6.1"
   },
   "devDependencies": {

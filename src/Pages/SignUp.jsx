@@ -1,14 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Formik, Form } from "formik";
 import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { getDatabase, ref, set, get, child } from "firebase/database";
+import { UserContext } from "../context/UserContext";
 import CustomFileUpload from "../signUp/CustomFileUpload";
 import InputField from "../signUp/InputField";
 import PasswordField from "../signUp/PasswordField";
 import DateField from "../signUp/DateField";
 import CompanyFields from "../signUp/CompanyFields";
-import { auth } from "../config/Firebase";
 import { signupValidationSchema } from "../utils/validationSchemas";
 
 // Form initial values
@@ -24,6 +22,7 @@ const initialValues = {
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const { register } = useContext(UserContext);
 
   // Form state
   const [error, setError] = useState("");
@@ -89,47 +88,8 @@ export default function SignUp() {
       setIsLoading(true);
       setError("");
 
-      const dbRef = ref(getDatabase());
-      const nationalIDSnapshot = await get(
-        child(dbRef, `users/${values.nationalID}`)
-      );
-      if (nationalIDSnapshot.exists()) {
-        setError("هذا الرقم القومي مسجل بالفعل في النظام");
-        setIsLoading(false);
-        return;
-      }
-
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        values.email,
-        values.password
-      );
-
-      const userData = {
-        fullName: values.fullName,
-        email: values.email,
-        phone: values.phone,
-        birthDate: values.birthDate,
-        nationalID: values.nationalID,
-        nationalIDImage: idImageFile,
-        createdAt: new Date().toISOString(),
-        isVerified: false,
-        isAdmin: false,
-        isCompany: false,
-        isActive: true,
-        userId: userCredential.user.uid,
-      };
-
-      if (companyName.trim() !== "") {
-        userData.isCompany = true;
-        userData.companyName = companyName;
-        userData.commercialRecordImage = companyImageFile;
-      }
-
-      const db = getDatabase();
-      await set(ref(db, `users/${values.nationalID}`), userData);
-
-      navigate("/");
+      await register(values, idImageFile, companyName, companyImageFile);
+      navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);
       setError(getFirebaseErrorMessage(error.code));

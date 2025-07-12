@@ -20,12 +20,18 @@ import SignUp from "./Pages/SignUp.jsx";
 import StepOverview from "./Pages/StepOverview.jsx";
 import StartStep from "./Pages/Start.jsx";
 import AddAuctionPage from "./Pages/AddAuctionPage.jsx";
+//to show schema
+import AllDataComponent from "./UsserSchema.jsx";
+import { UserProvider } from '../src/context/UserContext.jsx';
+
 
 function App() {
   return (
     <div dir="rtl">
+      <UserProvider>
       <Router>
         <Navbar />
+        <AllDataComponent/>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -33,7 +39,7 @@ function App() {
           <Route path="/products" element={<Products />} />
           <Route path="/forgetpass" element={<Forgetpass />} />
           <Route path="/payment" element={<Payment />} />
-          <Route path="/auction" element={<AuctionPage />} />
+          <Route path="/auction/:auctionId" element={<AuctionPage />} />
           <Route path="/auctionsFireBaseTest" element={<AuctionsFireBaseTest />}/>
           <Route path="/loginFireBaseTest" element={<LoginPageFireBaseTest />}/>
           <Route path="/selectCategory" element={<SelectCategoryPage />} />
@@ -44,6 +50,7 @@ function App() {
         </Routes>
         <Footer />
       </Router>
+      </UserProvider>
     </div>
   );
 }

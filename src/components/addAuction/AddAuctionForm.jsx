@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import InputField from "./InputField";
 import DollarIcon from "../../assets/icons/dollar-circle.svg";
@@ -6,11 +6,11 @@ import InformationIcon from "../../assets/icons/information.svg";
 import LocationIcon from "../../assets/icons/location.svg";
 import ProductCategorySelector from "./ProductCatigorySelector";
 import DateInputField from "./DateInput";
-import { createAuction } from "../../utils/firebaseUtils";
-import { uploadMultipleImages } from "../../utils/cloudinaryUtils";
+import { UserContext } from "../../context/UserContext";
 
 function AddAuctionForm() {
   const navigate = useNavigate();
+  const { user, isAuthenticated, createAuction } = useContext(UserContext);
   const [productName, setProductName] = useState("");
   const [productDesc, setProductDesc] = useState("");
   const [initialPrice, setInitialPrice] = useState("");
@@ -42,7 +42,7 @@ function AddAuctionForm() {
   const handleSubmit = async () => {
     const newErrors = {};
 
-    //  validation
+    // Validation
     if (!productName.trim()) newErrors.productName = "هذا الحقل مطلوب";
     if (!productDesc.trim()) newErrors.productDesc = "هذا الحقل مطلوب";
     if (!location.trim()) newErrors.location = "هذا الحقل مطلوب";
@@ -103,58 +103,30 @@ function AddAuctionForm() {
         setIsSubmitting(true);
         setUploadProgress(10);
 
-        console.log("Starting image upload process...", {
-          numberOfImages: images.length,
-        });
         const imageFiles = images.map((img) => img.file);
-        const uploadResult = await uploadMultipleImages(imageFiles);
-
-        if (!uploadResult.success) {
-          console.error("Image upload failed:", uploadResult.error);
-          throw new Error(uploadResult.error || "فشل في رفع الصور");
-        }
-
-        setUploadProgress(50);
-        console.log("Images uploaded successfully, creating auction data...");
-
-        const startDateTime = new Date(startDate);
-        const endDateTime = new Date(endDate);
-        const inspectionDateTime = new Date(inspectionDate);
-
         const auctionData = {
           title: productName,
           description: productDesc,
           categoryId: category,
-          imageUrls: uploadResult.urls,
           startPrice: Number(initialPrice),
           minIncrement: Number(minIncrement),
-          startDate: startDateTime.toISOString(),
-          endDate: endDateTime.toISOString(),
+          startDate: new Date(startDate).toISOString(), 
+          endDate: new Date(endDate).toISOString(),
           inspection: {
             place: location,
-            inspectionDate: inspectionDateTime.toISOString(),
+            inspectionDate: new Date(inspectionDate).toISOString(),
           },
           terms: {
             details: termsText,
-            price: 100, // Fixed terms price
+            price: 100,
           },
         };
 
-        setUploadProgress(75);
-        console.log("Creating auction with data:", auctionData);
+        await createAuction(auctionData, imageFiles);
 
-        const result = await createAuction(auctionData);
-
-        if (result.success) {
-          setUploadProgress(100);
-          console.log("Auction created successfully:", result);
-          navigate(`/auctions/${result.auctionId}`);
-        } else {
-          console.error("Failed to create auction:", result.error);
-          setErrors({ submit: result.error || "فشل في إنشاء المزاد" });
-        }
+        setUploadProgress(100);
+        navigate(`/auctions/${auctionData.id || 'new'}`);
       } catch (error) {
-        console.error("Form submission error:", error);
         setErrors({
           submit:
             error.message ||
