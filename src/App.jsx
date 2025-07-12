@@ -19,7 +19,7 @@ import SelectCategoryPage from "./Pages/SelectCategoryPage.jsx";
 import SignUp from "./Pages/SignUp.jsx";
 import StepOverview from "./Pages/StepOverview.jsx";
 import StartStep from "./Pages/Start.jsx";
-
+import AddAuctionPage from "./Pages/AddAuctionPage.jsx";
 
 function App() {
   return (
@@ -40,6 +40,7 @@ function App() {
           <Route path="/signUp" element={<SignUp />} />
           <Route path="/stepOverview" element={<StepOverview />} />
           <Route path="/start" element={<StartStep />} />
+          <Route path="/addAuction" element={<AddAuctionPage />} />
         </Routes>
         <Footer />
       </Router>

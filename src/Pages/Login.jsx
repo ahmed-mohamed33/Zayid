@@ -27,7 +27,7 @@ export default function Login() {
         const result = await loginUser(values.email, values.password);
         
         if (result.success) {
-          navigate('/');
+      navigate('/');
         } else {
           setLoginError('خطأ في البريد الإلكتروني أو كلمة المرور');
         }

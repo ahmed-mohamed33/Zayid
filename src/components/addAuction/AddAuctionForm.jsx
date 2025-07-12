@@ -1,0 +1,445 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import InputField from "./InputField";
+import DollarIcon from "../../assets/icons/dollar-circle.svg";
+import InformationIcon from "../../assets/icons/information.svg";
+import LocationIcon from "../../assets/icons/location.svg";
+import ProductCategorySelector from "./ProductCatigorySelector";
+import DateInputField from "./DateInput";
+import { createAuction } from "../../utils/firebaseUtils";
+import { uploadMultipleImages } from "../../utils/cloudinaryUtils";
+
+function AddAuctionForm() {
+  const navigate = useNavigate();
+  const [productName, setProductName] = useState("");
+  const [productDesc, setProductDesc] = useState("");
+  const [initialPrice, setInitialPrice] = useState("");
+  const [minIncrement, setMinIncrement] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [location, setLocation] = useState("");
+  const [inspectionDate, setInspectionDate] = useState("");
+  const [termsText, setTermsText] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [images, setImages] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [category, setCategory] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    const newImages = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setImages((prevImages) => [...prevImages, ...newImages]);
+    if (errors.images && files.length > 0) {
+      setErrors((prev) => ({ ...prev, images: null }));
+    }
+  };
+
+  const handleSubmit = async () => {
+    const newErrors = {};
+
+    //  validation
+    if (!productName.trim()) newErrors.productName = "هذا الحقل مطلوب";
+    if (!productDesc.trim()) newErrors.productDesc = "هذا الحقل مطلوب";
+    if (!location.trim()) newErrors.location = "هذا الحقل مطلوب";
+    if (!termsText.trim()) newErrors.termsText = "هذا الحقل مطلوب";
+    if (!agreeTerms) newErrors.terms = "يجب الموافقة على الشروط";
+    if (!images || images.length === 0) newErrors.images = "هذا الحقل مطلوب";
+    if (!category.trim()) newErrors.category = "يجب اختيار تصنيف المنتج";
+    if (!initialPrice.trim()) newErrors.initialPrice = "هذا الحقل مطلوب";
+    if (!minIncrement.trim()) newErrors.minIncrement = "هذا الحقل مطلوب";
+
+    // Date validation
+    const now = new Date();
+
+    // Validate start date
+    if (!startDate.trim()) {
+      newErrors.startDate = "هذا الحقل مطلوب";
+    } else {
+      const startDateTime = new Date(startDate);
+      if (isNaN(startDateTime.getTime())) {
+        newErrors.startDate = "تاريخ غير صالح";
+      } else if (startDateTime < now) {
+        newErrors.startDate = "يجب أن يكون تاريخ البدء في المستقبل";
+      }
+    }
+
+    // Validate end date
+    if (!endDate.trim()) {
+      newErrors.endDate = "هذا الحقل مطلوب";
+    } else {
+      const endDateTime = new Date(endDate);
+      const startDateTime = new Date(startDate);
+      if (isNaN(endDateTime.getTime())) {
+        newErrors.endDate = "تاريخ غير صالح";
+      } else if (endDateTime <= startDateTime) {
+        newErrors.endDate = "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء";
+      }
+    }
+
+    // Validate inspection date
+    if (!inspectionDate.trim()) {
+      newErrors.inspectionDate = "هذا الحقل مطلوب";
+    } else {
+      const inspectionDateTime = new Date(inspectionDate);
+      const startDateTime = new Date(startDate);
+      if (isNaN(inspectionDateTime.getTime())) {
+        newErrors.inspectionDate = "تاريخ غير صالح";
+      } else if (inspectionDateTime >= startDateTime) {
+        newErrors.inspectionDate =
+          "يجب أن يكون موعد المعاينة قبل تاريخ بدء المزاد";
+      }
+    }
+    scrollTo(0, 0);
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      try {
+        setIsSubmitting(true);
+        setUploadProgress(10);
+
+        console.log("Starting image upload process...", {
+          numberOfImages: images.length,
+        });
+        const imageFiles = images.map((img) => img.file);
+        const uploadResult = await uploadMultipleImages(imageFiles);
+
+        if (!uploadResult.success) {
+          console.error("Image upload failed:", uploadResult.error);
+          throw new Error(uploadResult.error || "فشل في رفع الصور");
+        }
+
+        setUploadProgress(50);
+        console.log("Images uploaded successfully, creating auction data...");
+
+        const startDateTime = new Date(startDate);
+        const endDateTime = new Date(endDate);
+        const inspectionDateTime = new Date(inspectionDate);
+
+        const auctionData = {
+          title: productName,
+          description: productDesc,
+          categoryId: category,
+          imageUrls: uploadResult.urls,
+          startPrice: Number(initialPrice),
+          minIncrement: Number(minIncrement),
+          startDate: startDateTime.toISOString(),
+          endDate: endDateTime.toISOString(),
+          inspection: {
+            place: location,
+            inspectionDate: inspectionDateTime.toISOString(),
+          },
+          terms: {
+            details: termsText,
+            price: 100, // Fixed terms price
+          },
+        };
+
+        setUploadProgress(75);
+        console.log("Creating auction with data:", auctionData);
+
+        const result = await createAuction(auctionData);
+
+        if (result.success) {
+          setUploadProgress(100);
+          console.log("Auction created successfully:", result);
+          navigate(`/auctions/${result.auctionId}`);
+        } else {
+          console.error("Failed to create auction:", result.error);
+          setErrors({ submit: result.error || "فشل في إنشاء المزاد" });
+        }
+      } catch (error) {
+        console.error("Form submission error:", error);
+        setErrors({
+          submit:
+            error.message ||
+            "حدث خطأ أثناء إنشاء المزاد. يرجى المحاولة مرة أخرى.",
+        });
+      } finally {
+        setIsSubmitting(false);
+        setUploadProgress(0);
+      }
+    }
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-3xl max-md:w-full">
+      <div className="text-[#2d3142] text-2xl font-bold mb-6">
+        إضافة منتج للمزايدة
+      </div>
+
+      <div className="flex mb-6 gap-2">
+        <img src={InformationIcon} alt="info" width={24} height={24} />
+        <div className="text-[#fa6300]">كل البيانات مطلوبة</div>
+      </div>
+
+      {errors.submit && (
+        <div className="mb-6 p-3 bg-red-100 text-red-700 rounded-lg">
+          {errors.submit}
+        </div>
+      )}
+
+      {uploadProgress > 0 && (
+        <div className="mb-6">
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div
+              className="bg-[#FA6300] h-2.5 rounded-full transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
+          </div>
+          <p className="text-sm text-gray-600 mt-1 text-center">
+            جاري رفع الصور والبيانات... {uploadProgress}%
+          </p>
+        </div>
+      )}
+
+      <InputField
+        label="اسم المنتج"
+        placeholder="ادخل اسم المنتج"
+        value={productName}
+        onChange={(e) => {
+          setProductName(e.target.value);
+          if (errors.productName && e.target.value.trim()) {
+            setErrors((prev) => ({ ...prev, productName: null }));
+          }
+        }}
+        error={errors.productName}
+      />
+
+      <ProductCategorySelector
+        selectedCategory={category}
+        setSelectedCategory={(val) => {
+          setCategory(val);
+          if (errors.category && val.trim()) {
+            setErrors((prev) => ({ ...prev, category: null }));
+          }
+        }}
+        error={errors.category}
+      />
+
+      <InputField
+        label="وصف المنتج"
+        placeholder="اكتب وصف المنتج"
+        variant="textarea"
+        value={productDesc}
+        onChange={(e) => {
+          setProductDesc(e.target.value);
+          if (errors.productDesc && e.target.value.trim()) {
+            setErrors((prev) => ({ ...prev, productDesc: null }));
+          }
+        }}
+        error={errors.productDesc}
+      />
+
+      <InputField
+        label="صور المنتج"
+        variant="file"
+        name="productImage"
+        multiple={true}
+        onChange={handleImageChange}
+        error={errors.images}
+      />
+
+      {images.length > 0 && (
+        <div className="mt-4 grid grid-cols-3 gap-4 mb-4">
+          {images.map((image, index) => (
+            <div
+              key={index}
+              className="relative border border-gray-300 rounded-lg p-2"
+            >
+              <img
+                src={image.preview}
+                alt={`Preview ${index + 1}`}
+                className="w-full h-32 object-contain rounded-lg"
+              />
+              <button
+                onClick={() => {
+                  setImages((prevImages) => {
+                    const newImages = prevImages.filter((_, i) => i !== index);
+                    if (newImages.length === 0) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        images: "هذا الحقل مطلوب",
+                      }));
+                    }
+                    return newImages;
+                  });
+                }}
+                className="bg-[#f77518] text-white mt-2 cursor-pointer rounded-md w-16 h-6 flex items-center justify-center hover:bg-[#e45a00] text-xs"
+              >
+                حذف
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex mb-6 gap-2">
+        <img src={InformationIcon} alt="info" width={24} height={24} />
+        <div className="text-[#fa6300]">
+          يجب ان تكون الصور واضحة وموافقة للوصف وإلا سيتم رفض المزاد
+        </div>
+      </div>
+
+      <div className="text-[#2d3142] text-xl font-bold mb-6">تفاصيل المزاد</div>
+
+      <InputField
+        label="السعر الابتدائي"
+        placeholder="ادخل السعر الابتدائي"
+        variant="icon"
+        icon={<img src={DollarIcon} alt="dollar" width={24} height={24} />}
+        value={initialPrice}
+        onChange={(e) => {
+          const value = e.target.value;
+          setInitialPrice(value);
+
+          if (!value.trim()) {
+            setErrors((prev) => ({ ...prev, initialPrice: "هذا الحقل مطلوب" }));
+          } else if (isNaN(value) || Number(value) <= 0) {
+            setErrors((prev) => ({
+              ...prev,
+              initialPrice: "يجب أن يكون رقمًا صحيحًا أكبر من صفر",
+            }));
+          } else {
+            setErrors((prev) => ({ ...prev, initialPrice: null }));
+          }
+        }}
+        error={errors.initialPrice}
+      />
+
+      <InputField
+        label="الحد الأدنى للزيادة"
+        placeholder="ادخل الحد الأدنى للزيادة"
+        variant="icon"
+        icon={<img src={DollarIcon} alt="dollar" width={24} height={24} />}
+        value={minIncrement}
+        onChange={(e) => {
+          const val = e.target.value;
+          setMinIncrement(val);
+
+          if (!val.trim()) {
+            setErrors((prev) => ({ ...prev, minIncrement: "هذا الحقل مطلوب" }));
+          } else if (isNaN(val) || Number(val) <= 0) {
+            setErrors((prev) => ({
+              ...prev,
+              minIncrement: "يجب أن يكون رقمًا صحيحًا أكبر من صفر",
+            }));
+          } else {
+            setErrors((prev) => {
+              const newErrors = { ...prev };
+              delete newErrors.minIncrement;
+              return newErrors;
+            });
+          }
+        }}
+        error={errors.minIncrement}
+      />
+
+      <DateInputField
+        label="تاريخ ووقت البدء"
+        value={startDate}
+        onChange={(e) => {
+          setStartDate(e.target.value);
+          if (errors.startDate && e.target.value.trim()) {
+            setErrors((prev) => ({ ...prev, startDate: null }));
+          }
+        }}
+        error={errors.startDate}
+      />
+
+      <DateInputField
+        label="تاريخ ووقت الانتهاء"
+        value={endDate}
+        onChange={(e) => {
+          setEndDate(e.target.value);
+          if (errors.endDate && e.target.value.trim()) {
+            setErrors((prev) => ({ ...prev, endDate: null }));
+          }
+        }}
+        error={errors.endDate}
+      />
+
+      <InputField
+        label="مكان المعاينة"
+        placeholder="ادخل مكان معاينة المنتج"
+        variant="icon"
+        icon={
+          <img src={LocationIcon} alt="LocationIcon" width={24} height={24} />
+        }
+        value={location}
+        onChange={(e) => {
+          setLocation(e.target.value);
+          if (errors.location && e.target.value.trim()) {
+            setErrors((prev) => ({ ...prev, location: null }));
+          }
+        }}
+        error={errors.location}
+      />
+
+      <DateInputField
+        label="موعد المعاينة"
+        value={inspectionDate}
+        onChange={(e) => {
+          setInspectionDate(e.target.value);
+          if (errors.inspectionDate && e.target.value.trim()) {
+            setErrors((prev) => ({ ...prev, inspectionDate: null }));
+          }
+        }}
+        error={errors.inspectionDate}
+      />
+
+      <InputField
+        label="شروط المزاد"
+        placeholder="ادخل شروط المزاد"
+        variant="textarea"
+        value={termsText}
+        onChange={(e) => {
+          setTermsText(e.target.value);
+          if (errors.termsText && e.target.value.trim()) {
+            setErrors((prev) => ({ ...prev, termsText: null }));
+          }
+        }}
+        error={errors.termsText}
+      />
+
+      <div className="flex mb-2 mt-4">
+        <input
+          type="checkbox"
+          id="terms"
+          checked={agreeTerms}
+          onChange={(e) => {
+            setAgreeTerms(e.target.checked);
+            if (errors.terms && e.target.checked) {
+              setErrors((prev) => ({ ...prev, terms: null }));
+            }
+          }}
+          className="ml-2"
+        />
+        <label htmlFor="terms" className="text-[#2d3142]">
+          {" "}
+          أوافق على الشروط والأحكام *
+        </label>
+      </div>
+      {errors.terms && (
+        <p className="text-red-600 text-sm mb-4">{errors.terms}</p>
+      )}
+
+      <button
+        className={`bg-[#FA6300] w-full h-12 rounded-lg text-white text-lg font-bold cursor-pointer hover:bg-[#e45a00] transition ${
+          isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+        }`}
+        onClick={handleSubmit}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "جاري إنشاء المزاد..." : "إضافة مزاد"}
+      </button>
+    </div>
+  );
+}
+
+export default AddAuctionForm;
