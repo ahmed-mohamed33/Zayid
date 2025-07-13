@@ -133,11 +133,23 @@ export const UserProvider = ({ children }) => {
         (snapshot) => {
           if (snapshot.exists()) {
             const auctionsByuser = Object.entries(snapshot.val()).map(
-              ([id, data]) => ({
-                id,
-                ...data,
-              })
-            );
+            ([id, data]) => {
+           // بص هنا انا بجيب  الوقت المتبقي 11:50  13-7   
+            const endDate = new Date(data.endDate || null);
+            const today = new Date(); 
+            const remainingTime =
+              endDate > today
+                ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
+                : 0;
+            return {
+              id,
+              ...data,
+              startDate: data.startDate || null,
+              // هنا انا بخزن الوقت المتبقي ف الاسكيما   
+              remainingTime: remainingTime, 
+            };
+          }
+        );
             setUserAuctions(auctionsByuser);
           } else {
             setUserAuctions([]);
@@ -325,6 +337,20 @@ export const UserProvider = ({ children }) => {
         throw new Error(uploadResult.error);
       }
 
+      //هنا بحسب الوقت الكلي الثابت وقت اضافه المزاد 11:15  12-7   
+      const startDate = new Date(auctionData.startDate || null);
+      const endDate = new Date(auctionData.endDate || null);
+      const allTime =
+      endDate && startDate
+          ? ((endDate - startDate) / (1000 * 60 * 60 * 24)).toFixed(0)
+          : 0;
+     // بص هنا انا بجيب  الوقت المتبقي 11:50  13-7   
+      const today = new Date(); 
+            const remainingTime =
+              endDate > today
+                ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
+                : 0;
+
       const auctionId = uuidv4();
       const auctionWithImages = {
         ...auctionData,
@@ -336,6 +362,11 @@ export const UserProvider = ({ children }) => {
           rate: 0.05,
           amount: Math.round(auctionData.startPrice * 0.05),
         },
+
+        //هنا بخزن ف الداتا بيز الوقت الكلي الثابت 11:15  12-7   
+        allTime: parseInt(allTime),
+       //      هنا انا بخزن الوقت المتبقي     
+        remainingTime: remainingTime, 
       };
 
       const database = getDatabase(); // Use getDatabase() instead of db

@@ -20,7 +20,10 @@ function ProductDetails({
           السعر الإفتتاحي: {price || "غير محدد"} ج.م
         </p>
         <p className="mb-3 text-lg text-[#2D3142]">
-          موعد البدء: {startDate || "غير محدد"}
+          موعد البدء: {startDate  ? new Date(startDate ).toLocaleString("ar-EG", {
+                timeZone: "Africa/Cairo",
+              })
+            : "غير محدد"}
         </p>
         <p className="mb-3 text-lg text-[#2D3142]">
           موعد الانتهاء:{" "}
