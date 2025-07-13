@@ -1,23 +1,36 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getDatabase, ref, onValue, query, orderByChild, equalTo, set, get, child } from 'firebase/database';
-import { auth, db } from '../config/Firebase';
-import { registerUser, loginUser, logoutUser } from '../utils/firebaseUtils';
-import { uploadToCloudinary, uploadMultipleImages as cloudinaryUploadMultiple } from '../utils/cloudinaryUtils';
-import { v4 as uuidv4 } from 'uuid';
+import React, { createContext, useState, useEffect } from "react";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  query,
+  orderByChild,
+  equalTo,
+  set,
+  get,
+  child,
+} from "firebase/database";
+import { auth } from "../config/Firebase";
+import { registerUser, loginUser, logoutUser } from "../utils/firebaseUtils";
+import {
+  uploadToCloudinary,
+  uploadMultipleImages as cloudinaryUploadMultiple,
+} from "../utils/cloudinaryUtils";
+import { v4 as uuidv4 } from "uuid";
 
 // Create Context
 export const UserContext = createContext();
 
-// Context Provider 
+// Context Provider
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null); 
-  const [userData, setUserData] = useState(null); 
-  const [isAuthenticated, setIsAuthenticated] = useState(false); 
+  const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [auctions, setAuctions] = useState([]);
-  const [winners, setWinners] = useState({}); 
+  const [winners, setWinners] = useState({});
   const [payments, setPayments] = useState([]);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   // Real-time listeners
   useEffect(() => {
@@ -30,73 +43,114 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // Get data from Realtime Database based on userId
+  // Update the user data fetching useEffect
   useEffect(() => {
-    if (user) {
-      const db = getDatabase();
-      const usersRef = ref(db, 'users');
-      const userQuery = query(usersRef, orderByChild('userId'), equalTo(user.uid));
+    if (user && isAuthenticated) {
+      console.log("Fetching user data for authenticated user:", user.uid);
 
-      const unsubscribe = onValue(userQuery, (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          const userId = Object.keys(data)[0];
-          setUserData({ userId, ...data[userId] });
-        } else {
+      const db = getDatabase();
+      const usersRef = ref(db, "users");
+
+      const unsubscribe = onValue(
+        usersRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            console.log("All users data:", data);
+
+            // Find user by Firebase Auth UID
+            const userEntry = Object.entries(data).find(
+              ([_, userData]) => userData.userId === user.uid
+            );
+
+            if (userEntry) {
+              const [_, userData] = userEntry;
+              console.log("Found user data:", userData);
+              setUserData(userData);
+            } else {
+              console.log("No user data found for UID:", user.uid);
+              setUserData(null);
+            }
+          } else {
+            console.log("No users data exists");
+            setUserData(null);
+          }
+        },
+        (error) => {
+          console.error("Error fetching user data:", error);
           setUserData(null);
         }
-      }, (error) => {
-        console.error('Error fetching user data:', error);
-        setUserData(null);
-      });
+      );
 
       return () => unsubscribe();
     } else {
       setUserData(null);
     }
-  }, [user]);
+  }, [user, isAuthenticated]); 
 
-  // Get all auctions (publicly available)
+  // Get Auction that user participated in
   useEffect(() => {
-    const db = getDatabase();
-    const auctionsRef = ref(db, 'auctions');
+    if (user) {
+      const db = getDatabase();
+      const auctionsRef = ref(db, "auctions");
+      const userAuctionsQuery = query(
+        auctionsRef,
+        orderByChild("createdBy"),
+        equalTo(user.uid)
+      );
 
-    const unsubscribe = onValue(auctionsRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const allAuctions = Object.entries(snapshot.val()).map(([id, data]) => ({
-          id,
-          ...data,
-          startDate: data.startDate || null,
-        }));
-        setAuctions(allAuctions);
-      } else {
-        setAuctions([]);
-      }
-    }, (error) => {
-      console.error('Error fetching auctions:', error);
+      const unsubscribe = onValue(
+        userAuctionsQuery,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const userAuctions = Object.entries(snapshot.val()).map(
+              ([id, data]) => ({
+                id,
+                ...data,
+              })
+            );
+            setAuctions(userAuctions);
+          } else {
+            setAuctions([]);
+          }
+        },
+        (error) => {
+          console.error("Error fetching auctions:", error);
+          setAuctions([]);
+        }
+      );
+
+      return () => unsubscribe();
+    } else {
       setAuctions([]);
-    });
-
-    return () => unsubscribe();
-  }, []);
+    }
+  }, [user]);
 
   // Get Winners Data
   useEffect(() => {
     if (user) {
       const db = getDatabase();
-      const winnersRef = ref(db, 'winners');
-      const userWinnersQuery = query(winnersRef, orderByChild('userId'), equalTo(user.uid));
+      const winnersRef = ref(db, "winners");
+      const userWinnersQuery = query(
+        winnersRef,
+        orderByChild("userId"),
+        equalTo(user.uid)
+      );
 
-      const unsubscribe = onValue(userWinnersQuery, (snapshot) => {
-        if (snapshot.exists()) {
-          setWinners(snapshot.val());
-        } else {
+      const unsubscribe = onValue(
+        userWinnersQuery,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            setWinners(snapshot.val());
+          } else {
+            setWinners({});
+          }
+        },
+        (error) => {
+          console.error("Error fetching winners:", error);
           setWinners({});
         }
-      }, (error) => {
-        console.error('Error fetching winners:', error);
-        setWinners({});
-      });
+      );
 
       return () => unsubscribe();
     } else {
@@ -108,23 +162,33 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     if (user) {
       const db = getDatabase();
-      const paymentsRef = ref(db, 'payments');
-      const userPaymentsQuery = query(paymentsRef, orderByChild('userId'), equalTo(user.uid));
+      const paymentsRef = ref(db, "payments");
+      const userPaymentsQuery = query(
+        paymentsRef,
+        orderByChild("userId"),
+        equalTo(user.uid)
+      );
 
-      const unsubscribe = onValue(userPaymentsQuery, (snapshot) => {
-        if (snapshot.exists()) {
-          const userPayments = Object.entries(snapshot.val()).map(([id, data]) => ({
-            id,
-            ...data,
-          }));
-          setPayments(userPayments);
-        } else {
+      const unsubscribe = onValue(
+        userPaymentsQuery,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const userPayments = Object.entries(snapshot.val()).map(
+              ([id, data]) => ({
+                id,
+                ...data,
+              })
+            );
+            setPayments(userPayments);
+          } else {
+            setPayments([]);
+          }
+        },
+        (error) => {
+          console.error("Error fetching payments:", error);
           setPayments([]);
         }
-      }, (error) => {
-        console.error('Error fetching payments:', error);
-        setPayments([]);
-      });
+      );
 
       return () => unsubscribe();
     } else {
@@ -139,27 +203,44 @@ export const UserProvider = ({ children }) => {
       if (!result.success) {
         throw new Error(result.error);
       }
+
+      // After successful login, get user data
+      const { user } = result;
+      const database = getDatabase(); // Use getDatabase() instead of db
+      const usersRef = ref(database, "users");
+      const snapshot = await get(usersRef);
+
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const userEntry = Object.entries(data).find(
+          ([_, userData]) => userData.userId === user.uid
+        );
+
+        if (userEntry) {
+          const [_, userData] = userEntry;
+          setUserData(userData);
+        }
+      }
     } catch (error) {
-      console.error('Login error:', error.message);
+      console.error("Login error:", error.message);
       throw error;
     }
   };
 
   // Sign up
-  const register = async (values, idImageFile, companyName, companyImageFile) => {
+  const register = async (
+    values,
+    idImageFile,
+    companyName,
+    companyImageFile
+  ) => {
     try {
-      const dbRef = ref(getDatabase());
-      const userId = uuidv4();
-      const nationalIDSnapshot = await get(child(dbRef, `users/${userId}`));
-      if (nationalIDSnapshot.exists()) {
-        throw new Error('هذا المعرف مسجل بالفعل في النظام');
-      }
-
       const result = await registerUser(values.email, values.password);
       if (!result.success) {
         throw new Error(result.error);
       }
       const { user } = result;
+
       const userData = {
         birthDate: values.birthDate,
         createdAt: new Date().toISOString(),
@@ -167,28 +248,32 @@ export const UserProvider = ({ children }) => {
         fullName: values.fullName,
         isActive: true,
         isAdmin: false,
-        isCompany: companyName.trim() !== '',
+        isCompany: companyName && companyName.trim() !== "",
         isVerified: false,
         nationalID: values.nationalID,
         nationalIDImage: idImageFile,
         phone: values.phone,
-        userId: userId,
+        userId: user.uid,
       };
 
-      if (companyName.trim() !== '') {
+      if (companyName && companyName.trim() !== "") {
         userData.companyName = companyName;
         userData.commercialRecordImage = companyImageFile;
       }
 
-      const db = getDatabase();
-      await set(ref(db, `users/${userId}`), userData);
+
+      const database = getDatabase();
+      await set(ref(database, `users/${values.nationalID}`), userData);
+
+   
+      setUserData(userData);
     } catch (error) {
-      console.error('Register error:', error.message);
+      console.error("Sign up error:", error.message);
       throw error;
     }
   };
 
-  // Log_out 
+  // Log_out
   const logout = async () => {
     try {
       const result = await logoutUser();
@@ -196,7 +281,7 @@ export const UserProvider = ({ children }) => {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('Logout error:', error.message);
+      console.error("Logout error:", error.message);
       throw error;
     }
   };
@@ -205,7 +290,7 @@ export const UserProvider = ({ children }) => {
   const createAuction = async (auctionData, imageFiles) => {
     try {
       if (!user) {
-        throw new Error('User must be logged in to create an auction');
+        throw new Error("User must be logged in to create an auction");
       }
 
       const uploadResult = await cloudinaryUploadMultiple(imageFiles);
@@ -217,7 +302,7 @@ export const UserProvider = ({ children }) => {
       const auctionWithImages = {
         ...auctionData,
         imageUrls: uploadResult.urls,
-        status: 'pending',
+        status: "pending",
         createdBy: user.uid,
         createdAt: new Date().toISOString(),
         insurance: {
@@ -226,19 +311,23 @@ export const UserProvider = ({ children }) => {
         },
       };
 
-      const db = getDatabase();
-      const auctionsRef = ref(db, `auctions/${auctionId}`);
+      const database = getDatabase(); // Use getDatabase() instead of db
+      const auctionsRef = ref(database, `auctions/${auctionId}`);
       await set(auctionsRef, auctionWithImages);
 
-      // تحديث الـ auctions في السياق
-      const updatedAuctions = [...auctions, { id: auctionId, ...auctionWithImages }];
+      //  updatedAuctions
+      const updatedAuctions = [
+        ...auctions,
+        { id: auctionId, ...auctionWithImages },
+      ];
       setAuctions(updatedAuctions);
     } catch (error) {
-      console.error('Create auction error:', error.message);
+      console.error("Create auction error:", error.message);
       throw error;
     }
   };
 
+  //Provider
   return (
     <UserContext.Provider
       value={{
@@ -249,6 +338,7 @@ export const UserProvider = ({ children }) => {
         winners,
         payments,
         loading,
+
         login,
         register,
         logout,

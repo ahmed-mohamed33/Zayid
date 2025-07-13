@@ -14,18 +14,18 @@ const CardItem = ({ title, children }) => {
   );
 };
 
-function CardsInfo() {
+function CardsInfo({sellerName, insurancePrice, lowestBid}) {
   return (
     <>
       <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <CardItem title="معلومات المزاد">
-          <p className=" font-bold my-2 ">أقل مزايده : 500 ج.م</p>
-          <p className=" font-bold my-3 ">مبلغ التأمين 10,000 ج.م</p>
+          <p className=" font-bold my-2 ">أقل مزايده : {lowestBid} ج.م</p>
+          <p className=" font-bold my-3 ">مبلغ التأمين {insurancePrice} ج.م</p>
         </CardItem>
 
         <CardItem title="معلومات البائع">
           <div className=" flex items-center justify-between">
-            <p>معرض النخبة للسيارات </p>
+            <p>{sellerName}</p>
             <div className=" flex items-center">
               <RiStarSFill className=" text-[#fdba1e] text-xl" />
               <span className=" px-1 text-[#8a8a8a] font-bold">4.8</span>

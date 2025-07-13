@@ -10,7 +10,8 @@ import { UserContext } from "../../context/UserContext";
 
 function AddAuctionForm() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, createAuction } = useContext(UserContext);
+  const { user, userData, isAuthenticated, createAuction } =
+    useContext(UserContext);
   const [productName, setProductName] = useState("");
   const [productDesc, setProductDesc] = useState("");
   const [initialPrice, setInitialPrice] = useState("");
@@ -110,15 +111,20 @@ function AddAuctionForm() {
           categoryId: category,
           startPrice: Number(initialPrice),
           minIncrement: Number(minIncrement),
-          startDate: new Date(startDate).toISOString(), 
+          startDate: new Date(startDate).toISOString(),
           endDate: new Date(endDate).toISOString(),
+          seller: {
+            name: userData.fullName || "",
+            email: userData.email || "",
+            phone: userData.phone || "",
+          },
           inspection: {
             place: location,
             inspectionDate: new Date(inspectionDate).toISOString(),
           },
           terms: {
             details: termsText,
-            price: 100,
+            price: Math.round(initialPrice * 0.05),
           },
         };
 

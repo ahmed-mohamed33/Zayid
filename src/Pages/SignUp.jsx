@@ -8,6 +8,7 @@ import PasswordField from "../signUp/PasswordField";
 import DateField from "../signUp/DateField";
 import CompanyFields from "../signUp/CompanyFields";
 import { signupValidationSchema } from "../utils/validationSchemas";
+import { ref, get, child, getDatabase } from "firebase/database";
 
 // Form initial values
 const initialValues = {
@@ -42,6 +43,8 @@ export default function SignUp() {
   const getFirebaseErrorMessage = (errorCode) => {
     switch (errorCode) {
       case "auth/email-already-in-use":
+        return "هذا البريد الإلكتروني مسجل بالفعل";
+      case "Firebase: Error (auth/email-already-in-use).":
         return "هذا البريد الإلكتروني مسجل بالفعل";
       case "auth/invalid-email":
         return "البريد الإلكتروني غير صالح";
@@ -87,12 +90,20 @@ export default function SignUp() {
     try {
       setIsLoading(true);
       setError("");
-
+      const dbRef = ref(getDatabase());
+      const nationalIDSnapshot = await get(
+        child(dbRef, `users/${values.nationalID}`)
+      );
+      if (nationalIDSnapshot.exists()) {
+        setError("هذا الرقم القومي مسجل بالفعل في النظام");
+        setIsLoading(false);
+        return;
+      }
       await register(values, idImageFile, companyName, companyImageFile);
       navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);
-      setError(getFirebaseErrorMessage(error.code));
+      setError(getFirebaseErrorMessage(error.message));
     } finally {
       setIsLoading(false);
     }
@@ -195,6 +206,7 @@ export default function SignUp() {
               label="الرقم القومي"
               placeholder="ادخل الرقم القومي"
               icon="src\assets\icons\security-user.svg"
+              autoComplete="nationalID"
             />
 
             {/* ID Image Upload */}

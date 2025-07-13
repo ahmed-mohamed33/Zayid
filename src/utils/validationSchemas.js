@@ -89,6 +89,7 @@ const schemas = {
     nationalID: Yup.string()
       .matches(/^\d{14}$/, messages.nationalIDFormat)
       .required(messages.nationalIDRequired),
+      
   })
 };
 
