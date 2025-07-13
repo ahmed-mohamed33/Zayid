@@ -4,9 +4,9 @@ import img from "../../assets/images/Frame.jpg";
 import users from "../../assets/images/profile-2user.png";
 import timer from "../../assets/images/timer.png";
 
-function MazadCard({ image, price, title, usersInMAzad ,time }) {
+function MazadCard({ image, price, title, usersInMAzad ,timeLeft }) {
   return (
-    <div className="card w-[90%] m-auto bg-white">
+    <div className="card w-[90%]  bg-white">
       <img
         src={image}
         alt={title}
@@ -24,7 +24,7 @@ function MazadCard({ image, price, title, usersInMAzad ,time }) {
 
           <div className=" flex items-center justify-center">
             <img  className=" w-[15px] h-[15px]" src={timer} />
-            <p className=" text-[#FA6300] mx-1">  متبقي : {time} أيام</p>
+            <p className=" text-[#FA6300] mx-1">  متبقي : {timeLeft} أيام</p>
           </div>
 
         </div>

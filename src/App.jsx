@@ -9,6 +9,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AddAuctionPage from './Pages/AddAuctionPage.jsx';
+import AuctionsPage from './Pages/AuctionsPage.jsx';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/addAuction" element={<AddAuctionPage />} />
+        <Route path="/auctions" element={<AuctionsPage />} />
 
       </Routes>
 

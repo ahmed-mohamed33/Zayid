@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import InputField from './InputField';
 import DollarIcon from '../../assets/icons/dollar-circle.svg';
 import InformationIcon from '../../assets/icons/information.svg';
-import CalendarIcon from '../../assets/icons/calendar-2.svg';
 import LocationIcon from '../../assets/icons/location.svg';
 import ProductCategorySelector from './ProductCatigorySelector';
 import DateInputField from './DateInput';
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 function AddAuctionForm() {
@@ -43,7 +41,7 @@ function AddAuctionForm() {
 
     if (Object.keys(newErrors).length === 0) {
       console.log('hello');
-      /////////////لو مفيش ايرورز يبعت للفاير بيز
+      /////////////لو مفيش ايرورز يبعت للداتا بيز
     }
   };
 
