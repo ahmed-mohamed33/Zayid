@@ -5,6 +5,7 @@ import smartWatch from "../assets/images/smartWatch.png";
 import arrowRight from '../assets/icons/arrow-right.svg';
 import arrowLeft from '../assets/icons/arrow-left.svg';
 
+//fake data to test 
 const products = [
   {
     id: 1,
@@ -15,6 +16,7 @@ const products = [
     timeLeft: 5,
     category: "Electronics",
     productCondition: "New",
+    //فلترة المعاينة شايفة ملهاش داعي عشان اليوزر واجب عليه يوفر الطريقتين؟
     inspectionTypes: ["Personal Inespection", "Live Video"],
     auctionStatus: "Active",
   },
@@ -111,7 +113,7 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({});
 
-  const userInterests = ['Cars', 'Electronics', 'Antiques and Arts'];
+  const userInterests = ['Cars', 'Electronics', 'Antiques and Arts']; //to test filter by interests
 
   const applyFilters = () => {
     const term = searchTerm.trim().toLowerCase();
