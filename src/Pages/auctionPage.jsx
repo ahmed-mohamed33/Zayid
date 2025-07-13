@@ -10,7 +10,7 @@ import Insurancepayment from "../components/auction/Insurancepayment";
 import BiddingChat from "../components/auction/BiddingChat";
 import { UserContext } from "../context/UserContext";
 
-function AuctionsPage() {
+function AuctionPage() {
   const { auctions } = useContext(UserContext); 
   const { auctionId } = useParams(); 
   const auction = auctions.find((a) => a.id === auctionId);
@@ -48,4 +48,4 @@ function AuctionsPage() {
     </div>
   );
 }
-export default AuctionsPage;
+export default AuctionPage;

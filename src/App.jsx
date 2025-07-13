@@ -12,7 +12,7 @@ import Payment from "./Pages/Payment.jsx";
 import Login from "./Pages/Login.jsx";
 import Products from "./Pages/products.jsx";
 import Forgetpass from "./Pages/forgetpass.jsx";
-import AuctionsPage from "./Pages/Auctionpage.jsx";
+import AuctionsPage from "./Pages/auctionPage.jsx";
 import AuctionsFireBaseTest from "./Pages/AuctionsFireBaseTest.jsx";
 import LoginPageFireBaseTest from "./Pages/LoginPageFireBaseTest.jsx";
 import SelectCategoryPage from "./Pages/SelectCategoryPage.jsx";
