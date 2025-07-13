@@ -21,10 +21,6 @@ function AuctionPage() {
     );
   }
 
-  const startDate = new Date(auction.startDate);
-  const endDate = new Date(auction.endDate);
-  const allTime = ((endDate - startDate) / (1000 * 60 * 60 * 24)).toFixed(0);
-
   return (
     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
       <div className="flex flex-col md:flex-row mb-6">
@@ -34,12 +30,10 @@ function AuctionPage() {
           category={auction.categoryId}
           price={auction.startPrice}
           endDate={auction.endDate}
-          allTime={allTime}
+          allTime={auction.allTime}
           type={auction.type}
           condition={auction.condition}
-          startDate={startDate.toLocaleString("ar-EG", {
-            timeZone: "Africa/Cairo",
-          })}
+          startDate={auction.startDate}
         />
       </div>
 
