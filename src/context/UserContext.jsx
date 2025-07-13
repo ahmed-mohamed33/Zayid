@@ -31,6 +31,7 @@ export const UserProvider = ({ children }) => {
   const [winners, setWinners] = useState({});
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userAuctions, setUserAuctions] = useState([]);
 
   // Real-time listeners
   useEffect(() => {
@@ -86,8 +87,36 @@ export const UserProvider = ({ children }) => {
     } else {
       setUserData(null);
     }
-  }, [user, isAuthenticated]); 
+  }, [user, isAuthenticated]);
+  // Get all auctions (publicly available)
+  useEffect(() => {
+    const db = getDatabase();
+    const auctionsRef = ref(db, "auctions");
 
+    const unsubscribe = onValue(
+      auctionsRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const allAuctions = Object.entries(snapshot.val()).map(
+            ([id, data]) => ({
+              id,
+              ...data,
+              startDate: data.startDate || null,
+            })
+          );
+          setAuctions(allAuctions);
+        } else {
+          setAuctions([]);
+        }
+      },
+      (error) => {
+        console.error("Error fetching auctions:", error);
+        setAuctions([]);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
   // Get Auction that user participated in
   useEffect(() => {
     if (user) {
@@ -103,26 +132,26 @@ export const UserProvider = ({ children }) => {
         userAuctionsQuery,
         (snapshot) => {
           if (snapshot.exists()) {
-            const userAuctions = Object.entries(snapshot.val()).map(
+            const auctionsByuser = Object.entries(snapshot.val()).map(
               ([id, data]) => ({
                 id,
                 ...data,
               })
             );
-            setAuctions(userAuctions);
+            setUserAuctions(auctionsByuser);
           } else {
-            setAuctions([]);
+            setUserAuctions([]);
           }
         },
         (error) => {
           console.error("Error fetching auctions:", error);
-          setAuctions([]);
+          setUserAuctions([]);
         }
       );
 
       return () => unsubscribe();
     } else {
-      setAuctions([]);
+      setUserAuctions([]);
     }
   }, [user]);
 
@@ -261,11 +290,9 @@ export const UserProvider = ({ children }) => {
         userData.commercialRecordImage = companyImageFile;
       }
 
-
       const database = getDatabase();
       await set(ref(database, `users/${values.nationalID}`), userData);
 
-   
       setUserData(userData);
     } catch (error) {
       console.error("Sign up error:", error.message);
@@ -338,7 +365,7 @@ export const UserProvider = ({ children }) => {
         winners,
         payments,
         loading,
-
+        userAuctions,
         login,
         register,
         logout,
