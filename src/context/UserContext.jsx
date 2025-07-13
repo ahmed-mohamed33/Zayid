@@ -134,19 +134,10 @@ export const UserProvider = ({ children }) => {
           if (snapshot.exists()) {
             const auctionsByuser = Object.entries(snapshot.val()).map(
             ([id, data]) => {
-           // بص هنا انا بجيب  الوقت المتبقي 11:50  13-7   
-            const endDate = new Date(data.endDate || null);
-            const today = new Date(); 
-            const remainingTime =
-              endDate > today
-                ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
-                : 0;
             return {
               id,
               ...data,
               startDate: data.startDate || null,
-              // هنا انا بخزن الوقت المتبقي ف الاسكيما   
-              remainingTime: remainingTime, 
             };
           }
         );
