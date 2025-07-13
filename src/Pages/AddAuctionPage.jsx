@@ -1,7 +1,6 @@
 import React from "react";
 import AddAuctionForm from "../components/addAuction/AddAuctionForm";
 import SideBar from "../components/addAuction/SideBar";
-
 function AddAuctionPage() {
   return (
     <div
