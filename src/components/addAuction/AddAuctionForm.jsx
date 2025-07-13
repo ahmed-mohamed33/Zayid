@@ -125,7 +125,7 @@ function AddAuctionForm() {
         await createAuction(auctionData, imageFiles);
 
         setUploadProgress(100);
-        navigate(`/auctions/${auctionData.id || 'new'}`);
+        navigate("/");
       } catch (error) {
         setErrors({
           submit:
