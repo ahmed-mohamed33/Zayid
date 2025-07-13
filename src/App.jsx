@@ -12,7 +12,7 @@ import Payment from "./Pages/Payment.jsx";
 import Login from "./Pages/Login.jsx";
 import Products from "./Pages/products.jsx";
 import Forgetpass from "./Pages/forgetpass.jsx";
-import AuctionPage from "./Pages/AuctionPage.jsx";
+import AuctionsPage from "./Pages/Auctionpage.jsx";
 import AuctionsFireBaseTest from "./Pages/AuctionsFireBaseTest.jsx";
 import LoginPageFireBaseTest from "./Pages/LoginPageFireBaseTest.jsx";
 import SelectCategoryPage from "./Pages/SelectCategoryPage.jsx";
@@ -39,7 +39,7 @@ function App() {
           <Route path="/products" element={<Products />} />
           <Route path="/forgetpass" element={<Forgetpass />} />
           <Route path="/payment" element={<Payment />} />
-          <Route path="/auction/:auctionId" element={<AuctionPage />} />
+          <Route path="/auction/:auctionId" element={<AuctionsPage />} />
           <Route path="/auctionsFireBaseTest" element={<AuctionsFireBaseTest />}/>
           <Route path="/loginFireBaseTest" element={<LoginPageFireBaseTest />}/>
           <Route path="/selectCategory" element={<SelectCategoryPage />} />
