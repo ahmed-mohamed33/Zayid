@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getDatabase, ref, onValue, query, orderByChild, equalTo, set } from 'firebase/database';
+import { getDatabase, ref, onValue, query, orderByChild, equalTo, set, get, child } from 'firebase/database';
 import { auth, db } from '../config/Firebase';
 import { registerUser, loginUser, logoutUser } from '../utils/firebaseUtils';
 import { uploadToCloudinary, uploadMultipleImages as cloudinaryUploadMultiple } from '../utils/cloudinaryUtils';
@@ -40,7 +40,7 @@ export const UserProvider = ({ children }) => {
       const unsubscribe = onValue(userQuery, (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          const userId = Object.keys(data)[0]; 
+          const userId = Object.keys(data)[0];
           setUserData({ userId, ...data[userId] });
         } else {
           setUserData(null);
@@ -56,33 +56,29 @@ export const UserProvider = ({ children }) => {
     }
   }, [user]);
 
-  // Get Auction that user participated in
+  // Get all auctions (publicly available)
   useEffect(() => {
-    if (user) {
-      const db = getDatabase();
-      const auctionsRef = ref(db, 'auctions');
-      const userAuctionsQuery = query(auctionsRef, orderByChild('createdBy'), equalTo(user.uid));
+    const db = getDatabase();
+    const auctionsRef = ref(db, 'auctions');
 
-      const unsubscribe = onValue(userAuctionsQuery, (snapshot) => {
-        if (snapshot.exists()) {
-          const userAuctions = Object.entries(snapshot.val()).map(([id, data]) => ({
-            id,
-            ...data,
-          }));
-          setAuctions(userAuctions);
-        } else {
-          setAuctions([]);
-        }
-      }, (error) => {
-        console.error('Error fetching auctions:', error);
+    const unsubscribe = onValue(auctionsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const allAuctions = Object.entries(snapshot.val()).map(([id, data]) => ({
+          id,
+          ...data,
+          startDate: data.startDate || null,
+        }));
+        setAuctions(allAuctions);
+      } else {
         setAuctions([]);
-      });
-
-      return () => unsubscribe();
-    } else {
+      }
+    }, (error) => {
+      console.error('Error fetching auctions:', error);
       setAuctions([]);
-    }
-  }, [user]);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Get Winners Data
   useEffect(() => {
@@ -153,8 +149,8 @@ export const UserProvider = ({ children }) => {
   const register = async (values, idImageFile, companyName, companyImageFile) => {
     try {
       const dbRef = ref(getDatabase());
-      const userId = uuidv4(); 
-      const nationalIDSnapshot = await get(child(dbRef, `users/${userId}`)); 
+      const userId = uuidv4();
+      const nationalIDSnapshot = await get(child(dbRef, `users/${userId}`));
       if (nationalIDSnapshot.exists()) {
         throw new Error('هذا المعرف مسجل بالفعل في النظام');
       }
@@ -173,10 +169,10 @@ export const UserProvider = ({ children }) => {
         isAdmin: false,
         isCompany: companyName.trim() !== '',
         isVerified: false,
-        nationalID: values.nationalID, 
+        nationalID: values.nationalID,
         nationalIDImage: idImageFile,
         phone: values.phone,
-        userId: userId, 
+        userId: userId,
       };
 
       if (companyName.trim() !== '') {
@@ -234,7 +230,7 @@ export const UserProvider = ({ children }) => {
       const auctionsRef = ref(db, `auctions/${auctionId}`);
       await set(auctionsRef, auctionWithImages);
 
-      //  updatedAuctions
+      // تحديث الـ auctions في السياق
       const updatedAuctions = [...auctions, { id: auctionId, ...auctionWithImages }];
       setAuctions(updatedAuctions);
     } catch (error) {
@@ -243,7 +239,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  //Provider
   return (
     <UserContext.Provider
       value={{

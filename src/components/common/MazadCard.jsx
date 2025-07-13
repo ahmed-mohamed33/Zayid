@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { UserContext } from "../../context/UserContext"; 
 
 function MazadCard({ auctionId }) {
-  const { auctions } = useContext(UserContext); 
+  const { auctions, isAuthenticated } = useContext(UserContext); 
   const auction = auctions.find((a) => a.id === auctionId); 
 
   if (!auction) {
@@ -34,12 +34,20 @@ function MazadCard({ auctionId }) {
             <p className="text-[#FA6300] mx-1">متبقي: {auction.time || 'غير محدد'} أيام</p>
           </div>
         </div>
-        <Link to={`/auction/${auction.id}`}>
-          <button className="btn w-full bg-[#4F5D75] text-white mt-2 flex items-center justify-center">
-            <h2 className="mx-2">زايد الان</h2>
-            <img src={img} />
+        {isAuthenticated ? (
+          <Link to={`/auction/${auction.id}`}>
+            <button className="btn w-full bg-[#4F5D75] text-white mt-2 flex items-center justify-center">
+              <h2 className="mx-2">زايد الان</h2>
+              <img src={img} />
+            </button>
+          </Link>
+        ) : (
+          <button className="btn w-full bg-gray-300 text-gray-600 mt-2 flex items-center justify-center cursor-not-allowed" disabled>
+            <Link to="/login">
+            <h2 className="mx-2">للمزايده والتفاصيل ز سجل دخول</h2>
+            </Link>
           </button>
-        </Link>
+        )}
       </div>
     </div>
   );
