@@ -48,4 +48,5 @@ function AuctionPage() {
     </div>
   );
 }
+
 export default AuctionPage;
