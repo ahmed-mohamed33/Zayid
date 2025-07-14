@@ -13,155 +13,68 @@ import {
   getDatabase,
   ref,
   onValue,
-  query,
-  orderByChild,
-  equalTo,
 } from "firebase/database";
+import Loading from "../components/common/Loading";
 
-//انا عددلت ف الصفحه دي علشان اعرض الداتا علي حسب الاكشن وعملت الفيتش هنا مش ف الكونتكست
-//  علشان معملش لود علي الموقع و اجيب حاله الدفع بتاعه كل اليوزر فوقت واحد
-// واحنا مش محتاجيتنهم كده بجيب لليوزر و للمزار اللي انا فيه بس
-
-// function TheauctionPage() {
-//   const { auctions, user, payments } = useContext(UserContext);
-//   const { auctionId } = useParams();
-//   const auction = auctions.find((a) => a.id === auctionId);
-
-//   // State for terms if paid
-//   const [hasPaidTerms, setHasPaidTerms] = useState(false);
-
-//   useEffect(() => {
-//     if (user && auctionId) {
-//       const db = getDatabase();
-//       const paymentsRef = ref(db, "payments");
-//       const userPaymentsQuery = query(
-//         paymentsRef,
-//         orderByChild("userId"),
-//         equalTo(user.uid)
-//       );
-
-//       const unsubscribe = onValue(userPaymentsQuery, (snapshot) => {
-//         if (snapshot.exists()) {
-//           const userPayments = snapshot.val();
-//           const paidTerms = Object.values(userPayments).some(
-//             (payment) =>
-//               payment.auctionId === auctionId &&
-//               payment.type === "shroot" &&
-//               payment.status === "paid"
-//           );
-//           setHasPaidTerms(paidTerms);
-//         } else {
-//           setHasPaidTerms(false);
-//         }
-//       });
-
-//       return () => unsubscribe();
-//     }
-//   }, [user, auctionId]);
-
-//   if (!auction) {
-//     return (
-//       <div className="flex justify-center items-center h-screen">.....</div>
-//     );
-//   }
-
-//   return (
-//     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
-//       {/* Fixed section */}
-//       <div className="flex flex-col md:flex-row mb-6">
-//         <ProductImages imageUrls={auction.imageUrls} />
-//         <ProductDetails
-//           name={auction.title}
-//           category={auction.categoryId}
-//           price={auction.startPrice}
-//           endDate={auction.endDate}
-//           allTime={auction.allTime}
-//           type={auction.type}
-//           condition={auction.condition}
-//           startDate={auction.startDate}
-//         />
-//       </div>
-//       <ProductDescription description={auction.description} />
-
-//       {/* Dynamic section */}
-//       {hasPaidTerms ? (
-//         <>
-//           <CardsInfo
-//             sellerName={auction.seller.name}
-//             insurancePrice={auction.insurance.amount}
-//             lowestBid={auction.minIncrement}
-//           />
-//           <PreviewOptions />
-//           <Insurancepayment />
-//         </>
-//       ) : (
-//         <ProductInspection termsPrice={auction.terms.price} />
-//       )}
-
-//       {/* <BiddingChat auctionId={auctionId} /> */}
-//     </div>
-//   );
-// }
-
-// export default TheauctionPage;
-
-//التعديلات الجديدة بتاعتي
 function TheauctionPage() {
   const { auctions, user } = useContext(UserContext);
   const { auctionId } = useParams();
   const auction = auctions.find((a) => a.id === auctionId);
-  // State for terms if paid
+ // State for terms if paid
   const [hasPaidTerms, setHasPaidTerms] = useState(false);
   // State for insurance if paid
   const [hasPaidInsurance, setHasPaidInsurance] = useState(false);
+  // State for check if auction time start
+  const [isAuctionLive, setIsAuctionLive] = useState(false);
 
   useEffect(() => {
+    // انا عدلت تعديل بسيط بس اختصرتهم ف if واده
     const getParticipantData = async () => {
       if (user && auctionId) {
         const db = getDatabase();
-        const participantRef = ref(
-          db,
-          `auctions/${auctionId}/participants/${user.uid}`
-        );
-
+        const participantRef = ref(db, `auctions/${auctionId}/participants/${user.uid}`);
         const unsubscribe = onValue(participantRef, (snapshot) => {
           if (snapshot.exists()) {
             const participantData = snapshot.val();
-            // Check if user has purchased shroot (terms)
-
-            if (participantData.hasPurchasedShroot === true) {
-              setHasPaidTerms(true);
-            } else {
-              setHasPaidTerms(false);
-            }
-            // Check if user has paid insurance
-            if (participantData.hasPaidInsurance === true) {
-              setHasPaidInsurance(true);
-            } else {
-              setHasPaidInsurance(false);
-            }
+            setHasPaidTerms(participantData.hasPurchasedShroot === true);
+            setHasPaidInsurance(participantData.hasPaidInsurance === true);
+            console.log("Participant Data from TheauctionPage:", participantData);
           } else {
             setHasPaidTerms(false);
             setHasPaidInsurance(false);
           }
         });
-
         return () => unsubscribe();
       }
     };
     getParticipantData();
-  }, [user, auctionId]);
 
+    //  بحسب الوقت اللي المزاد هيبداء فيه
+    if (auction?.endDate) {
+      const checkAuctionTime = () => {
+        const now = new Date();
+        const endDate = new Date(auction.endDate);
+        setIsAuctionLive(now >= endDate);
+      };
+      checkAuctionTime();
+      const interval = setInterval(checkAuctionTime, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [user, auctionId, auction?.endDate]);
+
+  // هنا بعمل سبينر
   if (!auction) {
     return (
-      <div className="flex justify-center items-center h-screen">.....</div>
+      <div className="flex justify-center items-center h-screen">
+        <Loading />
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
-      {/* Fixed section */}
       <div className="flex flex-col md:flex-row mb-6">
+        {/* Fixed section */}
         <ProductImages imageUrls={auction.imageUrls} />
         <ProductDetails
           name={auction.title}
@@ -175,7 +88,7 @@ function TheauctionPage() {
         />
       </div>
       <ProductDescription description={auction.description} />
-
+      
       {/* Dynamic section */}
       {/**لو دفع الشروط  هيظهر ده */}
       {hasPaidTerms ? (
@@ -189,7 +102,20 @@ function TheauctionPage() {
 
           {/* لو دفع التأمين هيظهر ده */}
           {hasPaidInsurance ? (
-            <BiddingChat auctionId={auctionId} />
+            <BiddingChat
+              auctionId={auctionId}
+              isAuctionLive={isAuctionLive}
+              endDate={auction.endDate}
+              hasPaidTerms={hasPaidTerms}
+              hasPaidInsurance={hasPaidInsurance}
+            >
+              {/*  لو المزاد لسه ما بدأش هعرض كانه مش شغال*/}
+              {!isAuctionLive && (
+                <div className="w-full h-full absolute top-0 left-0 bg-[#8e5135b8] z-10 flex justify-center items-center text-white">
+                  تبقى على بدء المزاد ...
+                </div>
+              )}
+            </BiddingChat>
           ) : (
             <Insurancepayment auctionId={auctionId} />
           )}
@@ -197,8 +123,6 @@ function TheauctionPage() {
       ) : (
         <ProductInspection termsPrice={auction?.terms?.price || 0} />
       )}
-
-      {/* <BiddingChat auctionId={auctionId} /> */}
     </div>
   );
 }
