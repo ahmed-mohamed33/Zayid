@@ -16,8 +16,6 @@ const products = [
     timeLeft: 5,
     category: "Electronics",
     productCondition: "New",
-    //فلترة المعاينة شايفة ملهاش داعي عشان اليوزر واجب عليه يوفر الطريقتين؟
-    inspectionTypes: ["Personal Inespection", "Live Video"],
     auctionStatus: "Active",
   },
   {
@@ -29,7 +27,6 @@ const products = [
     timeLeft: 3,
     category: "Furniture",
     productCondition: "Used",
-    inspectionTypes: ["Personal Inespection", "Live Video"],
     auctionStatus: "In Inspection",
   },
   {
@@ -41,7 +38,6 @@ const products = [
     timeLeft: 1,
     category: "Cars",
     productCondition: "Used",
-    inspectionTypes: ["Personal Inespection", "Live Video"],
     auctionStatus: "Active",
   },
   {
@@ -53,7 +49,6 @@ const products = [
     timeLeft: 2,
     category: "Antiques and Arts",
     productCondition: "Very Good",
-    inspectionTypes: ["Personal Inespection", "Live Video"],
     auctionStatus: "Terminated",
   },
   {
@@ -65,7 +60,6 @@ const products = [
     timeLeft: 2,
     category: "Electronics",
     productCondition: "New",
-    inspectionTypes: ["Personal Inespection", "Live Video"],
     auctionStatus: "Active",
   },
   {
@@ -77,7 +71,6 @@ const products = [
     timeLeft: 4,
     category: "Antiques and Arts",
     productCondition: "Very Good",
-    inspectionTypes: ["Personal Inespection", "Live Video"],
     auctionStatus: "Active",
   },
   {
@@ -89,7 +82,6 @@ const products = [
     timeLeft: 2,
     category: "Electronics",
     productCondition: "Used",
-    inspectionTypes: ["Personal Inespection", "Live Video"],
     auctionStatus: "Active",
   },
   {
@@ -101,7 +93,6 @@ const products = [
     timeLeft: 3,
     category: "Furniture",
     productCondition: "Very Good",
-    inspectionTypes: ["Personal Inespection", "Live Video"],
     auctionStatus: "In Inspection",
   },
 ];
@@ -122,9 +113,6 @@ const Products = () => {
       const matchesSearch = term === '' || product.title.toLowerCase().includes(term);
       const matchesCategory =
         !filters.categories || filters.categories.length === 0 || filters.categories.includes(product.category);
-      const matchesInspection =
-        !filters.inspectionTypes || filters.inspectionTypes.length === 0 ||
-        filters.inspectionTypes.some(type => product.inspectionTypes.includes(type));
       const matchesCondition =
         !filters.productConditions || filters.productConditions.length === 0 ||
         filters.productConditions.includes(product.productCondition);
@@ -139,7 +127,6 @@ const Products = () => {
       return (
         matchesSearch &&
         matchesCategory &&
-        matchesInspection &&
         matchesCondition &&
         matchesStatus &&
         matchesMinPrice &&
