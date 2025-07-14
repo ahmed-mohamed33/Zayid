@@ -98,11 +98,18 @@ export const UserProvider = ({ children }) => {
       (snapshot) => {
         if (snapshot.exists()) {
           const allAuctions = Object.entries(snapshot.val()).map(
-            ([id, data]) => ({
-              id,
-              ...data,
-              startDate: data.startDate || null,
-            })
+            // 14-7 2:40 am عملت تعديل اخير هنا عملت الحسبه هنا علشان تكون ف الافيكت 
+              ([id, data]) => {
+              const endDate = new Date(data.endDate || null); 
+              const today = new Date(); 
+              const remainingTime = endDate > today ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)) : 0; 
+              return {
+                id,
+                ...data,
+                startDate: data.startDate || null,
+                remainingTime: remainingTime,
+              };
+            }
           );
           setAuctions(allAuctions);
         } else {
@@ -133,14 +140,19 @@ export const UserProvider = ({ children }) => {
         (snapshot) => {
           if (snapshot.exists()) {
             const auctionsByuser = Object.entries(snapshot.val()).map(
-            ([id, data]) => {
-            return {
-              id,
-              ...data,
-              startDate: data.startDate || null,
-            };
-          }
-        );
+            // 14-7 2:40 am عملت نفس اتعديل هنا بتاع ال وقت المتبقي 
+              ([id, data]) => {
+                const endDate = new Date(data.endDate || null); 
+                const today = new Date();
+                const remainingTime = endDate > today ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)) : 0;
+                return {
+                  id,
+                  ...data,
+                  startDate: data.startDate || null,
+                  remainingTime: remainingTime, 
+                };
+              }
+            );
             setUserAuctions(auctionsByuser);
           } else {
             setUserAuctions([]);
