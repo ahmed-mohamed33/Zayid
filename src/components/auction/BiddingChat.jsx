@@ -190,7 +190,7 @@ return (
       <div className="bg-[#FCF6F6] rounded-lg p-6 mb-4">
         <div
           ref={bidsContainerRef}
-          className="space-y-1.5 max-h-[300px] overflow-y-auto scroll-smooth"
+          className="space-y-1.5 max-h-[300px] overflow-y-auto scroll-smooth flex flex-col-reverse"
         >
           {bids.map((bid, index) => (
             <div
