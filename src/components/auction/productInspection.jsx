@@ -27,7 +27,7 @@ function ProductInspection({ termsPrice }) {
         <h2 className="text-center font-extrabold my-3 text-[#4F5D75]">
           كراسة الشروط
         </h2>
-        <Link to={`/payment/${auction.id}`}>
+        <Link to={`/payment/${auction.id}/shroot`}> {/*  انا عدلت ف اللينك دي علشان اروح علي صفحه ال باي مينت الخاصه ب شروط المزاد لان انا بباصي التايب في اللينك*/}
           <button className="btn bg-[#4F5D75] text-white border-none shadow-none">
             شراء كراسة الشروط
           </button>

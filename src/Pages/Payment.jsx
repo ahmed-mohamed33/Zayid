@@ -190,54 +190,176 @@
 
 // export default Payment;
 
+// هنا مرضيش اغير حاجه ف ال صفحه فعملت زرار بس لحد م نهندل الدفع
+// import React, { useState, useEffect, useContext } from "react";
+// import { useParams, useNavigate } from "react-router-dom";
+// import { getDatabase, ref, push, set } from "firebase/database";
+// import { UserContext } from "../context/UserContext";
 
+// function Payment() {
+//   const [status, setStatus] = useState({ error: null, success: false });
+//   const { user, auctions } = useContext(UserContext);
+//   const { auctionId } = useParams();
+//   const navigate = useNavigate();
+// const auction = auctions.find((a) => String(a.id) === String(auctionId));
 
+//   const handleMockPayment = async () => {
+//   try {
+//     if (!auction) {
+//       throw new Error("المزاد غير موجود. تأكد من أن الرابط صحيح.");
+//     }
 
-// هنا مرضيش اغير حاجه ف ال صفحه فعملت زرار بس لحد م نهندل الدفع 
-import React, { useState, useEffect, useContext } from "react";
+//     const db = getDatabase();
+//     const paymentRef = ref(db, "payments");
+//     const newPaymentRef = push(paymentRef);
+//     await set(newPaymentRef, {
+//       amount: auction?.terms?.price || 100,
+//       auctionId: auction.id,
+//       method: "mock",
+//       status: "paid",
+//       timestamp: new Date().toISOString(),
+//       type: "shroot",
+//       userId: user.uid,
+//     });
+
+//     setStatus({ success: true, error: null });
+//     navigate(`/auction/${auction.id}`);
+
+//   } catch (error) {
+//     console.error("Mock payment error:", error);
+//     setStatus({ success: false, error: error.message || "خطأ أثناء الدفع " });
+//   }
+// };
+
+//   return (
+//     <div className="btn bg-blue-400" onClick={handleMockPayment}>
+//       كأني دفعت
+//     </div>
+//   );
+// }
+
+import React, { useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDatabase, ref, push, set } from "firebase/database";
+import { getDatabase, ref, push, set, update, get } from "firebase/database";
 import { UserContext } from "../context/UserContext";
 
 function Payment() {
   const [status, setStatus] = useState({ error: null, success: false });
   const { user, auctions } = useContext(UserContext);
-  const { auctionId } = useParams();
+  // Now expecting type as a param in the link, e.g. /payment/:auctionId/:type
+  const { auctionId, type } = useParams();
   const navigate = useNavigate();
-const auction = auctions.find((a) => String(a.id) === String(auctionId));
+  const auction = auctions.find((a) => String(a.id) === String(auctionId));
 
+  // Handles the payment record creation based on type
   const handleMockPayment = async () => {
-  try {
-    if (!auction) {
-      throw new Error("المزاد غير موجود. تأكد من أن الرابط صحيح.");
+    try {
+      if (!auction) {
+        throw new Error("المزاد غير موجود. تأكد من أن الرابط صحيح.");
+      }
+
+      if (!type || (type !== "shroot" && type !== "insurance")) {
+        throw new Error("نوع الدفع غير صحيح أو غير محدد في الرابط.");
+      }
+
+      const db = getDatabase();
+      const paymentRef = ref(db, "payments");
+      const newPaymentRef = push(paymentRef);
+
+      // Determine amount and payment type
+      let amount = 0;
+      if (type === "shroot") {
+        amount = auction?.terms?.price || 100;
+      } else if (type === "insurance") {
+        amount = auction?.insurance?.price || 200;
+      }
+
+      await set(newPaymentRef, {
+        amount: amount,
+        auctionId: auction.id,
+        method: "mock",
+        status: "paid",
+        timestamp: new Date().toISOString(),
+        type: type,
+        userId: user.uid,
+      });
+
+      // After payment, update participant info
+      if (type === "shroot") {
+        await updateParticipantShroot();
+      } else if (type === "insurance") {
+        await updateParticipantInsurance();
+      }
+
+      setStatus({ success: true, error: null });
+      navigate(`/auction/${auction.id}`);
+    } catch (error) {
+      console.error("Mock payment error:", error);
+      setStatus({ success: false, error: error.message || "خطأ أثناء الدفع " });
     }
+  };
 
+  // Handles adding/updating participant info in the auction for shroot
+  // Update only the existing participant data (do not overwrite other fields)
+
+  const updateParticipantShroot = async () => {
     const db = getDatabase();
-    const paymentRef = ref(db, "payments");
-    const newPaymentRef = push(paymentRef);
-    await set(newPaymentRef, {
-      amount: auction?.terms?.price || 100,
-      auctionId: auction.id,
-      method: "mock",
-      status: "paid",
-      timestamp: new Date().toISOString(),
-      type: "shroot",
-      userId: user.uid,
-    });
+    const participantRef = ref(
+      db,
+      `auctions/${auctionId}/participants/${user.uid}`
+    );
+    // Get current participant data
+    const snapshot = await get(participantRef);
+    let currentData = {};
+    if (snapshot.exists()) {
+      currentData = snapshot.val();
+    }
+    // Only update the relevant fields, keep the rest
+    const updates = {
+      ...currentData,
+      hasPurchasedShroot: true,
+      joinedAt: new Date().toISOString(),
+    };
+    await set(participantRef, updates);
+  };
 
-    setStatus({ success: true, error: null });
-    navigate(`/auction/${auction.id}`);
-
-  } catch (error) {
-    console.error("Mock payment error:", error);
-    setStatus({ success: false, error: error.message || "خطأ أثناء الدفع " });
-  }
-};
-
+  const updateParticipantInsurance = async () => {
+    const db = getDatabase();
+    const participantRef = ref(
+      db,
+      `auctions/${auctionId}/participants/${user.uid}`
+    );
+    // Get current participant data
+    const snapshot = await get(participantRef);
+    let currentData = {};
+    if (snapshot.exists()) {
+      currentData = snapshot.val();
+    }
+    // Only update the relevant fields, keep the rest
+    const updates = {
+      ...currentData,
+      hasPaidInsurance: true,
+      paidInsuranceAt: new Date().toISOString(),
+    };
+    await set(participantRef, updates);
+  };
 
   return (
-    <div className="btn bg-blue-400" onClick={handleMockPayment}>
-      كأني دفعت
+    <div className="flex flex-col gap-4">
+      <div
+        className={`btn ${type === "shroot" ? "bg-blue-400" : "bg-green-400"}`}
+        onClick={handleMockPayment}
+      >
+        {type === "shroot"
+          ? "دفع الشروط"
+          : type === "insurance"
+          ? "دفع التأمين"
+          : "نوع دفع غير معروف"}
+      </div>
+      {status.error && <div className="text-red-500 mt-2">{status.error}</div>}
+      {status.success && (
+        <div className="text-green-500 mt-2">تم الدفع بنجاح!</div>
+      )}
     </div>
   );
 }
