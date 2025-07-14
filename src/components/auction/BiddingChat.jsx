@@ -16,6 +16,10 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
   const [bids, setBids] = useState([]);
   // بضيف عدد المشاركين
   const [participantsCount, setParticipantsCount] = useState(0);
+  // بضيف صاحب المزاد
+  const [createdBy, setCreatedBy] = useState(null);
+  // بضيف حالة المزاد
+  const [status, setStatus] = useState("pending");
   const bidsContainerRef = useRef(null);
   const db = getDatabase();
 
@@ -54,6 +58,12 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
         const bidsData = data.bids || {};
         const bidsArray = Object.values(bidsData).sort((a, b) => new Date(b.bidTime) - new Date(a.bidTime));
         setBids(bidsArray);
+        
+        // بجيب صاحب المزاد  
+        setCreatedBy(data.createdBy);
+
+        // بجيب حالة المزاد  
+        setStatus(data.status || "pending");
 
         // بحسب أعلى سعر وعدد المزايدات
         const validBids = bidsArray.filter(bid => bid.bidAmount > 0);
@@ -71,7 +81,7 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
 
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
-    if (!isAuctionLive) {
+    if (!isAuctionLive || status === "ended") {
       alert("المزاد لم يبدأ بعد!");
       return;
     }
@@ -90,12 +100,12 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
     // اعلي سعر بيتحدث
     const highest = bids.length > 0 ? Math.max(...bids.map(b => Number(b.bidAmount))) : 0;
     if (newBidAmount <= highest) {
-      alert("السعر المضاف أقل من أفضل سعر حالي!");
+      alert("السعر المضاف أقل من اعلي سعر حالي!");
       return;
     }
     
-    // تشكايه علي انه مسجل دخول ومش أدمن
-    if (!user || !user.uid || user.isAdmin) {
+    // تشكايه علي انه مسجل دخول انه صاحب المزاد
+    if (!user || !user.uid || user.uid === createdBy) {
       alert("صاحب المزاد ما ينفعش يزايد!");
       return;
     }
@@ -118,13 +128,14 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
     }
   };
 
-   // ف حاله الادمن
+   // ف حاله صاحب المزاد
   const handleEndAuction = () => {
-    if (user.isAdmin) {
+if (user.uid === createdBy) { 
       setAuctionTime("انتهى");
       const auctionRef = ref(db, `auctions/${auctionId}`);
-            // بحدث ف الفاير بيز
-      update(auctionRef, { status: "closed" });
+      // بحدث ف الفاير بيز
+      update(auctionRef, { status: "ended" });
+      setStatus("ended");
     }
   };
 
@@ -153,7 +164,7 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
     },
   ];
 
-  return (
+return (
     <div
       className="bg-white rounded-2xl border border-[#BFC0C0] p-6 w-full mt-8 relative"
       dir="rtl"
@@ -211,8 +222,8 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
         </div>
       </div>
 
-      {/* هشيل الإنبوت والزر للأدمن هنغيره بزرار إنهاء المزاد */}
-      {user.isAdmin ? (
+      {/* هشيل الإنبوت والزر لو المزاد انتهي & ونظهر زرار إنهاء لو صاحب المزاد     */}
+      {user && user.uid && createdBy !== null && user.uid === createdBy && status !== "ended" ? (
         <div className="flex justify-center items-center mt-4 w-full">
           <button
             onClick={handleEndAuction}
@@ -221,7 +232,7 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
             إنهاء المزاد
           </button>
         </div>
-      ) : (
+      ) : status !== "ended" ? (
         <div className="flex h-12">
           <input
             type="text"
@@ -229,29 +240,19 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
             onChange={(e) => setBidAmount(e.target.value)}
             placeholder="00.00 ج.م"
             className="flex-1 bg-[#F1F1F1] text-[#5F626F] px-4 py-3 rounded-r-lg text-right outline-none border-none"
-            disabled={!isAuctionLive}
+            disabled={!isAuctionLive || status === "ended"}
           />
           <button
             onClick={handleBidSubmit}
             className="bg-[#FA6300] hover:bg-[#e55a00] text-white font-bold px-4 py-3 rounded-l-lg transition-colors duration-200"
-            disabled={!isAuctionLive}
+            disabled={!isAuctionLive || status === "ended"}
           >
             أضف سعرك
           </button>
         </div>
-      )}
+      ) : null}
 
-      {user.isAdmin && (
-        <div className="flex justify-center items-center mt-4 w-full">
-          <button
-            onClick={handleEndAuction}
-            className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-6 py-3 rounded-lg transition-colors duration-200 w-full"
-          >
-            إنهاء المزاد
-          </button>
-        </div>
-      )}
-      {/* لو المزاد مش شغال يوقف شكل الزاد */}
+      {/* لو المزاد مش شغال يوقف شكل المزاد */}
       {!isAuctionLive && (
         <div className="w-full h-full absolute top-0 left-0 bg-[#65656596] text-black font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
           تبقى على بدء المزاد ...
