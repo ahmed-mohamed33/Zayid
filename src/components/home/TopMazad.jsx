@@ -1,22 +1,15 @@
-import React, { useRef } from 'react';
+import React, { useRef, useContext } from 'react';
 import MazadCard from '../common/MazadCard';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-
-// imgs
-import img from '../../assets/images/smartWatch.png';
+import { UserContext } from "../../context/UserContext"; 
+import { Link } from "react-router-dom";
 
 function TopMazad() {
   const sliderRef = useRef(null);
-
-  const mazadItems = [
-    { image: img, price: '3,500', title: 'ساعة ذكية' },
-    { image: img, price: '3,500', title: 'ساعة ذكية' },
-    { image: img, price: '3,500', title: 'ساعة ذكية' },
-    { image: img, price: '3,500', title: 'ساعة ذكية' }, // أضفت عنصر زيادة لتجريب السلايدر
-  ];
+  const { auctions } = useContext(UserContext);
 
   const settings = {
     dots: false,
@@ -55,9 +48,9 @@ function TopMazad() {
       <h2 className="text-center text-2xl font-bold text-gray-700 mb-8">أعلى المزادات</h2>
       
       <Slider ref={sliderRef} {...settings}>
-        {mazadItems.map((item, index) => (
-          <div key={index}>
-            <MazadCard image={item.image} price={item.price} title={item.title} />
+        {auctions.map((auction) => (
+          <div key={auction.id}>
+            <MazadCard auctionId={auction.id} />
           </div>
         ))}
       </Slider>
@@ -73,7 +66,7 @@ function TopMazad() {
           onClick={() => sliderRef.current.slickNext()}
           className="w-10 h-10 bg-white rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition"
         >
-        <FaArrowLeft />
+          <FaArrowLeft />
         </button>
       </div>
     </section>

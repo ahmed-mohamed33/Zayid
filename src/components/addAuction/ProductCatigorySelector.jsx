@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   FaGem,
   FaPaintBrush,
@@ -8,7 +8,7 @@ import {
   FaCar,
   FaWrench,
   FaTh,
-} from 'react-icons/fa';
+} from "react-icons/fa";
 
 const categories = [
   { label: "عقارات وأراضي", icon: <FaHome /> },
@@ -21,7 +21,11 @@ const categories = [
   { label: "أخرى", icon: <FaTh /> },
 ];
 
-export default function ProductCategorySelector({ selectedCategory, setSelectedCategory, error }) {
+export default function ProductCategorySelector({
+  selectedCategory,
+  setSelectedCategory,
+  error,
+}) {
   return (
     <div>
       <div
@@ -50,13 +54,17 @@ export default function ProductCategorySelector({ selectedCategory, setSelectedC
                 cursor-pointer
                 transition
                 hover:border-[#FA6300]
-                ${isSelected
-                  ? 'border-[#FA6300] text-[#FA6300] font-bold'
-                  : 'border-[#B9B9B9] text-[#2D3142]'
+                max-lg:text-[14px]
+                ${
+                  isSelected
+                    ? "border-[#FA6300] text-[#FA6300] font-bold"
+                    : "border-[#B9B9B9] text-[#2D3142]"
                 }
               `}
             >
-              <span className={isSelected ? 'text-[#FA6300]' : 'text-[#2D3142]'}>
+              <span
+                className={isSelected ? "text-[#FA6300]" : "text-[#2D3142]"}
+              >
                 {cat.icon}
               </span>
               <span>{cat.label}</span>
@@ -69,4 +77,3 @@ export default function ProductCategorySelector({ selectedCategory, setSelectedC
     </div>
   );
 }
-
