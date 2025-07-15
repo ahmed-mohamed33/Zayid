@@ -400,7 +400,7 @@ function AddAuctionForm() {
             role="button"
             className="btn bg-transparent border-1 text-right w-full flex justify-between items-center"
           >
-{productCondition === "new" ? "جديد" : productCondition === "veryGood" ? "مستعمل بعناية" : "مستعمل"}            <IoIosArrowDown className="text-orange-500" />
+          {productCondition === "new" ? "جديد" : productCondition === "veryGood" ? "مستعمل بعناية" : "مستعمل"}            <IoIosArrowDown className="text-orange-500" />
             
           </div>
           <ul
