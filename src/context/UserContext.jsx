@@ -376,6 +376,8 @@ export const UserProvider = ({ children }) => {
         allTime: parseInt(allTime),
         //      هنا انا بخزن الوقت المتبقي
         remainingTime: remainingTime,
+        // حاله المنتج 
+        productCondition: auctionData.productCondition,
       };
 
       const database = getDatabase(); // Use getDatabase() instead of db

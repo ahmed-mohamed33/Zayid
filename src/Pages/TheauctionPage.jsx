@@ -71,6 +71,8 @@ function TheauctionPage() {
     );
   }
 
+  const displayCondition = auction.productCondition === "new" ? "جديد" : auction.productCondition === "old" ? "مستعمل" : "غير محدد";
+
   return (
     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
       <div className="flex flex-col md:flex-row mb-6">
@@ -83,7 +85,7 @@ function TheauctionPage() {
           endDate={auction.endDate}
           allTime={auction.allTime}
           type={auction.type}
-          condition={auction.condition}
+          condition={displayCondition}
           startDate={auction.startDate}
         />
       </div>
