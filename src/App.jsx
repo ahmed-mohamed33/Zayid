@@ -18,14 +18,10 @@ import SignUp from "./Pages/SignUp.jsx";
 import StepOverview from "./Pages/StepOverview.jsx";
 import StartStep from "./Pages/Start.jsx";
 import AddAuctionPage from "./Pages/AddAuctionPage.jsx";
+import AuctionsPage from "./Pages/AuctionsPage.jsx";
 //to show schema
 import AllDataComponent from "./UsserSchema.jsx";
 import { UserProvider } from "../src/context/UserContext.jsx";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import AddAuctionPage from './Pages/AddAuctionPage.jsx';
-import AuctionsPage from './Pages/AuctionsPage.jsx';
 
 function App() {
   return (
@@ -42,22 +38,13 @@ function App() {
             <Route path="/forgetpass" element={<Forgetpass />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/auction/:auctionId" element={<AuctionPage />} />
-     <div dir="rtl">
-    <Router>
-      <Navbar /> 
-
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/addAuction" element={<AddAuctionPage />} />
-        <Route path="/auctions" element={<AuctionsPage />} />
 
             <Route path="/selectCategory" element={<SelectCategoryPage />} />
             <Route path="/signUp" element={<SignUp />} />
             <Route path="/stepOverview" element={<StepOverview />} />
             <Route path="/start" element={<StartStep />} />
             <Route path="/addAuction" element={<AddAuctionPage />} />
+            <Route path="/auctions" element={<AuctionsPage />} />
           </Routes>
           <Footer />
         </Router>

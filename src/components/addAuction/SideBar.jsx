@@ -1,6 +1,6 @@
 import React from 'react';
-import SideBarTips from '../sideBarTips';
-import AuctionPreview from './AuctionPreview';
+import SideBarTips from '../addAuction/SideBarTips';
+// import AuctionPreview from './AuctionPreview';
 
 export default function SideBar( ) {
   return (

@@ -44,7 +44,7 @@ function MazadCard({ auctionId }) {
         ) : (
           <button className="btn w-full bg-gray-300 text-gray-600 mt-2 flex items-center justify-center cursor-not-allowed" disabled>
             <Link to="/login">
-            <h2 className="mx-2">للمزايده والتفاصيل ز سجل دخول</h2>
+            <h2 className="mx-2">للمزايده والتفاصيل سجل دخول</h2>
             </Link>
           </button>
         )}
