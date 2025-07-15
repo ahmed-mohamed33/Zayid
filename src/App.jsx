@@ -12,7 +12,8 @@ import Payment from "./Pages/Payment.jsx";
 import Login from "./Pages/Login.jsx";
 import Products from "./Pages/products.jsx";
 import Forgetpass from "./Pages/forgetpass.jsx";
-import AuctionPage from "./Pages/AuctionPage.jsx";
+// انا غيرت اسم الصفحه دي علشان المشكله تتحل
+import TheauctionPage from "./Pages/TheauctionPage.jsx";
 import SelectCategoryPage from "./Pages/SelectCategoryPage.jsx";
 import SignUp from "./Pages/SignUp.jsx";
 import StepOverview from "./Pages/StepOverview.jsx";
@@ -36,8 +37,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/products" element={<Products />} />
             <Route path="/forgetpass" element={<Forgetpass />} />
-            <Route path="/payment" element={<Payment />} />
-            <Route path="/auction/:auctionId" element={<AuctionPage />} />
+            <Route path="/payment/:auctionId/:type" element={<Payment />} /> {/**غيرت البارامز لان انا بباصي التايب في اللينك*/}
+            <Route path="/auction/:auctionId" element={<TheauctionPage />} />
 
             <Route path="/selectCategory" element={<SelectCategoryPage />} />
             <Route path="/signUp" element={<SignUp />} />

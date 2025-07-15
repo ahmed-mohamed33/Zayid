@@ -1,14 +1,58 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 //img
 import img from "../../assets/images/Frame.jpg";
 import users from "../../assets/images/profile-2user.png";
 import timer from "../../assets/images/timer.png";
-import { Link } from "react-router-dom";
-import { UserContext } from "../../context/UserContext"; 
+import { Link, useNavigate } from "react-router-dom";
+import { UserContext } from "../../context/UserContext";
+import { getDatabase, ref, set, get } from "firebase/database";
 
 function MazadCard({ auctionId }) {
-  const { auctions, isAuthenticated } = useContext(UserContext); 
-  const auction = auctions.find((a) => a.id === auctionId); 
+  const { auctions, isAuthenticated, user, userData } = useContext(UserContext);
+  const navigate = useNavigate();
+  const auction = auctions.find((a) => a.id === auctionId);
+  const [isParticipant, setIsParticipant] = useState(false);
+  const handleAuctionClick = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    if (auction?.status !== "pending") {
+      // If auction is not pending, just navigate to the auction page
+      navigate(`/auction/${auction.id}`);
+      return;
+    }
+
+    try {
+      const db = getDatabase();
+      // Add user as participant with initial values
+      const participantRef = ref(
+        db,
+        `auctions/${auctionId}/participants/${user.uid}`
+      );
+      const snapshot = await get(participantRef);
+
+      if (snapshot.exists()) {
+        navigate(`/auction/${auction.id}`);
+        return;
+      }
+      await set(ref(db, `auctions/${auctionId}/participants/${user.uid}`), {
+        userId: user.uid,
+        userName: userData.fullName || "Anonymous",
+        joinedAt: new Date().toISOString(),
+        hasPurchasedShroot: false,
+        hasPaidInsurance: false,
+      });
+      setIsParticipant(true);
+      // Navigate to auction page after adding as participant
+      navigate(`/auction/${auction.id}`);
+    } catch (error) {
+      console.error("Error adding participant:", error);
+      // Still navigate to auction page even if there's an error
+      navigate(`/auction/${auction.id}`);
+    }
+  };
 
   if (!auction) {
     return <div className="card w-[90%] m-auto bg-white"> ..... </div>;
@@ -17,32 +61,42 @@ function MazadCard({ auctionId }) {
   return (
     <div className="card w-[90%]  bg-white">
       <img
-        src={auction.imageUrls ? auction.imageUrls[0] : img} 
+        src={auction.imageUrls ? auction.imageUrls[0] : img}
         alt={auction.title}
         className="rounded-t-md w-full h-55 object-cover"
       />
       <div dir="rtl" className="card-body ">
         <h2 className="card-title text-[#4F5D75]">{auction.title}</h2>
-        <p className="text-[#44A46F] font-semibold my-1">السعر الابتدائي: {auction.startPrice || 'غير محدد'}</p>
+        <p className="text-[#44A46F] font-semibold my-1">
+          السعر الابتدائي: {auction.startPrice || "غير محدد"}
+        </p>
         <div className="flex justify-between items-center">
           <div className="flex items-center justify-center">
             <img src={users} />
-            <h2 className="text-[#4F5D75] mx-2">المزايدين {auction.usersInMAzad || 0}</h2>
+            <h2 className="text-[#4F5D75] mx-2">
+              المزايدين {auction.usersInMAzad || 0}
+            </h2>
           </div>
           <div className="flex items-center justify-center">
             <img className="w-[15px] h-[15px]" src={timer} />
-            <p className="text-[#FA6300] mx-1">متبقي: {auction.remainingTime || 'غير محدد'} أيام</p>
+            <p className="text-[#FA6300] mx-1">
+              متبقي: {auction.remainingTime || "غير محدد"} أيام
+            </p>
           </div>
         </div>
         {isAuthenticated ? (
-          <Link to={`/auction/${auction.id}`}>
-            <button className="btn w-full bg-[#4F5D75] text-white mt-2 flex items-center justify-center">
-              <h2 className="mx-2">زايد الان</h2>
-              <img src={img} />
-            </button>
-          </Link>
+          <button
+            onClick={handleAuctionClick}
+            className="btn w-full bg-[#4F5D75] text-white mt-2 flex items-center justify-center"
+          >
+            <h2 className="mx-2">زايد الان</h2>
+            <img src={img} alt="bid" />
+          </button>
         ) : (
-          <button className="btn w-full bg-gray-300 text-gray-600 mt-2 flex items-center justify-center cursor-not-allowed" disabled>
+          <button
+            className="btn w-full bg-gray-300 text-gray-600 mt-2 flex items-center justify-center cursor-not-allowed"
+            disabled
+          >
             <Link to="/login">
             <h2 className="mx-2">للمزايده والتفاصيل سجل دخول</h2>
             </Link>

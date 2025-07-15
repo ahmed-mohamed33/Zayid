@@ -98,11 +98,21 @@ export const UserProvider = ({ children }) => {
       (snapshot) => {
         if (snapshot.exists()) {
           const allAuctions = Object.entries(snapshot.val()).map(
-            ([id, data]) => ({
-              id,
-              ...data,
-              startDate: data.startDate || null,
-            })
+            // 14-7 2:40 am عملت تعديل اخير هنا عملت الحسبه هنا علشان تكون ف الافيكت
+            ([id, data]) => {
+              const endDate = new Date(data.endDate || null);
+              const today = new Date();
+              const remainingTime =
+                endDate > today
+                  ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
+                  : 0;
+              return {
+                id,
+                ...data,
+                startDate: data.startDate || null,
+                remainingTime: remainingTime,
+              };
+            }
           );
           setAuctions(allAuctions);
         } else {
@@ -133,14 +143,22 @@ export const UserProvider = ({ children }) => {
         (snapshot) => {
           if (snapshot.exists()) {
             const auctionsByuser = Object.entries(snapshot.val()).map(
-            ([id, data]) => {
-            return {
-              id,
-              ...data,
-              startDate: data.startDate || null,
-            };
-          }
-        );
+              // 14-7 2:40 am عملت نفس اتعديل هنا بتاع ال وقت المتبقي
+              ([id, data]) => {
+                const endDate = new Date(data.endDate || null);
+                const today = new Date();
+                const remainingTime =
+                  endDate > today
+                    ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
+                    : 0;
+                return {
+                  id,
+                  ...data,
+                  startDate: data.startDate || null,
+                  remainingTime: remainingTime,
+                };
+              }
+            );
             setUserAuctions(auctionsByuser);
           } else {
             setUserAuctions([]);
@@ -328,19 +346,19 @@ export const UserProvider = ({ children }) => {
         throw new Error(uploadResult.error);
       }
 
-      //هنا بحسب الوقت الكلي الثابت وقت اضافه المزاد 11:15  12-7   
+      //هنا بحسب الوقت الكلي الثابت وقت اضافه المزاد 11:15  12-7
       const startDate = new Date(auctionData.startDate || null);
       const endDate = new Date(auctionData.endDate || null);
       const allTime =
-      endDate && startDate
+        endDate && startDate
           ? ((endDate - startDate) / (1000 * 60 * 60 * 24)).toFixed(0)
           : 0;
-     // بص هنا انا بجيب  الوقت المتبقي 11:50  13-7   
-      const today = new Date(); 
-            const remainingTime =
-              endDate > today
-                ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
-                : 0;
+      // بص هنا انا بجيب  الوقت المتبقي 11:50  13-7
+      const today = new Date();
+      const remainingTime =
+        endDate > today
+          ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
+          : 0;
 
       const auctionId = uuidv4();
       const auctionWithImages = {
@@ -354,10 +372,12 @@ export const UserProvider = ({ children }) => {
           amount: Math.round(auctionData.startPrice * 0.05),
         },
 
-        //هنا بخزن ف الداتا بيز الوقت الكلي الثابت 11:15  12-7   
+        //هنا بخزن ف الداتا بيز الوقت الكلي الثابت 11:15  12-7
         allTime: parseInt(allTime),
-       //      هنا انا بخزن الوقت المتبقي     
-        remainingTime: remainingTime, 
+        //      هنا انا بخزن الوقت المتبقي
+        remainingTime: remainingTime,
+        // حاله المنتج 
+        productCondition: auctionData.productCondition,
       };
 
       const database = getDatabase(); // Use getDatabase() instead of db

@@ -7,6 +7,7 @@ import LocationIcon from "../../assets/icons/location.svg";
 import ProductCategorySelector from "./ProductCatigorySelector";
 import DateInputField from "../addAuction/DateInput";
 import { UserContext } from "../../context/UserContext";
+import { IoIosArrowDown } from "react-icons/io";
 
 function AddAuctionForm() {
   const navigate = useNavigate();
@@ -27,6 +28,8 @@ function AddAuctionForm() {
   const [category, setCategory] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  // add productCondition
+  const [productCondition, setProductCondition] = useState("new");
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -53,7 +56,7 @@ function AddAuctionForm() {
     if (!category.trim()) newErrors.category = "يجب اختيار تصنيف المنتج";
     if (!initialPrice.trim()) newErrors.initialPrice = "هذا الحقل مطلوب";
     if (!minIncrement.trim()) newErrors.minIncrement = "هذا الحقل مطلوب";
-
+    if (!productCondition) newErrors.productCondition = "يجب اختيار حالة المنتج"; 
     // Date validation
     const now = new Date();
 
@@ -126,6 +129,8 @@ function AddAuctionForm() {
             details: termsText,
             price: Math.round(initialPrice * 0.05),
           },
+          // بضيف حاله المنتج للمزاد
+          productCondition: productCondition,
         };
 
         await createAuction(auctionData, imageFiles);
@@ -384,6 +389,55 @@ function AddAuctionForm() {
         }}
         error={errors.termsText}
       />
+      
+<div className="mb-4">
+        <label className="text-[#2d3142] text-base font-medium mb-2 block">
+          حالة المنتج *
+        </label>
+        <div className="dropdown dropdown-bottom w-full">
+          <div
+            tabIndex={0}
+            role="button"
+            className="btn bg-transparent border-1 text-right w-full flex justify-between items-center"
+          >
+            {productCondition === "new" ? "جديد" : "مستعمل"}
+            <IoIosArrowDown className="text-orange-500" />
+            
+          </div>
+          <ul
+            tabIndex={0}
+            className="dropdown-content menu bg-base-100 rounded-box z-10 w-full p-2 shadow-sm"
+          >
+            <li>
+              <a
+                onClick={() => {
+                  setProductCondition("new");
+                  if (errors.productCondition) {
+                    setErrors((prev) => ({ ...prev, productCondition: null }));
+                  }
+                }}
+              >
+                جديد
+              </a>
+            </li>
+            <li>
+              <a
+                onClick={() => {
+                  setProductCondition("old");
+                  if (errors.productCondition) {
+                    setErrors((prev) => ({ ...prev, productCondition: null }));
+                  }
+                }}
+              >
+                مستعمل
+              </a>
+            </li>
+          </ul>
+        </div>
+        {errors.productCondition && (
+          <p className="text-red-600 text-sm mt-1">{errors.productCondition}</p>
+        )}
+      </div>
 
       <div className="flex mb-2 mt-4">
         <input
