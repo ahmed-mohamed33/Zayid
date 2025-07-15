@@ -4,15 +4,19 @@ import StartStep from './selectCategory/page/start.jsx';
 import StepOverview from './selectCategory/page/StepOverview.jsx';
 import SignUp from './signUp/page/SignUp.jsx';
 import { Routes, Route } from 'react-router-dom';
+import TermsAndConditions from './TermsAndConditions/TermsAndConditions.jsx';
+import ContactUs from './ContactUs/ContactUs.jsx';
 
 export default function App() {
   return (
     <>
-      <Routes>
+      <ContactUs />
+      {/* <TermsAndConditions /> */}
+      {/* <Routes>
         <Route path="/selectCategory" element={<SelectCategoryPage />} />
         <Route path="/overview" element={<StepOverview />} />
         <Route path="/start" element={<StartStep />} />
-      </Routes>
+      </Routes> */}
       {/* <SignUp /> */}
     </>
   );

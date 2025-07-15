@@ -268,7 +268,7 @@ export default function SignUp() {
                       <img
                         src={
                           showPassword
-                            ? '/assets/eye-off.svg'
+                            ? '/assets/eye-slash.svg'
                             : '/assets/eye.svg'
                         }
                         alt="toggle visibility"
