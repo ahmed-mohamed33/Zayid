@@ -34,7 +34,7 @@ function ProductDetails({
             : "غير محدد"}
         </p>
         <p className="mb-3 text-lg text-[#2D3142]">
-          مدة المزاد: {allTime || "غير محدد"} ايام
+          مدة المزاد: {allTime || "غير محدد"} 
         </p>
         <p className="mb-3 text-lg text-[#2D3142]">
           حالة المنتج: {condition || "غير محدد"}
