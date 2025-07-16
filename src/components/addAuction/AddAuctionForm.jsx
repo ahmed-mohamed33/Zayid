@@ -400,8 +400,7 @@ function AddAuctionForm() {
             role="button"
             className="btn bg-transparent border-1 text-right w-full flex justify-between items-center"
           >
-            {productCondition === "new" ? "جديد" : "مستعمل"}
-            <IoIosArrowDown className="text-orange-500" />
+          {productCondition === "new" ? "جديد" : productCondition === "veryGood" ? "مستعمل بعناية" : "مستعمل"}            <IoIosArrowDown className="text-orange-500" />
             
           </div>
           <ul
@@ -430,6 +429,18 @@ function AddAuctionForm() {
                 }}
               >
                 مستعمل
+              </a>
+            </li>
+            <li>
+              <a
+                onClick={() => {
+                  setProductCondition("veryGood");
+                  if (errors.productCondition) {
+                    setErrors((prev) => ({ ...prev, productCondition: null }));
+                  }
+                }}
+              >
+                مستعمل بعنايه 
               </a>
             </li>
           </ul>
