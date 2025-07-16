@@ -1,25 +1,7 @@
-<<<<<<< Updated upstream
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Footer from "./components/common/Footer";
-import Forget from "./pages/forgetpass";
-=======
-import { Routes, Route, useLocation } from "react-router-dom";
->>>>>>> Stashed changes
-
-// Components
 import Navbar from "./components/common/Nav";
-
-
-<<<<<<< Updated upstream
 // Pages
-
-import Login from "./pages/Login";
-// import HomePage from "./pages/HomePage";
-import Products from "./pages/products";
-
-
-=======
-
 import Payment from "./Pages/Payment.jsx";
 import Login from "./Pages/Login.jsx";
 import Products from "./Pages/products.jsx";
@@ -31,38 +13,18 @@ import StepOverview from "./Pages/StepOverview.jsx";
 import StartStep from "./Pages/Start.jsx";
 import AddAuctionPage from "./Pages/AddAuctionPage.jsx";
 import Dashboard from "./Pages/Dashboard.jsx";
-
-//to show schema
+import HomePage from "./Pages/HomePage.jsx";
+// to show schema
 import AllDataComponent from "./UsserSchema.jsx";
 import { UserProvider } from "../src/context/UserContext.jsx";
->>>>>>> Stashed changes
 
 function App() {
   const location = useLocation();
-  const isDashboard = location.pathname === "/dashboard" ;
-  const isLogin = location.pathname === "/login"
-  const isRegister = location.pathname === "/signup";
+  const isDashboard = location.pathname === "/dashboard";
+  const isLogin = location.pathname === "/login";
+  const isRegister = location.pathname === "/signup" || location.pathname === "/register";
 
   return (
-<<<<<<< Updated upstream
-    <Router>
-      {/* <Navbar />  */}
-
-      <Routes>
-        {/* <Route path="/login" element={<Login />} />
-        
-
-        <Route path="/forgetpass" element={<Forget />} />
-        <Route path="*" element={<Navigate to="/login" />} /> */}
-
-        <Route path="/" element={<Products />} />
-
-       
-      </Routes>
-
-      {/* <Footer /> */}
-    </Router>
-=======
     <div dir="rtl">
       <UserProvider>
         {!isDashboard && !isLogin && !isRegister && <Navbar />}
@@ -75,7 +37,6 @@ function App() {
           <Route path="/forgetpass" element={<Forgetpass />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/auction/:auctionId" element={<AuctionPage />} />
-
           <Route path="/selectCategory" element={<SelectCategoryPage />} />
           <Route path="/signUp" element={<SignUp />} />
           <Route path="/stepOverview" element={<StepOverview />} />
@@ -86,7 +47,6 @@ function App() {
         {!isDashboard && !isLogin && !isRegister && <Footer />}
       </UserProvider>
     </div>
->>>>>>> Stashed changes
   );
 }
 
