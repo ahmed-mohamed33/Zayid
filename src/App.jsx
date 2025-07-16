@@ -1,7 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import Footer from "./components/common/Footer";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/common/Nav";
-// Pages
+import Footer from "./components/common/Footer.jsx";
+import HomePage from "./Pages/HomePage.jsx";
 import Payment from "./Pages/Payment.jsx";
 import Login from "./Pages/Login.jsx";
 import Products from "./Pages/products.jsx";
@@ -13,8 +13,6 @@ import StepOverview from "./Pages/StepOverview.jsx";
 import StartStep from "./Pages/Start.jsx";
 import AddAuctionPage from "./Pages/AddAuctionPage.jsx";
 import Dashboard from "./Pages/Dashboard.jsx";
-import HomePage from "./Pages/HomePage.jsx";
-// to show schema
 import AllDataComponent from "./UsserSchema.jsx";
 import { UserProvider } from "../src/context/UserContext.jsx";
 
