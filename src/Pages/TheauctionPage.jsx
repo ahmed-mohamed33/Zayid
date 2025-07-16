@@ -49,7 +49,8 @@ function TheauctionPage() {
   const [hasPaidInsurance, setHasPaidInsurance] = useState(false);
   // State for check if auction time start
   const [isAuctionLive, setIsAuctionLive] = useState(false);
-
+  // state to set auction winner //selim
+  const [auctionWinner, setAuctionWinner] = useState(null);
   useEffect(() => {
     // انا عدلت تعديل بسيط بس اختصرتهم ف if واده
     const getParticipantData = async () => {
@@ -82,14 +83,14 @@ function TheauctionPage() {
     if (auction?.endDate) {
       const checkAuctionTime = () => {
         const now = new Date();
-        const endDate = new Date(auction.endDate);
-        setIsAuctionLive(now >= endDate);
+        const startDate = new Date(auction.startDate);
+        setIsAuctionLive(now >= startDate);
       };
       checkAuctionTime();
       const interval = setInterval(checkAuctionTime, 60000);
       return () => clearInterval(interval);
     }
-  }, [user, auctionId, auction?.endDate]);
+  }, [user, auctionId, auction?.startDate]);
 
   // هنا بعمل سبينر
   if (!auction) {
@@ -151,6 +152,10 @@ function TheauctionPage() {
               endDate={auction.endDate}
               hasPaidTerms={hasPaidTerms}
               hasPaidInsurance={hasPaidInsurance}
+              setAuctionWinner={setAuctionWinner}
+              auctionWinner={auctionWinner}
+              setIsAuctionLive={setIsAuctionLive}
+              auction={auction}
             >
               {/*  لو المزاد لسه ما بدأش هعرض كانه مش شغال*/}
               {!isAuctionLive && (

@@ -6,7 +6,16 @@ import noOfBidsIcon from "../../assets/icons/noOfBids.svg";
 import { getDatabase, ref, onValue, push, update } from "firebase/database";
 import { UserContext } from "../../context/UserContext";
 
-const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidInsurance }) => {
+const BiddingChat = ({
+  auctionId,
+  isAuctionLive,
+  endDate,
+  hasPaidTerms,
+  hasPaidInsurance,
+  setAuctionWinner,
+  setIsAuctionLive,
+  auction,
+}) => {
   const { user, userData } = useContext(UserContext);
   console.log("User from Context in BiddingChat:", user, "UserData:", userData);
   const [auctionTime, setAuctionTime] = useState(" ...");
@@ -23,28 +32,44 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
   const bidsContainerRef = useRef(null);
   const db = getDatabase();
 
-//هنا بحدث الوقت المتبقي
+  //هنا بحدث الوقت المتبقي
   useEffect(() => {
     if (!isAuctionLive && endDate) {
       const updateTime = () => {
         const now = new Date();
         const endDateObj = new Date(endDate);
         const diffMs = endDateObj - now;
+        console.log("diffMs", diffMs);
         if (diffMs <= 0) {
           setAuctionTime("انتهى");
+          setIsAuctionLive(false);
+          setStatus("ended");
         } else {
           const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          setAuctionTime(`${days} أيام و ${hours} ساعات`);
+          const hours = Math.floor(
+            (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          );
+          const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          if (days > 0) {
+            setAuctionTime(
+              `${days} يوم${
+                days > 1 ? "" : ""
+              } و ${hours} ساعة و ${minutes} دقيقة`
+            );
+          } else if (hours > 0) {
+            setAuctionTime(`${hours} ساعة و ${minutes} دقيقة`);
+          } else {
+            setAuctionTime(`${minutes} دقيقة`);
+          }
         }
       };
       updateTime();
-      const interval = setInterval(updateTime, 60000);//هنا بحدث كل دقيقه لحد م يوصل لوقت الانتهاء ويخلي المزاد متاح  
+      const interval = setInterval(updateTime, 60000); //هنا بحدث كل دقيقه لحد م يوصل لوقت الانتهاء ويخلي المزاد متاح
       return () => clearInterval(interval);
     }
-  }, [isAuctionLive, endDate]);
+  }, [isAuctionLive, endDate, status, auction.status]);
 
-// هنا بجيب الداتا من الفايربيز 
+  // هنا بجيب الداتا من الفايربيز
   useEffect(() => {
     const auctionRef = ref(db, `auctions/${auctionId}`);
     const unsubscribe = onValue(auctionRef, (snapshot) => {
@@ -56,20 +81,24 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
 
         // بجيب البيدات
         const bidsData = data.bids || {};
-        const bidsArray = Object.values(bidsData).sort((a, b) => new Date(b.bidTime) - new Date(a.bidTime));
+        const bidsArray = Object.values(bidsData).sort(
+          (a, b) => new Date(b.bidTime) - new Date(a.bidTime)
+        );
         setBids(bidsArray);
-        
-        // بجيب صاحب المزاد  
+
+        // بجيب صاحب المزاد
         setCreatedBy(data.createdBy);
 
-        // بجيب حالة المزاد  
+        // بجيب حالة المزاد
         setStatus(data.status || "pending");
 
         // بحسب أعلى سعر وعدد المزايدات
-        const validBids = bidsArray.filter(bid => bid.bidAmount > 0);
+        const validBids = bidsArray.filter((bid) => bid.bidAmount > 0);
         setNoOfBids(validBids.length);
         if (validBids.length > 0) {
-          setHighestBid(`${Math.max(...validBids.map(b => Number(b.bidAmount)))} ج.م`);
+          setHighestBid(
+            `${Math.max(...validBids.map((b) => Number(b.bidAmount)))} ج.م`
+          );
         } else {
           setHighestBid(`${data.startPrice || 0} ج.م`);
         }
@@ -81,7 +110,7 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
 
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
-    if (!isAuctionLive || status === "ended") {
+    if (!isAuctionLive || status === "ended" || auction.status === "ended") {
       alert("المزاد لم يبدأ بعد!");
       return;
     }
@@ -98,22 +127,25 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
       return;
     }
     // اعلي سعر بيتحدث
-    const highest = bids.length > 0 ? Math.max(...bids.map(b => Number(b.bidAmount))) : 0;
-    if (newBidAmount <= highest) {
+    const highestBid =
+      bids.length > 0 ? Math.max(...bids.map((b) => Number(b.bidAmount))) : 0;
+    if (newBidAmount <= highestBid) {
       alert("السعر المضاف أقل من اعلي سعر حالي!");
       return;
     }
-    
+
     // تشكايه علي انه مسجل دخول انه صاحب المزاد
     if (!user || !user.uid || user.uid === createdBy) {
       alert("صاحب المزاد ما ينفعش يزايد!");
       return;
     }
 
-    const bidId = `bid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const bidId = `bid_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
     const bidData = {
       userId: user.uid || "anonymous_user",
-      userName: userData?.fullName || "User", 
+      userName: userData?.fullName || "User",
       bidAmount: newBidAmount,
       bidTime: new Date().toISOString(),
     };
@@ -128,28 +160,49 @@ const BiddingChat = ({ auctionId, isAuctionLive, endDate, hasPaidTerms, hasPaidI
     }
   };
 
-   // ف حاله صاحب المزاد
+  // ف حاله صاحب المزاد
   const handleEndAuction = () => {
-if (user.uid === createdBy) { 
+    if (user.uid === createdBy) {
       setAuctionTime("انتهى");
       const auctionRef = ref(db, `auctions/${auctionId}`);
       // بحدث ف الفاير بيز
       update(auctionRef, { status: "ended" });
       setStatus("ended");
+      setIsAuctionLive(false);
+      setAuctionWinner(bids[0]);
+      update(auctionRef, {
+        // selim
+        winnerId: bids[0].userId,
+        winnerName: bids[0].userName,
+        winnerBid: bids[0].bidAmount,
+        winnerTime: bids[0].bidTime,
+      });
+      update(ref(db, `users/${bids[0].userId}/auctions/${auctionId}`), {
+        isWinner: true,
+        winnerBid: bids[0].bidAmount,
+        winnerTime: bids[0].bidTime,
+      });
+      update(ref(db, `winners/${auctionId}`), {
+        winnerId: bids[0].userId,
+        winnerName: bids[0].userName,
+        winnerBid: bids[0].bidAmount,
+        winnerTime: bids[0].bidTime,
+      });
     }
   };
 
-
-// هنا بقي الداتا بقت دينامك
+  // هنا بقي الداتا بقت دينامك
   const stats = [
     {
-      label: `ينتهي خلال : هنحسبها 🤌🏻`,
+      label: `ينتهي خلال : ${auctionTime} `,
       icon: <img src={calendarIcon} alt="calendar" className="w-5 h-5" />,
       color: "border-[#FA6300] bg-[rgba(250,99,0,0.1)] text-[#702D00]",
     },
     {
       label: `عدد المشاركين : ${participantsCount}`,
-      icon: <img src={participantsIcon} alt="participants" className="w-5 h-5" />,
+      icon: (
+        <img src={participantsIcon} alt="participants" className="w-5 h-5" />
+      ),
       color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
     },
     {
@@ -158,13 +211,13 @@ if (user.uid === createdBy) {
       color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
     },
     {
-      label: `أعلى عرض : ${highestBid}`,// زي اللي قبها
+      label: `أعلى عرض : ${highestBid}`, // زي اللي قبها
       icon: <img src={highestBidIcon} alt="highestBid" className="w-6 h-6" />,
       color: "border-[#4CAF80] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
     },
   ];
 
-return (
+  return (
     <div
       className="bg-white rounded-2xl border border-[#BFC0C0] p-6 w-full mt-8 relative"
       dir="rtl"
@@ -223,7 +276,12 @@ return (
       </div>
 
       {/* هشيل الإنبوت والزر لو المزاد انتهي & ونظهر زرار إنهاء لو صاحب المزاد     */}
-      {user && user.uid && createdBy !== null && user.uid === createdBy && status !== "ended" ? (
+      {user &&
+      user.uid &&
+      createdBy !== null &&
+      user.uid === createdBy &&
+      status !== "ended" &&
+      auction.status === "ended" ? (
         <div className="flex justify-center items-center mt-4 w-full">
           <button
             onClick={handleEndAuction}
@@ -232,7 +290,7 @@ return (
             إنهاء المزاد
           </button>
         </div>
-      ) : status !== "ended" ? (
+      ) : status !== "ended" && auction.status !== "ended" ? (
         <div className="flex h-12">
           <input
             type="text"
@@ -253,11 +311,14 @@ return (
       ) : null}
 
       {/* لو المزاد مش شغال يوقف شكل المزاد */}
-      {!isAuctionLive && (
-        <div className="w-full h-full absolute top-0 left-0 bg-[#65656596] text-black font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
-          تبقى على بدء المزاد ...
-        </div>
-      )}
+      {!isAuctionLive ||
+        (status === "ended" && auction.status === "ended" && (
+          <div className="w-full h-full absolute top-0 left-0 bg-[#65656596] text-white font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
+            {status === "ended" && auction.status === "ended"
+              ? `  المزاد انتهى والفائز هو ${bids[0].userName} بسعر ${bids[0].bidAmount} ج.م`
+              : "تبقى على بدء المزاد ..."}
+          </div>
+        ))}
     </div>
   );
 };
