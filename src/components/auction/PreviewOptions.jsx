@@ -14,7 +14,8 @@ function PreviewOptions() {
   const [hasBookedInspection, setHasBookedInspection] = useState(false);
   const [currentData, setCurrentData] = useState(null);
 
-  useEffect(() => { //  بيجيب داتا الشخص اللي داخل يشارك في المزاد اللي هي كراسة الشروط اشتراها ولا لا حجز معاينة ولا لا
+  useEffect(() => {
+    //  بيجيب داتا الشخص اللي داخل يشارك في المزاد اللي هي كراسة الشروط اشتراها ولا لا حجز معاينة ولا لا
     const getCurrentData = async () => {
       const db = getDatabase();
       const participantRef = ref(
@@ -40,12 +41,12 @@ function PreviewOptions() {
     getCurrentData();
   }, [auctionId, user.uid]);
 
-  const updateInspectionChoice = async () => { // update inspection choice
+  const updateInspectionChoice = async () => {
     if (hasBookedInspection) {
       return;
     }
     const db = getDatabase();
-   
+
     const updates = {
       ...currentData,
       inspectionChoice: inspectionChoice,
@@ -55,15 +56,17 @@ function PreviewOptions() {
           ? auction?.inspection?.place
           : "online",
     };
-    await set( // هيحدث الداتا في الداتابيس
+    await set(
+      // هيحدث الداتا في الداتابيس
       ref(db, `auctions/${auctionId}/participants/${user.uid}`),
       updates
     );
     setHasBookedInspection(true);
+    setCurrentData(updates);
   };
   return (
     <>
-      {hasBookedInspection ? ( // لو المعاينه محجوزه هيطلعله بيانات الحجز 
+      {hasBookedInspection ? ( // لو المعاينه محجوزه هيطلعله بيانات الحجز
         <div className="py-4 px-6 bg-white rounded-lg shadow-md border border-gray-200 text-right text-gray-800 font-semibold">
           تم حجز المعاينة بنجاح.
           <br />
@@ -76,7 +79,7 @@ function PreviewOptions() {
           <br />
           {currentData.inspectionChoice === "in-person" ? (
             <>
-              المكان : {auction?.inspection?.place}
+              المكان : {currentData.inspectionLocation}
               <br />
               برجاء التوجه إلى المكان المحدد في الموعد المحدد.
             </>
@@ -88,7 +91,8 @@ function PreviewOptions() {
             </>
           )}
         </div>
-      ) : ( // هيطلعله انه يحجز
+      ) : (
+        // هيطلعله انه يحجز
         <div className="py-4 px-6 bg-white rounded-lg shadow-md border border-gray-200">
           <h2 className="text-lg font-semibold py-3 text-gray-800">
             خيارات معاينة المزاد
