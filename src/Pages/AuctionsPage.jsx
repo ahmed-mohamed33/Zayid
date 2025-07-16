@@ -23,44 +23,47 @@ const Products = () => {
   const { auctions } = useContext(UserContext);
 
   const applyFilters = () => {
-    const term = searchTerm.trim().toLowerCase();
+  const term = searchTerm.trim().toLowerCase();
 
-    return auctions.filter((auction) => {
-      const matchesSearch =
-        term === "" || auction.title?.toLowerCase().includes(term);
+  return auctions.filter((auction) => {
 
-      const matchesCategory =
-        filters.categories.length === 0 ||
-        filters.categories.includes(auction.categoryId);
+    const matchesSearch =
+      term === "" || auction.title?.toLowerCase().includes(term);
 
-      const matchesCondition =
-        filters.productConditions.length === 0 ||
-        filters.productConditions.includes(auction.productCondition);
+    const matchesCategory =
+      filters.categories.length === 0 ||
+      filters.categories.includes(auction.categoryId);
 
-      const matchesStatus =
-        filters.auctionStatuses.length === 0 ||
-        filters.auctionStatuses.includes(auction.auctionStatus);
+    const matchesCondition =
+      filters.productConditions.length === 0 ||
+      filters.productConditions.includes(auction.productCondition);
 
-      const matchesMinPrice =
-        !filters.minPrice || auction.startPrice >= parseFloat(filters.minPrice);
+    const matchesStatus =
+      filters.auctionStatuses.length === 0 ||
+      filters.auctionStatuses.includes(auction.status);
 
-      const matchesMaxPrice =
-        !filters.maxPrice || auction.startPrice <= parseFloat(filters.maxPrice);
+    const matchesMinPrice =
+      !filters.minPrice || auction.startPrice >= parseFloat(filters.minPrice);
 
-      const matchesInterest =
-        !filters.filterByInterest || userInterests.includes(auction.categoryId);
+    const matchesMaxPrice =
+      !filters.maxPrice || auction.startPrice <= parseFloat(filters.maxPrice);
 
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesCondition &&
-        matchesStatus &&
-        matchesMinPrice &&
-        matchesMaxPrice &&
-        matchesInterest
-      );
-    });
-  };
+    const matchesInterest =
+      !filters.filterByInterest ||
+      userInterests.includes(auction.categoryId);
+
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesCondition &&
+      matchesStatus &&
+      matchesMinPrice &&
+      matchesMaxPrice &&
+      matchesInterest
+    );
+  });
+};
+
 
   const filteredProducts = applyFilters();
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
@@ -201,7 +204,9 @@ const Products = () => {
                 )}
               </div>
 
-              <div className="flex justify-center w-full">{renderPagination()}</div>
+              <div className="flex justify-center w-full">
+                {renderPagination()}
+              </div>
             </div>
           </div>
         </section>

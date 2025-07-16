@@ -16,6 +16,32 @@ import {
 } from "firebase/database";
 import Loading from "../components/common/Loading";
 
+// انا عملت دي علشان احسب مدة المزاد ب  (أيام/ساعات/دقايق)
+const formatAuctionDuration = (startDateStr, endDateStr) => {
+  if (!startDateStr || !endDateStr) return "غير محدد";
+
+  const start = new Date(startDateStr);
+  const end = new Date(endDateStr);
+  const diffMs = end - start;
+
+  if (isNaN(diffMs) || diffMs <= 0) return "غير محدد";
+
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const diffHour =   Math.floor(diffHours % 24) ;
+
+  if (diffDays >= 1) {
+    return `${diffDays} يوم${diffDays > 1 ? "" : ""} و ${diffHour} ساعة` ;
+  } else if (diffHours >= 1) {
+    const remainingMins = diffMins % 60;
+    return `${diffHours} ساعة${remainingMins > 0 ? ` و${remainingMins} دقيقة` : ""}`;
+  } else {
+    return `${diffMins} دقيقة`;
+  }
+};
+
+
 function TheauctionPage() {
   const { auctions, user } = useContext(UserContext);
   const { auctionId } = useParams();
@@ -71,7 +97,15 @@ function TheauctionPage() {
     );
   }
 
-  const displayCondition = auction.productCondition === "new" ? "جديد" : auction.productCondition === "old" ? "مستعمل" : "غير محدد";
+  const formattedDuration = formatAuctionDuration(auction.startDate, auction.endDate);
+  
+// بهندل عرض حاله المزاد
+const conditionMap = {
+  new: "جديد",
+  old: "مستعمل",
+  veryGood: "مستعمل بعناية",
+};
+const displayCondition = conditionMap[auction.productCondition] || "غير محدد";
 
   return (
     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
@@ -83,7 +117,7 @@ function TheauctionPage() {
           category={auction.categoryId}
           price={auction.startPrice}
           endDate={auction.endDate}
-          allTime={auction.allTime}
+          allTime={formattedDuration}
           type={auction.type}
           condition={displayCondition}
           startDate={auction.startDate}

@@ -26,22 +26,21 @@ const Sidebar = ({ onFilterChange }) => {
   const [filterByInterest, setFilterByInterest] = useState(false);
 
   const handleCategoryClick = (value) => {
-  const updated = selectedCategories.includes(value)
-    ? selectedCategories.filter((v) => v !== value)
-    : [...selectedCategories, value];
+    const updated = selectedCategories.includes(value)
+      ? selectedCategories.filter((v) => v !== value)
+      : [...selectedCategories, value];
 
-  setSelectedCategories(updated);
+    setSelectedCategories(updated);
 
-  onFilterChange({
-    categories: updated,
-    productConditions,
-    auctionStatuses,
-    minPrice,
-    maxPrice,
-    filterByInterest,
-  });
-};
-
+    onFilterChange({
+      categories: updated,
+      productConditions,
+      auctionStatuses,
+      minPrice,
+      maxPrice,
+      filterByInterest,
+    });
+  };
 
   const handleCheckboxChange = (type, value, checked) => {
     const stateMap = {
@@ -168,30 +167,25 @@ const Sidebar = ({ onFilterChange }) => {
         />
       </div>
 
-      <div className="text-sm text-[#2D3142] font-semibold">حالة المنتج</div>
-      <div className="flex flex-col gap-2 mb-4">
-        {["New", "Used", "Very Good"].map((status) => (
-          <label
-            key={status}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              onChange={(e) =>
-                handleCheckboxChange("condition", status, e.target.checked)
-              }
-              className="w-4 h-4"
-            />
-            <span className="text-sm">
-              {status === "New"
-                ? "جديد"
-                : status === "Used"
-                ? "مستعمل"
-                : "جيد جدا"}
-            </span>
-          </label>
-        ))}
-      </div>
+      {["new", "veryGood", "old"].map((status) => (
+        <label key={status} className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={productConditions.includes(status)}
+            onChange={(e) =>
+              handleCheckboxChange("condition", status, e.target.checked)
+            }
+            className="w-4 h-4"
+          />
+          <span className="text-sm">
+            {status === "new"
+              ? "جديد"
+              : status === "veryGood"
+              ? "جيد جدًا"
+              : "مستعمل"}
+          </span>
+        </label>
+      ))}
 
       <div className="text-sm text-[#2D3142] font-semibold">حالة المزاد</div>
       <div className="flex flex-col gap-2">
