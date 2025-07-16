@@ -19,14 +19,14 @@ function MazadCard({ auctionId }) {
     }
 
     if (auction?.status !== "pending") {
-      // If auction is not pending, just navigate to the auction page
+     
       navigate(`/auction/${auction.id}`);
       return;
     }
 
     try {
       const db = getDatabase();
-      // Add user as participant with initial values
+    
       const participantRef = ref(
         db,
         `auctions/${auctionId}/participants/${user.uid}`
@@ -45,11 +45,11 @@ function MazadCard({ auctionId }) {
         hasPaidInsurance: false,
       });
       setIsParticipant(true);
-      // Navigate to auction page after adding as participant
+      
       navigate(`/auction/${auction.id}`);
     } catch (error) {
       console.error("Error adding participant:", error);
-      // Still navigate to auction page even if there's an error
+     
       navigate(`/auction/${auction.id}`);
     }
   };
@@ -63,9 +63,9 @@ function MazadCard({ auctionId }) {
       <img
         src={auction.imageUrls ? auction.imageUrls[0] : img}
         alt={auction.title}
-        className="rounded-t-md w-full h-55 object-cover"
+        className="rounded-t-md w-full h-55 p-2 object-contain img-card"
       />
-      <div dir="rtl" className="card-body ">
+      <div dir="rtl" className="card-body p-3 ">
         <h2 className="card-title text-[#4F5D75]">{auction.title}</h2>
         <p className="text-[#44A46F] font-semibold my-1">
           السعر الابتدائي: {auction.startPrice || "غير محدد"}
@@ -98,7 +98,7 @@ function MazadCard({ auctionId }) {
             disabled
           >
             <Link to="/login">
-            <h2 className="mx-2">للمزايده والتفاصيل سجل دخول</h2>
+              <h2 className="mx-2">للمزايده والتفاصيل سجل دخول</h2>
             </Link>
           </button>
         )}
