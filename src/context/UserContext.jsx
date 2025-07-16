@@ -99,13 +99,59 @@ export const UserProvider = ({ children }) => {
         if (snapshot.exists()) {
           const allAuctions = Object.entries(snapshot.val()).map(
             // 14-7 2:40 am عملت تعديل اخير هنا عملت الحسبه هنا علشان تكون ف الافيكت
+            // ([id, data]) => {
+            //   const startDate = new Date(data.startDate || null);
+            //   const now = new Date();
+            //   let remainingTime = "";
+            //   if (startDate > now) {
+            //     const diffMs = startDate - now;
+            //     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            //     const diffHours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+            //     const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
+            //     if (diffDays > 0) {
+            //       remainingTime = `${diffDays} يوم و ${diffHours} ساعة`;
+            //     } else if (diffDays > 0) {
+            //       remainingTime = `${diffHours} ساعة و ${diffMinutes} دقيقة olo`;
+            //     } else {
+            //       remainingTime = `${diffMinutes} دقيقة  ll`;
+            //     }
+            //   } else {
+            //     remainingTime = "بدأت بالفعل";
+            //   }
+
+            //   return {
+            //     id,
+            //     ...data,
+            //     startDate: data.startDate || null,
+            //     remainingTime: remainingTime,
+            //   };
+            // }
+
             ([id, data]) => {
-              const endDate = new Date(data.endDate || null);
-              const today = new Date();
-              const remainingTime =
-                endDate > today
-                  ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
-                  : 0;
+              const startDate = new Date(data.startDate || null);
+              const now = new Date();
+
+              let remainingTime = "";
+
+              const diffMs = startDate - now;
+
+              if (diffMs > 0) {
+                const totalMinutes = Math.floor(diffMs / (1000 * 60));
+                const diffDays = Math.floor(totalMinutes / (60 * 24));
+                const diffHours = Math.floor((totalMinutes % (60 * 24)) / 60);
+                const diffMinutes = totalMinutes % 60;
+
+                if (diffDays > 0) {
+                  remainingTime = `${diffDays} يوم و ${diffHours} ساعة`;
+                } else if (diffHours > 0) {
+                  remainingTime = `${diffHours} ساعة و ${diffMinutes} دقيقة`;
+                } else {
+                  remainingTime = `${diffMinutes} دقيقة`;
+                }
+              } else {
+                remainingTime = "بدأت بالفعل";
+              }
+
               return {
                 id,
                 ...data,
@@ -145,12 +191,30 @@ export const UserProvider = ({ children }) => {
             const auctionsByuser = Object.entries(snapshot.val()).map(
               // 14-7 2:40 am عملت نفس اتعديل هنا بتاع ال وقت المتبقي
               ([id, data]) => {
-                const endDate = new Date(data.endDate || null);
-                const today = new Date();
-                const remainingTime =
-                  endDate > today
-                    ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
-                    : 0;
+                const startDate = new Date(data.startDate || null);
+                const now = new Date();
+
+                let remainingTime = "";
+
+                const diffMs = startDate - now;
+
+                if (diffMs > 0) {
+                  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+                  const diffDays = Math.floor(totalMinutes / (60 * 24));
+                  const diffHours = Math.floor((totalMinutes % (60 * 24)) / 60);
+                  const diffMinutes = totalMinutes % 60;
+
+                  if (diffDays > 0) {
+                    remainingTime = `${diffDays} يوم و ${diffHours} ساعة`;
+                  } else if (diffHours > 0) {
+                    remainingTime = `${diffHours} ساعة و ${diffMinutes} دقيقة`;
+                  } else {
+                    remainingTime = `${diffMinutes} دقيقة`;
+                  }
+                } else {
+                  remainingTime = "بدأت بالفعل";
+                }
+
                 return {
                   id,
                   ...data,
@@ -354,11 +418,29 @@ export const UserProvider = ({ children }) => {
           ? ((endDate - startDate) / (1000 * 60 * 60 * 24)).toFixed(0)
           : 0;
       // بص هنا انا بجيب  الوقت المتبقي 11:50  13-7
-      const today = new Date();
-      const remainingTime =
-        endDate > today
-          ? Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
-          : 0;
+      // const startDate = new Date(data.startDate || null);
+      const now = new Date();
+
+      let remainingTime = "";
+
+      const diffMs = startDate - now;
+
+      if (diffMs > 0) {
+        const totalMinutes = Math.floor(diffMs / (1000 * 60));
+        const diffDays = Math.floor(totalMinutes / (60 * 24));
+        const diffHours = Math.floor((totalMinutes % (60 * 24)) / 60);
+        const diffMinutes = totalMinutes % 60;
+
+        if (diffDays > 0) {
+          remainingTime = `${diffDays} يوم و ${diffHours} ساعة`;
+        } else if (diffHours > 0) {
+          remainingTime = `${diffHours} ساعة و ${diffMinutes} دقيقة`;
+        } else {
+          remainingTime = `${diffMinutes} دقيقة`;
+        }
+      } else {
+        remainingTime = "بدأت بالفعل";
+      }
 
       const auctionId = uuidv4();
       const auctionWithImages = {
@@ -376,7 +458,7 @@ export const UserProvider = ({ children }) => {
         allTime: parseInt(allTime),
         //      هنا انا بخزن الوقت المتبقي
         remainingTime: remainingTime,
-        // حاله المنتج 
+        // حاله المنتج
         productCondition: auctionData.productCondition,
       };
 
