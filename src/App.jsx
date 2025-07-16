@@ -1,7 +1,13 @@
 import { Routes, Route, useLocation } from "react-router-dom";
+
+// Components
 import Navbar from "./components/common/Nav";
 import Footer from "./components/common/Footer.jsx";
-import HomePage from "./Pages/HomePage.jsx";
+
+// Pages .
+import HomePage from "./Pages/HomePage";
+
+
 import Payment from "./Pages/Payment.jsx";
 import Login from "./Pages/Login.jsx";
 import Products from "./Pages/products.jsx";
@@ -13,14 +19,16 @@ import StepOverview from "./Pages/StepOverview.jsx";
 import StartStep from "./Pages/Start.jsx";
 import AddAuctionPage from "./Pages/AddAuctionPage.jsx";
 import Dashboard from "./Pages/Dashboard.jsx";
+
+//to show schema
 import AllDataComponent from "./UsserSchema.jsx";
 import { UserProvider } from "../src/context/UserContext.jsx";
 
 function App() {
   const location = useLocation();
-  const isDashboard = location.pathname === "/dashboard";
-  const isLogin = location.pathname === "/login";
-  const isRegister = location.pathname === "/signup" || location.pathname === "/register";
+  const isDashboard = location.pathname === "/dashboard" ;
+  const isLogin = location.pathname === "/login"
+  const isRegister = location.pathname === "/signup";
 
   return (
     <div dir="rtl">
@@ -35,6 +43,7 @@ function App() {
           <Route path="/forgetpass" element={<Forgetpass />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/auction/:auctionId" element={<AuctionPage />} />
+
           <Route path="/selectCategory" element={<SelectCategoryPage />} />
           <Route path="/signUp" element={<SignUp />} />
           <Route path="/stepOverview" element={<StepOverview />} />
