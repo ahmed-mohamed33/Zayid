@@ -1,14 +1,22 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { getValidationSchema } from './validationSchemas';
 
-// Form configuration based on payment method
-export const getFormConfig = (paymentMethod) => ({
-  resolver: yupResolver(getValidationSchema(paymentMethod)),
-  defaultValues: getInitialValues(paymentMethod),
-  mode: 'onChange'
-});
+export const getFormConfig = (paymentMethod) => {
 
-// Initial values for different payment methods
+  const schemaMap = {
+    vodafone: 'phone',
+    fawry: 'phone',
+    card: 'card'
+  };
+
+  return {
+    resolver: yupResolver(getValidationSchema(schemaMap[paymentMethod])),
+    defaultValues: getInitialValues(paymentMethod),
+    mode: 'onChange'
+  };
+};
+
+
 export const getInitialValues = (paymentMethod) => {
   const values = {
     vodafone: { phoneNumber: '' },
@@ -78,7 +86,7 @@ export const getFieldConfig = (fieldName) => ({
 
 export const handlePaymentSubmit = async (values, paymentMethod) => {
   try {
-    const confirmMessage = paymentMethod === 'card' 
+    const confirmMessage = paymentMethod === 'card'
       ? `سيتم الدفع بالبطاقة المدخلة ${values.number}`
       : `سيتم إرسال كود الدفع إلى رقمك ${values.phoneNumber}`;
 
@@ -86,7 +94,7 @@ export const handlePaymentSubmit = async (values, paymentMethod) => {
       return { success: false, error: 'تم إلغاء عملية الدفع' };
     }
 
-   
+
     console.log('Processing payment:', { values, paymentMethod });
     return { success: true };
   } catch (error) {

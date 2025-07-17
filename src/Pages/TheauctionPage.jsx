@@ -9,11 +9,7 @@ import PreviewOptions from "../components/auction/PreviewOptions";
 import Insurancepayment from "../components/auction/Insurancepayment";
 import BiddingChat from "../components/auction/BiddingChat";
 import { UserContext } from "../context/UserContext";
-import {
-  getDatabase,
-  ref,
-  onValue,
-} from "firebase/database";
+import { getDatabase, ref, onValue } from "firebase/database";
 import Loading from "../components/common/Loading";
 
 // انا عملت دي علشان احسب مدة المزاد ب  (أيام/ساعات/دقايق)
@@ -29,24 +25,25 @@ const formatAuctionDuration = (startDateStr, endDateStr) => {
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
-  const diffHour =   Math.floor(diffHours % 24) ;
+  const diffHour = Math.floor(diffHours % 24);
 
   if (diffDays >= 1) {
-    return `${diffDays} يوم${diffDays > 1 ? "" : ""} و ${diffHour} ساعة` ;
+    return `${diffDays} يوم${diffDays > 1 ? "" : ""} و ${diffHour} ساعة`;
   } else if (diffHours >= 1) {
     const remainingMins = diffMins % 60;
-    return `${diffHours} ساعة${remainingMins > 0 ? ` و${remainingMins} دقيقة` : ""}`;
+    return `${diffHours} ساعة${
+      remainingMins > 0 ? ` و${remainingMins} دقيقة` : ""
+    }`;
   } else {
     return `${diffMins} دقيقة`;
   }
 };
 
-
 function TheauctionPage() {
   const { auctions, user } = useContext(UserContext);
   const { auctionId } = useParams();
   const auction = auctions.find((a) => a.id === auctionId);
- // State for terms if paid
+  // State for terms if paid
   const [hasPaidTerms, setHasPaidTerms] = useState(false);
   // State for insurance if paid
   const [hasPaidInsurance, setHasPaidInsurance] = useState(false);
@@ -58,13 +55,19 @@ function TheauctionPage() {
     const getParticipantData = async () => {
       if (user && auctionId) {
         const db = getDatabase();
-        const participantRef = ref(db, `auctions/${auctionId}/participants/${user.uid}`);
+        const participantRef = ref(
+          db,
+          `auctions/${auctionId}/participants/${user.uid}`
+        );
         const unsubscribe = onValue(participantRef, (snapshot) => {
           if (snapshot.exists()) {
             const participantData = snapshot.val();
             setHasPaidTerms(participantData.hasPurchasedShroot === true);
             setHasPaidInsurance(participantData.hasPaidInsurance === true);
-            console.log("Participant Data from TheauctionPage:", participantData);
+            console.log(
+              "Participant Data from TheauctionPage:",
+              participantData
+            );
           } else {
             setHasPaidTerms(false);
             setHasPaidInsurance(false);
@@ -97,15 +100,18 @@ function TheauctionPage() {
     );
   }
 
-  const formattedDuration = formatAuctionDuration(auction.startDate, auction.endDate);
-  
-// بهندل عرض حاله المزاد
-const conditionMap = {
-  new: "جديد",
-  old: "مستعمل",
-  veryGood: "مستعمل بعناية",
-};
-const displayCondition = conditionMap[auction.productCondition] || "غير محدد";
+  const formattedDuration = formatAuctionDuration(
+    auction.startDate,
+    auction.endDate
+  );
+
+  // بهندل عرض حاله المزاد
+  const conditionMap = {
+    new: "جديد",
+    old: "مستعمل",
+    veryGood: "مستعمل بعناية",
+  };
+  const displayCondition = conditionMap[auction.productCondition] || "غير محدد";
 
   return (
     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
@@ -124,15 +130,16 @@ const displayCondition = conditionMap[auction.productCondition] || "غير مح�
         />
       </div>
       <ProductDescription description={auction.description} />
-      
+
       {/* Dynamic section */}
       {/**لو دفع الشروط  هيظهر ده */}
       {hasPaidTerms ? (
         <>
           <CardsInfo
             sellerName={auction?.seller?.name || ""}
-            insurancePrice={auction?.insurance?.price || 0}
+            insurancePrice={auction?.insurance?.amount || 0}
             lowestBid={auction?.minIncrement || 0}
+            sellerLocation={auction?.inspection?.place || ""}
           />
           <PreviewOptions />
 
