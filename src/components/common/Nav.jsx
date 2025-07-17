@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import LogoImg from "../../assets/images/Logo.webp";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 // icone
 // import { IoNotificationsOutline } from "react-icons/io5";
@@ -27,36 +27,60 @@ function Nav() {
   return (
     <div className="Navbar flex items-center py-3 px-[56px] bg-[#fff] justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] z-10 sticky top-0 w-full">
       <div className="rightSide flex items-center">
-        <div className="logo ml-9">
-          <img
-            className=" h-[40px]"
-            src={LogoImg}
-            loading="lazy"
-            alt="Logo"
-          />
+        <div className="logo ml-6">
+          <img className=" h-[40px]" src={LogoImg} loading="lazy" alt="Logo" />
         </div>
-        <ul className="flex items-center">
-          <li>
-            <Link to="/" className={ulStyle}>
-              الرئيسية
-            </Link>
-          </li>
-          <li>
-            <Link to="/auctions" className={ulStyle}>
-              المزادات
-            </Link>
-          </li>
-          <li>
-            <Link to="/contact" className={ulStyle}>
-              تواصل معنا
-            </Link>
-          </li>
-          <li>
-            <Link to="/faq" className={ulStyle}>
-              الأسئلة الشائعة
-            </Link>
-          </li>
-        </ul>
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            `${ulStyle} ${
+              isActive
+                ? "text-[#2D3142] font-bold underline underline-offset-6"
+                : ""
+            }`
+          }
+        >
+          الرئيسية
+        </NavLink>
+
+        <NavLink
+          to="/auctions"
+          className={({ isActive }) =>
+            `${ulStyle} ${
+              isActive
+                ? "text-[#2D3142] font-bold underline underline-offset-4"
+                : ""
+            }`
+          }
+        >
+          المزادات
+        </NavLink>
+
+        <NavLink
+          to="/contact"
+          className={({ isActive }) =>
+            `${ulStyle} ${
+              isActive
+                ? "text-[#2D3142] font-bold underline underline-offset-4"
+                : ""
+            }`
+          }
+        >
+          تواصل معنا
+        </NavLink>
+
+        <NavLink
+          to="/faq"
+          className={({ isActive }) =>
+            `${ulStyle} ${
+              isActive
+                ? "text-[#2D3142] font-bold underline underline-offset-4"
+                : ""
+            }`
+          }
+        >
+          الأسئلة الشائعة
+        </NavLink>
       </div>
       <div className="leftSide flex items-center gap-1">
         {isAuthenticated ? (
@@ -73,7 +97,7 @@ function Nav() {
 
             {/* add mazad BTN */}
             <button
-              className="btn bg-[#FA6300] text-[16px] px-2 border-none text-white mx-1"
+              className="btn bg-[#FA6300] text-[16px] font-medium px-6 border-none text-white mx-1"
               onClick={() => navigate("/addAuction")}
             >
               {" "}
