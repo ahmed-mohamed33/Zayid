@@ -19,8 +19,9 @@ const Products = () => {
     filterByInterest: false,
   });
 
-  const userInterests = ["عقارات وأراضي", "إلكترونيات", "تحف وأعمال فنية"];
-  const { auctions } = useContext(UserContext);
+  const { auctions, userData } = useContext(UserContext);
+  const userInterests = userData?.userInterests || [];
+  console.log("User Interests:", userInterests);
 
   const applyFilters = () => {
     const term = searchTerm.trim().toLowerCase();
@@ -201,7 +202,9 @@ const Products = () => {
                 )}
               </div>
 
-              <div className="flex justify-center w-full">{renderPagination()}</div>
+              <div className="flex justify-center w-full">
+                {renderPagination()}
+              </div>
             </div>
           </div>
         </section>

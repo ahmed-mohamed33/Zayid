@@ -10,6 +10,7 @@ import {
   set,
   get,
   child,
+  update,
 } from "firebase/database";
 import { auth } from "../config/Firebase";
 import { registerUser, loginUser, logoutUser } from "../utils/firebaseUtils";
@@ -304,6 +305,8 @@ export const UserProvider = ({ children }) => {
         nationalIDImage: idImageFile,
         phone: values.phone,
         userId: user.uid,
+        onboardingCompleted: false,
+        userInterests: [],
       };
 
       if (companyName && companyName.trim() !== "") {
@@ -318,6 +321,32 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       console.error("Sign up error:", error.message);
       throw error;
+    }
+  };
+
+  // Update User Data
+  const updateUserData = async (updates) => {
+    try {
+      if (!user || !userData) {
+        throw new Error("User must be logged in and have existing data");
+      }
+
+      const database = getDatabase();
+      const updatedUserData = { ...updates };
+
+      // Update in database using nationalID as key
+      await update(
+        ref(database, `users/${userData.nationalID}`),
+        updatedUserData
+      );
+
+      // Update local state
+      setUserData({ ...userData, ...updatedUserData });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Update user data error:", error.message);
+      return { success: false, error: error.message };
     }
   };
 
@@ -376,7 +405,7 @@ export const UserProvider = ({ children }) => {
         allTime: parseInt(allTime),
         //      هنا انا بخزن الوقت المتبقي
         remainingTime: remainingTime,
-        // حاله المنتج 
+        // حاله المنتج
         productCondition: auctionData.productCondition,
       };
 
@@ -411,6 +440,7 @@ export const UserProvider = ({ children }) => {
         login,
         register,
         logout,
+        updateUserData,
         createAuction,
       }}
     >

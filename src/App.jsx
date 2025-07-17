@@ -14,15 +14,15 @@ import Products from "./Pages/products.jsx";
 import Forgetpass from "./Pages/forgetpass.jsx";
 // انا غيرت اسم الصفحه دي علشان المشكله تتحل
 import TheauctionPage from "./Pages/TheauctionPage.jsx";
-import SelectCategoryPage from "./Pages/SelectCategoryPage.jsx";
+
 import SignUp from "./Pages/SignUp.jsx";
-import StepOverview from "./Pages/StepOverview.jsx";
-import StartStep from "./Pages/Start.jsx";
+import OnboardingPage from "./Pages/OnboardingPage.jsx";
 import AddAuctionPage from "./Pages/AddAuctionPage.jsx";
 import AuctionsPage from "./Pages/AuctionsPage.jsx";
 //to show schema
 import AllDataComponent from "./UsserSchema.jsx";
 import { UserProvider } from "../src/context/UserContext.jsx";
+// import Dashboard from "./Pages/Dashboard.jsx";
 
 function App() {
   return (
@@ -37,13 +37,16 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/products" element={<Products />} />
             <Route path="/forgetpass" element={<Forgetpass />} />
-            <Route path="/payment/:auctionId/:type" element={<Payment />} /> {/**غيرت البارامز لان انا بباصي التايب في اللينك*/}
+            <Route
+              path="/payment/:auctionId/:type"
+              element={<Payment />}
+            />{" "}
+            {/**غيرت البارامز لان انا بباصي التايب في اللينك*/}
             <Route path="/auction/:auctionId" element={<TheauctionPage />} />
-
-            <Route path="/selectCategory" element={<SelectCategoryPage />} />
+            <Route path="/selectCategory" element={<OnboardingPage />} />
             <Route path="/signUp" element={<SignUp />} />
-            <Route path="/stepOverview" element={<StepOverview />} />
-            <Route path="/start" element={<StartStep />} />
+            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+            <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/addAuction" element={<AddAuctionPage />} />
             <Route path="/auctions" element={<AuctionsPage />} />
           </Routes>

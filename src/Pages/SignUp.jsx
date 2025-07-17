@@ -100,7 +100,7 @@ export default function SignUp() {
         return;
       }
       await register(values, idImageFile, companyName, companyImageFile);
-      navigate("/login");
+      navigate("/onboarding");
     } catch (error) {
       console.error("Registration error:", error);
       setError(getFirebaseErrorMessage(error.message));
@@ -250,7 +250,8 @@ export default function SignUp() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading} 
+               
                 className={`flex w-full justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold shadow-xs ${
                   isLoading
                     ? "bg-slate-500 cursor-not-allowed text-white"
