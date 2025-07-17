@@ -19,14 +19,13 @@ function MazadCard({ auctionId }) {
     }
 
     if (auction?.status !== "pending") {
-     
       navigate(`/auction/${auction.id}`);
       return;
     }
 
     try {
       const db = getDatabase();
-    
+
       const participantRef = ref(
         db,
         `auctions/${auctionId}/participants/${user.uid}`
@@ -45,11 +44,11 @@ function MazadCard({ auctionId }) {
         hasPaidInsurance: false,
       });
       setIsParticipant(true);
-      
+
       navigate(`/auction/${auction.id}`);
     } catch (error) {
       console.error("Error adding participant:", error);
-     
+
       navigate(`/auction/${auction.id}`);
     }
   };
@@ -63,10 +62,11 @@ function MazadCard({ auctionId }) {
       <img
         src={auction.imageUrls ? auction.imageUrls[0] : img}
         alt={auction.title}
-        className="rounded-t-md w-full h-55 p-2 object-contain img-card"
+        className="rounded-t-md w-full h-60 object-cover"
       />
+
       <div dir="rtl" className="card-body ">
-        <h2 className="card-title text-[#4F5D75] truncate w-full">{auction.title}</h2>
+        <h2 className="card-title text-[#4F5D75]">{auction.title}</h2>
         <p className="text-[#44A46F] font-semibold my-1">
           السعر الابتدائي: {auction.startPrice || "غير محدد"}
         </p>
