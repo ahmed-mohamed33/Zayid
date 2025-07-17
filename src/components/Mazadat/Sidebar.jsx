@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import homeIcon from "../../assets/icons/house.svg";
-import toolsIcon from "../../assets/icons/tools.svg";
+import toolsIcon from "../../assets/icons/toolsi.svg";
 import artIcon from "../../assets/icons/paints.svg";
 import furnitureIcon from "../../assets/icons/chair.svg";
 import jewelryIcon from "../../assets/icons/daimond.svg";

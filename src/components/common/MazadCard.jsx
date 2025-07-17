@@ -1,8 +1,8 @@
 import React, { useContext, useState } from "react";
 //img
-import img from "../../assets/images/Frame.jpg";
-import users from "../../assets/images/profile-2user.png";
-import timer from "../../assets/images/timer.png";
+import hummer from "../../assets/icons/sml-hummer.svg";
+import users from "../../assets/icons/users.svg";
+import timer from "../../assets/icons/timer.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 import { getDatabase, ref, set, get } from "firebase/database";
@@ -90,7 +90,7 @@ function MazadCard({ auctionId }) {
             className="btn w-full bg-[#4F5D75] text-white mt-2 flex items-center justify-center"
           >
             <h2 className="mx-2">زايد الان</h2>
-            <img src={img} alt="bid" />
+            <img src={hummer} alt="bid" />
           </button>
         ) : (
           <button
