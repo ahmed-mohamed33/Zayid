@@ -167,6 +167,7 @@ const Sidebar = ({ onFilterChange }) => {
         />
       </div>
 
+      <div className="text-sm text-[#2D3142] font-semibold">حالة المنتج</div>
       {["new", "veryGood", "old"].map((status) => (
         <label key={status} className="flex items-center gap-2 cursor-pointer">
           <input

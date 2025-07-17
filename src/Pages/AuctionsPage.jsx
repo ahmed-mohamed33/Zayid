@@ -160,9 +160,9 @@ const Products = () => {
   };
 
   return (
-    <div className="bg-[#F6F6F6] min-h-screen flex flex-col">
-      <main className="container mx-auto flex flex-row flex-1 gap-6 py-12 px-7">
-        <section className="flex-1 flex flex-col gap-8">
+    <div className="bg-[#f1f1f1] min-h-screen flex flex-col px-[56px">
+      <main className="container mx-auto flex flex-row flex-1 py-6 px-7">
+        <section className="flex-1 flex flex-col">
           <div className="flex flex-row justify-between items-center w-full mb-6">
             <h2 className="text-right font-bold text-[#2D3142] text-[24px] font-[Almarai]">
               المزادات المتاحة
@@ -187,12 +187,12 @@ const Products = () => {
             </form>
           </div>
 
-          <div className="flex w-full gap-6">
+          <div className="flex w-full">
             <aside className="hidden lg:block w-72 shrink-0">
               <Sidebar onFilterChange={handleFilterChange} />
             </aside>
             <div className="flex-1 flex flex-col">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[24px] mb-8">
                 {getPaginatedProducts().length > 0 ? (
                   getPaginatedProducts().map((product, idx) => (
                     <MazadCard key={idx} auctionId={product.id} />

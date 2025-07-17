@@ -9,7 +9,7 @@ function Footer() {
   const icons = "hover:text-orange-500 w-[25px] h-[25px] p-[6px] bg-white rounded-full text-[#2a2f47]";
 
   return (
-    <footer className="bg-[#262939] text-white py-10 px-5 text-center md:text-right" dir="rtl">
+    <footer className="bg-[#262939] text-white py-10 px-[56px] text-center md:text-right" dir="rtl">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
 
         <div>

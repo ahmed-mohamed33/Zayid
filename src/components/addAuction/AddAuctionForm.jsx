@@ -152,7 +152,7 @@ function AddAuctionForm() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-3xl max-md:w-full">
+    <div className="bg-white p-6 rounded-3xl max-md:w-full w-[75%]">
       <div className="text-[#2d3142] text-2xl font-bold mb-6">
         إضافة منتج للمزايدة
       </div>
@@ -194,7 +194,11 @@ function AddAuctionForm() {
         }}
         error={errors.productName}
       />
-
+      <label
+        className="text-[18px]  font-normal  text-[#2d3142]  block"
+      >
+        اختر فئة المزاد
+      </label>
       <ProductCategorySelector
         selectedCategory={category}
         setSelectedCategory={(val) => {
@@ -393,7 +397,7 @@ function AddAuctionForm() {
 
       <div className="mb-4">
         <label className="text-[#2d3142] text-base font-medium mb-2 block">
-          حالة المنتج *
+          حالة المنتج
         </label>
         <div className="dropdown dropdown-bottom w-full">
           <div

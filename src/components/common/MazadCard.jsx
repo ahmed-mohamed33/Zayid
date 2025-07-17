@@ -59,14 +59,14 @@ function MazadCard({ auctionId }) {
   }
 
   return (
-    <div className="card w-[90%]  bg-white">
+    <div className="card  bg-white">
       <img
         src={auction.imageUrls ? auction.imageUrls[0] : img}
         alt={auction.title}
         className="rounded-t-md w-full h-55 object-cover"
       />
       <div dir="rtl" className="card-body ">
-        <h2 className="card-title text-[#4F5D75]">{auction.title}</h2>
+        <h2 className="card-title text-[#4F5D75] truncate w-full">{auction.title}</h2>
         <p className="text-[#44A46F] font-semibold my-1">
           السعر الابتدائي: {auction.startPrice || "غير محدد"}
         </p>

@@ -1,5 +1,13 @@
 import React from "react";
-import { FaGem, FaPaintBrush, FaTools, FaHome, FaCar, FaTv, FaCouch } from "react-icons/fa";
+import {
+  FaGem,
+  FaPaintBrush,
+  FaTools,
+  FaHome,
+  FaCar,
+  FaTv,
+  FaCouch,
+} from "react-icons/fa";
 
 const categories = [
   { icon: <FaGem />, label: "مجوهرات" },
@@ -11,23 +19,34 @@ const categories = [
   { icon: <FaCouch />, label: "أثاث" },
 ];
 
+const Card = ({ icon, label }) => (
+  <div className="w-[294px] h-[72px] flex items-center justify-center gap-2 bg-gray-100 text-[#2D3142] text-center rounded-xl px-4 py-3 text-[16px] font-medium transition-all duration-300 cursor-pointer">
+    <span className="w-[24px]">{icon}</span>
+    <span>{label}</span>
+  </div>
+);
+
 function Catigarios() {
   return (
-<section className="py-10 px-7">
-  <h2 className="text-center text-2xl text-[#232634] font-bold mb-8">تصفح حسب الفئات</h2>
-  <div className="grid grid-cols-4 md:grid-cols-4 gap-4 justify-items-center">
-    {categories.map((cat, idx) => (
-      <div
-        key={idx}
-        className="flex items-center gap-2 bg-gray-100 text-[#2D3142] text-center rounded-xl px-2 md:px-5  lg:px-9 py-3 text-[14px] md:text-[16px] lg:text-[17px]  font-medium transition-all duration-300 cursor-pointer"
-      >
-        <span className="text-[15px]">{cat.icon}</span>
-        <span>{cat.label}</span>
-      </div>
-    ))}
-  </div>
-</section>
+    <section className="py-[96px] px-[56px]">
+      <h2 className="text-center text-2xl text-[#232634] font-bold mb-8">
+        تصفح حسب الفئات
+      </h2>
 
+      {/* صف أول: 4 كروت */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 justify-items-center mb-6">
+        {categories.slice(0, 4).map((cat, idx) => (
+          <Card key={idx} icon={cat.icon} label={cat.label} />
+        ))}
+      </div>
+
+      {/* صف ثاني: 3 كروت في النص */}
+      <div className="flex justify-center gap-6 flex-wrap">
+        {categories.slice(4).map((cat, idx) => (
+          <Card key={idx + 4} icon={cat.icon} label={cat.label} />
+        ))}
+      </div>
+    </section>
   );
 }
 

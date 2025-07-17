@@ -32,7 +32,7 @@ export default function ProductCategorySelector({
         className="
           grid gap-2 grid-cols-2
           w-full
-          my-8
+          my-2
           sm:grid-cols-3
           md:grid-cols-4
           mx-auto
@@ -52,6 +52,7 @@ export default function ProductCategorySelector({
                 border rounded-lg w-full
                 text-[18px] font-medium
                 cursor-pointer
+              
                 transition
                 hover:border-[#FA6300]
                 max-lg:text-[14px]
