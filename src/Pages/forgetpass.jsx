@@ -32,7 +32,7 @@ export default function Forgetpass() {
       });
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F1F1F1]">
-        <form onSubmit={formik.handleSubmit} className="w-full max-w-md bg-white rounded-3xl shadow-lg p-10 flex flex-col items-center" dir="rtl">
+        <form onSubmit={formik.handleSubmit} className="w-full max-w-md bg-white rounded-3xl shadow-lg p-6 flex flex-col items-center" dir="rtl">
           {/* Logo and Title */}
           <div className="flex flex-row gap-1 items-center mb-8 w-full">
             <img src={Logo} alt="زايد" className="w-20 h-20 rounded-full mb-2 flex items-start justify-start" />
@@ -41,7 +41,7 @@ export default function Forgetpass() {
           {/* Heading */}
           <div className="flex flex-col items-start w-full">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">استرجاع كلمة المرور</h2>
-            <p className="text-gray-500 mb-8 text-center">ادخل البريد الالكتروني المرتبط بحسابك لاسترجاع كلمة المرور</p>
+            <p className="text-gray-500 mb-8 ">ادخل البريد الالكتروني المرتبط بحسابك لاسترجاع كلمة المرور</p>
           </div>
           {/* Email Input */}
           <div className="w-full mb-2">

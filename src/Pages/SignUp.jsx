@@ -110,8 +110,8 @@ export default function SignUp() {
   };
 
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-auth">
-      <div className="w-full max-w-[794px] px-[56px] py-[52px] mx-auto bg-white rounded-md flex flex-col items-start">
+    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12  lg:px-8 bg-auth">
+      <div className="w-full max-w-[794px] px-[24px] py-[24px] mx-auto bg-white rounded-3xl flex flex-col items-start">
         {/* Header */}
         <img
           alt="logo-zayid"
@@ -251,7 +251,7 @@ export default function SignUp() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`flex w-full justify-center rounded-md px-3 py-1.5 text-sm/6 font-semibold shadow-xs ${
+                className={`flex w-full justify-center items-center h-[48px] rounded-md  text-sm/6 font-semibold shadow-xs ${
                   isLoading
                     ? "bg-slate-500 cursor-not-allowed text-white"
                     : "bg-col-btn-prim hover:bg-[#cc5200]"
@@ -264,12 +264,12 @@ export default function SignUp() {
         </Formik>
 
         {/* Login Link */}
-        <p className="mt-10 text-center text-sm/6">
+        <p className="mt-6 text-center text-[#2D3142]  text-sm/6">
           لديك حساب بالفعل؟
           <button
             type="button"
             onClick={() => navigate("/login")}
-            className="ms-0.5 font-semibold text-black hover:text-black hover:underline cursor-pointer"
+            className="ms-0.5 font-semibold text-[#2D3142] hover:underline cursor-pointer"
           >
             سجل الدخول
           </button>

@@ -87,7 +87,7 @@ function MazadCard({ auctionId }) {
         {isAuthenticated ? (
           <button
             onClick={handleAuctionClick}
-            className="btn w-full bg-[#4F5D75] text-white mt-2 flex items-center justify-center"
+            className="btn w-full h-[48px] border-none rounded-lg bg-[#4F5D75] text-white mt-2 flex items-center justify-center"
           >
             <h2 className="mx-2">زايد الان</h2>
             <img src={hummer} alt="bid" />

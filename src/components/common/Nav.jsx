@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import LogoImg from "../../assets/images/Logo.webp";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 // icone
 // import { IoNotificationsOutline } from "react-icons/io5";
@@ -11,6 +11,12 @@ const ulStyle =
   "link link-hover mx-2.5 text-gray-700 hover:text-[#FA6300] transition-colors duration-200";
 
 function Nav() {
+
+  const location = useLocation();
+  const hideOnRoutes = ["/login", "/signup", "/forgetpass"];
+  //to hide navbar
+  if (hideOnRoutes.includes(location.pathname)) return null;
+
   const navigate = useNavigate();
   const { userData, isAuthenticated, logout } = useContext(UserContext);
 
@@ -97,7 +103,7 @@ function Nav() {
 
             {/* add mazad BTN */}
             <button
-              className="btn bg-[#FA6300] text-[16px] font-medium px-6 border-none text-white mx-1"
+              className="btn bg-[#FA6300] text-[16px] font-medium px-6 border-none rounded-lg mx-4 text-white"
               onClick={() => navigate("/addAuction")}
             >
               {" "}
@@ -114,14 +120,14 @@ function Nav() {
               <div
                 tabIndex={0}
                 role="button"
-                className="btn bg-transparent border-0 px-0 mr-1 text-[16px] text-[#2D3142]"
+                className="btn bg-transparent border-0 px-0 mr-1 text-[16px]  text-[#2D3142]"
               >
                 {userData?.fullName}
                 <IoIosArrowDown className="text-orange-500" />
               </div>
               <ul
                 tabIndex={0}
-                className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 shadow-sm"
+                className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 w-36 shadow-sm"
               >
                 <li>
                   <a onClick={handleLogout}>تسجيل خروج</a>
@@ -131,7 +137,7 @@ function Nav() {
           </>
         ) : (
           <button
-            className="btn bg-[#FA6300] text-white m-5"
+            className="btn bg-[#FA6300] text-[16px] font-medium px-6 border-none rounded-lg mx-4 text-white "
             onClick={() => navigate("/login")}
           >
             تسجيل الدخول
