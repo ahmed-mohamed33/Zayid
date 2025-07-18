@@ -555,7 +555,39 @@ export const UserProvider = ({ children }) => {
         if (snapshot.exists()) {
           const allAuctions = Object.entries(snapshot.val()).map(
             // 14-7 2:40 am عملت تعديل اخير هنا عملت الحسبه هنا علشان تكون ف الافيكت
+<<<<<<< HEAD
   ([id, data]) => {
+=======
+            // ([id, data]) => {
+            //   const startDate = new Date(data.startDate || null);
+            //   const now = new Date();
+            //   let remainingTime = "";
+            //   if (startDate > now) {
+            //     const diffMs = startDate - now;
+            //     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            //     const diffHours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+            //     const diffMinutes = Math.floor((diffMs / (1000 * 60)) % 60);
+            //     if (diffDays > 0) {
+            //       remainingTime = `${diffDays} يوم و ${diffHours} ساعة`;
+            //     } else if (diffDays > 0) {
+            //       remainingTime = `${diffHours} ساعة و ${diffMinutes} دقيقة olo`;
+            //     } else {
+            //       remainingTime = `${diffMinutes} دقيقة  ll`;
+            //     }
+            //   } else {
+            //     remainingTime = "بدأت بالفعل";
+            //   }
+
+            //   return {
+            //     id,
+            //     ...data,
+            //     startDate: data.startDate || null,
+            //     remainingTime: remainingTime,
+            //   };
+            // }
+
+            ([id, data]) => {
+>>>>>>> 811b795a72702604e6ce8f3caa3d9b75c8925db8
               const startDate = new Date(data.startDate || null);
               const now = new Date();
 
@@ -577,7 +609,11 @@ export const UserProvider = ({ children }) => {
                   remainingTime = `${diffMinutes} دقيقة`;
                 }
               } else {
+<<<<<<< HEAD
                 remainingTime = "بدأ بالفعل";
+=======
+                remainingTime = "بدأت بالفعل";
+>>>>>>> 811b795a72702604e6ce8f3caa3d9b75c8925db8
               }
 
               return {
@@ -640,7 +676,11 @@ export const UserProvider = ({ children }) => {
                     remainingTime = `${diffMinutes} دقيقة`;
                   }
                 } else {
+<<<<<<< HEAD
                   remainingTime = "بدأ بالفعل";
+=======
+                  remainingTime = "بدأت بالفعل";
+>>>>>>> 811b795a72702604e6ce8f3caa3d9b75c8925db8
                 }
 
                 return {
@@ -873,11 +913,22 @@ export const UserProvider = ({ children }) => {
         endDate && startDate
           ? ((endDate - startDate) / (1000 * 60 * 60 * 24)).toFixed(0)
           : 0;
+<<<<<<< HEAD
           // المتبقي
     const now = new Date();
       let remainingTime = "";
 
       const diffMs = startDate - now;
+=======
+      // بص هنا انا بجيب  الوقت المتبقي 11:50  13-7
+      // const startDate = new Date(data.startDate || null);
+      const now = new Date();
+
+      let remainingTime = "";
+
+      const diffMs = startDate - now;
+
+>>>>>>> 811b795a72702604e6ce8f3caa3d9b75c8925db8
       if (diffMs > 0) {
         const totalMinutes = Math.floor(diffMs / (1000 * 60));
         const diffDays = Math.floor(totalMinutes / (60 * 24));
@@ -892,7 +943,11 @@ export const UserProvider = ({ children }) => {
           remainingTime = `${diffMinutes} دقيقة`;
         }
       } else {
+<<<<<<< HEAD
         remainingTime = "بدأ بالفعل";
+=======
+        remainingTime = "بدأت بالفعل";
+>>>>>>> 811b795a72702604e6ce8f3caa3d9b75c8925db8
       }
 
       const auctionId = uuidv4();
