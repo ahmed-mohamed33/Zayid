@@ -286,8 +286,7 @@ const BiddingChat = ({
             onClick={handleEndAuction}
             className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-6 py-3 rounded-lg transition-colors duration-200 w-full"
           >
-            إنهاء المزاد
-          </button>
+test tany          </button>
         </div>
       ) : status !== "ended" ? (
         <div className="flex h-12">
