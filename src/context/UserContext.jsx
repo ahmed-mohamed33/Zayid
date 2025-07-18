@@ -586,7 +586,7 @@ export const UserProvider = ({ children }) => {
             }
           );
           setAuctions(allAuctions);
-        } else {
+        } else { // sellllllllllllllllllllim 
           setAuctions([]);
         }
       },
