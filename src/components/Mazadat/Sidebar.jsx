@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import homeIcon from "../../assets/icons/house.svg";
 import toolsIcon from "../../assets/icons/tools.svg";
 import artIcon from "../../assets/icons/paints.svg";
@@ -17,13 +17,19 @@ const categories = [
   { label: "إلكترونيات", value: "إلكترونيات", icon: electronicsIcon },
 ];
 
-const Sidebar = ({ onFilterChange }) => {
+const Sidebar = ({ onFilterChange, filters }) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [productConditions, setProductConditions] = useState([]);
   const [auctionStatuses, setAuctionStatuses] = useState([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [filterByInterest, setFilterByInterest] = useState(false);
+
+  useEffect(() => {
+    if (filters.categories) {
+      setSelectedCategories(filters.categories);
+    }
+  }, [filters.categories]);
 
   const handleCategoryClick = (value) => {
     const updated = selectedCategories.includes(value)

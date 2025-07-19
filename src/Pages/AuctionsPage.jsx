@@ -1,10 +1,10 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Sidebar from "../components/Mazadat/Sidebar";
 import MazadCard from "../components/common/MazadCard";
 import arrowRight from "../assets/icons/arrow-right.svg";
 import arrowLeft from "../assets/icons/arrow-left.svg";
 import { UserContext } from "../context/UserContext";
-
+import { useSearchParams } from "react-router-dom";
 const PRODUCTS_PER_PAGE = 6;
 
 const Products = () => {
@@ -18,7 +18,17 @@ const Products = () => {
     maxPrice: "",
     filterByInterest: false,
   });
+  const [searchParams] = useSearchParams();
+  const categoryFromUrl = searchParams.get("category");
 
+  useEffect(() => {
+    if (categoryFromUrl) {
+      setFilters((prev) => ({
+        ...prev,
+        categories: [categoryFromUrl],
+      }));
+    }
+  }, [categoryFromUrl]);
   const { auctions, userData } = useContext(UserContext);
   const userInterests = userData?.userInterests || [];
   console.log("User Interests:", userInterests);
@@ -187,7 +197,11 @@ const Products = () => {
 
           <div className="flex w-full gap-6">
             <aside className="hidden lg:block w-72 shrink-0">
-              <Sidebar onFilterChange={handleFilterChange} />
+              <Sidebar
+                onFilterChange={handleFilterChange}
+                filters={filters}
+                categoryFromUrl={categoryFromUrl}
+              />
             </aside>
             <div className="flex-1 flex flex-col">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
