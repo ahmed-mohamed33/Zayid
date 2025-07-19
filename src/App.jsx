@@ -23,6 +23,8 @@ import AuctionsPage from "./Pages/AuctionsPage.jsx";
 import AllDataComponent from "./UsserSchema.jsx";
 import { UserProvider } from "../src/context/UserContext.jsx";
 // import Dashboard from "./Pages/Dashboard.jsx";
+import TermsAndConditions from "./Pages/TermsAndConditions.jsx";
+import ContactUs from "./Pages/ContactUs.jsx";
 
 function App() {
   return (
@@ -49,6 +51,9 @@ function App() {
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/addAuction" element={<AddAuctionPage />} />
             <Route path="/auctions" element={<AuctionsPage />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+            <Route path="/contact-us" element={<ContactUs />} />
+            
           </Routes>
           <Footer />
         </Router>

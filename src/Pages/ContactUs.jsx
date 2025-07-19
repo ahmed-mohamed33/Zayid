@@ -1,0 +1,147 @@
+import React, { useState } from "react";
+
+export default function ContactUs() {
+  return (
+    <div className="bg-[#F1F1F1] min-h-screen pt-10 pb-24 px-4 sm:px-10">
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+        {/* **** Right: Contact Form **** */}
+        <div
+          style={{ padding: "52px 56px" }}
+          className="bg-white rounded-3xl overflow-hidden"
+        >
+          <h2 className="font-bold text-[#2D3142] mb-6 text-4xl">تواصل معنا</h2>
+          <p className="text-[#2D3142] mb-6">
+            نحن هنا للرد على استفساراتك، دعمك، ومساعدتك بكل ترحيب.
+          </p>
+
+          <form className="space-y-4">
+            <InputField
+              label="الاسم"
+              placeholder="ادخل اسمك"
+              icon="/src/assets/contact/profile.svg"
+            />
+            <InputField
+              label="البريد الإلكتروني"
+              placeholder="ادخل بريدك الإلكتروني"
+              icon="/src/assets/contact/sms-black.svg"
+            />
+            <InputField
+              label="رسالتك"
+              placeholder="اكتب رسالتك"
+              icon="/src/assets/contact/message-text.svg"
+              textarea
+            />
+            <button
+              type="submit"
+              className="bg-[#FA6300] hover:bg-orange-600 transition-colors text-white w-full py-2 px-6 rounded-md font-bold"
+            >
+              إرسال رسالة
+            </button>
+            <p className="text-[#2D3142] text-center">
+              سنقوم بالرد على استفسارك في أقرب وقت ممكن.
+            </p>
+          </form>
+        </div>
+
+        {/* **** Left: Contact Info **** */}
+        <div className="space-y-6">
+          <ContactCard
+            icon="/src/assets/contact/sms.svg"
+            title="البريد الإلكتروني"
+            value="support@zayed.com"
+          />
+          <ContactCard
+            icon="/src/assets/contact/call.svg"
+            title="رقم الهاتف"
+            value="0100 123 4567"
+          />
+          <ContactCard
+            icon="/src/assets/contact/location.svg"
+            title="العنوان"
+            value="القاهرة، مصر"
+          />
+          <ContactCard
+            icon="/src/assets/contact/clock.svg"
+            title="ساعات العمل"
+            value="السبت - الخميس: 10 ص - 6 م"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Contact Card
+function ContactCard({ icon, title, value }) {
+  return (
+    <div
+      style={{ border: "0.5px solid  #B9B9B9" }}
+      className="bg-white rounded-3xl px-6 py-12 flex items-center"
+    >
+      <div
+        className="ml-3 flex justify-center"
+        style={{
+          alignItems: "center",
+          backgroundColor: "rgba(250, 99, 0, 0.10)",
+          height: "48px",
+          width: "48px",
+          borderRadius: "26px",
+        }}
+      >
+        <img className="w-6 h-6 object-contain" src={icon} alt="" />
+      </div>
+      <div className="space-y-1 text-right">
+        <h5 className="text-[#2D3142] font-bold">{title}</h5>
+        <p className="text-[#2D3142]">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// Input Field with custom placeholder
+function InputField({ label, placeholder, icon, textarea = false }) {
+  const [isFocused, setIsFocused] = useState(false);
+  const [hasValue, setHasValue] = useState(false);
+
+  const handleChange = (e) => {
+    setHasValue(!!e.target.value);
+  };
+
+  return (
+    <div className="text-right relative">
+      <label className="block font-medium text-[#2D3142] mb-2">{label}</label>
+
+      {/* Custom placeholder */}
+      {!hasValue && !isFocused && (
+        <div
+          style={textarea ? {} : { top: "calc(0.67 * 100%)" }}
+          className={`absolute ${textarea ? "top-12" : ""} right-4 
+      transform ${textarea ? "" : "-translate-y-1/2"} 
+      flex items-center text-[#9CA3AF] pointer-events-none space-x-2`}
+        >
+          {icon && <img src={icon} alt="icon" className="w-6 h-6" />}
+          <span className="text-[#5F626F]">{placeholder}</span>
+        </div>
+      )}
+
+      {textarea ? (
+        <textarea
+          style={{ height: "112px", resize: "none" }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onInput={handleChange}
+          className="  w-full p-4 pr-10 rounded-md border border-[#BFC0C0] focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
+          rows="4"
+        />
+      ) : (
+        <input
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onInput={handleChange}
+          type="text"
+          className="w-full p-4 pr-10 rounded-md border border-[#BFC0C0] focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
+        />
+      )}
+    </div>
+  );
+}
