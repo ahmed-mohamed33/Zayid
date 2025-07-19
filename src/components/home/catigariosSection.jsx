@@ -19,8 +19,11 @@ const categories = [
   { icon: <FaCouch />, label: "أثاث" },
 ];
 
-const Card = ({ icon, label }) => (
-  <div className="w-[294px] h-[72px] flex items-center justify-center gap-2 bg-gray-100 text-[#2D3142] text-center rounded-xl px-4 py-3 text-[16px] font-medium transition-all duration-300 cursor-pointer">
+const Card = ({ icon, label, onClick }) => (
+  <div
+    className="w-[294px] h-[72px] flex items-center justify-center gap-2 bg-gray-100 text-[#2D3142] text-center rounded-xl px-4 py-3 text-[16px] font-medium transition-all duration-300 cursor-pointer"
+    onClick={onClick}
+  >
     <span className="w-[24px]">{icon}</span>
     <span className="text-[18px] font-bold">{label}</span>
   </div>
@@ -31,6 +34,7 @@ function Catigarios() {
 
   const handleCategoryClick = (category) => {
     navigate(`/auctions?category=${category}`);
+    window.scrollTo(0, 0);
   };
   return (
     <section className="py-[96px] px-[56px]">

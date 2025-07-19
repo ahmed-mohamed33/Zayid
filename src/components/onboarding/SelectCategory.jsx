@@ -23,8 +23,8 @@ export default function SelectCategory({
       icon: "/src/assets/categry/مبنى.svg",
     },
     {
-      id: "عدة ومواد معادن",
-      name: "عدة ومواد معادن",
+      id: "خردة وبواقي معادن",
+      name: "خردة وبواقي معادن",
       icon: "/src/assets/categry/Clippathgroup.svg",
     },
     { id: "أثاث", name: "أثاث", icon: "/src/assets/categry/اثاث.svg" },

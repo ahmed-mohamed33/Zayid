@@ -9,7 +9,7 @@ import electronicsIcon from "../../assets/icons/pc.svg";
 
 const categories = [
   { label: "عقارات وأراضي", value: "عقارات وأراضي", icon: homeIcon },
-  { label: "عدة ومواد معادن", value: "عدة ومواد معادن", icon: toolsIcon },
+  { label: "خردة وبواقي معادن", value: "خردة وبواقي معادن", icon: toolsIcon },
   { label: "تحف وأعمال فنية", value: "تحف وأعمال فنية", icon: artIcon },
   { label: "أثاث", value: "أثاث", icon: furnitureIcon },
   { label: "مجوهرات", value: "مجوهرات", icon: jewelryIcon },

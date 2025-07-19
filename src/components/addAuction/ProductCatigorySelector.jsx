@@ -17,7 +17,7 @@ const categories = [
   { label: "مجوهرات", icon: <FaGem /> },
   { label: "أثاث", icon: <FaCouch /> },
   { label: "سيارات", icon: <FaCar /> },
-  { label: "عدة ومواد معادن", icon: <FaWrench /> },
+  { label: "خردة وبواقي معادن", icon: <FaWrench /> },
   { label: "أخرى", icon: <FaTh /> },
 ];
 
