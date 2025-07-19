@@ -3,6 +3,8 @@ import User from '../components/dashboard/User';
 import Product from '../components/dashboard/Product';
 import { UserContext } from '../context/UserContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
+// import { db } from '../config/Firebase';
+// import { collection, getDocs } from 'firebase/firestore';
 
 import { 
   FaUsers, 
@@ -18,7 +20,7 @@ import {
   FaAd,
   FaClipboardList
 } from 'react-icons/fa';
-import { Line, Bar } from 'react-chartjs-2';
+import { Line, Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -26,6 +28,7 @@ import {
   PointElement,
   LineElement,
   BarElement,
+  ArcElement, // Register ArcElement for Pie chart
   Title,
   Tooltip,
   Legend,
@@ -38,6 +41,7 @@ ChartJS.register(
   PointElement,
   LineElement,
   BarElement,
+  ArcElement, // Register ArcElement for Pie chart
   Title,
   Tooltip,
   Legend
@@ -50,47 +54,101 @@ const Dashboard = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [openComplaints, setOpenComplaints] = useState(0);
 
-  useEffect(() => {
-    const db = getDatabase();
-    const usersRef = ref(db, 'users');
-    const unsubscribe = onValue(usersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const usersArray = Object.entries(snapshot.val()).map(([id, userData]) => ({ id, ...userData }));
-        setAllUsers(usersArray);
-      } else {
-        setAllUsers([]);
-      }
-    });
+  // Pie chart state for auctions by category
+  const [categoryData, setCategoryData] = useState({
+    labels: ['سيارات', 'عقارات', 'تحف', 'إلكترونيات', 'ساعات'],
+    datasets: [
+      {
+        label: 'عدد المزادات',
+        data: [15, 10, 7, 12, 5],
+        backgroundColor: [
+          'rgba(255, 159, 64, 0.7)',
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(250, 204, 21, 0.7)',
+          'rgba(139, 92, 246, 0.7)'
+        ],
+        borderColor: [
+          'rgba(255, 159, 64, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(250, 204, 21, 1)',
+          'rgba(139, 92, 246, 1)'
+        ],
+        borderWidth: 1,
+      },
+    ],
+  });
 
-    // Fetch payments for revenue
-    const paymentsRef = ref(db, 'payments');
-    const unsubPayments = onValue(paymentsRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const paymentsArray = Object.values(snapshot.val());
-        const revenue = paymentsArray.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-        setTotalRevenue(revenue);
-      } else {
-        setTotalRevenue(0);
-      }
-    });
-    // Fetch complaints for open complaints
-    const complaintsRef = ref(db, 'complaints');
-    const unsubComplaints = onValue(complaintsRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const complaintsArray = Object.values(snapshot.val());
-        const openCount = complaintsArray.filter(c => c.status === 'open').length;
-        setOpenComplaints(openCount);
-      } else {
-        setOpenComplaints(0);
-      }
-    });
+  // useEffect(() => {
+  //   const db = getDatabase();
+  //   const usersRef = ref(db, 'users');
+  //   const unsubscribe = onValue(usersRef, (snapshot) => {
+  //     if (snapshot.exists()) {
+  //       const usersArray = Object.entries(snapshot.val()).map(([id, userData]) => ({ id, ...userData }));
+  //       setAllUsers(usersArray);
+  //     } else {
+  //       setAllUsers([]);
+  //     }
+  //   });
 
-    return () => {
-      unsubscribe();
-      unsubPayments();
-      unsubComplaints();
-    };
-  }, []);
+    
+  //   const paymentsRef = ref(db, 'payments');
+  //   const unsubPayments = onValue(paymentsRef, (snapshot) => {
+  //     if (snapshot.exists()) {
+  //       const paymentsArray = Object.values(snapshot.val());
+  //       const revenue = paymentsArray.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  //       setTotalRevenue(revenue);
+  //     } else {
+  //       setTotalRevenue(0);
+  //     }
+  //   });
+   
+  //   const complaintsRef = ref(db, 'complaints');
+  //   const unsubComplaints = onValue(complaintsRef, (snapshot) => {
+  //     if (snapshot.exists()) {
+  //       const complaintsArray = Object.values(snapshot.val());
+  //       const openCount = complaintsArray.filter(c => c.status === 'open').length;
+  //       setOpenComplaints(openCount);
+  //     } else {
+  //       setOpenComplaints(0);
+  //     }
+  //   });
+
+  //   // Fetch auction data from Firestore and count by category
+  //   const fetchCategoryData = async () => {
+  //     try {
+  //       const snapshot = await getDocs(collection(db, 'auctions'));
+  //       const counts = {};
+  //       snapshot.forEach(doc => {
+  //         // Try both categoryId and category for compatibility
+  //         const cat = doc.data().categoryId || doc.data().category || 'غير محدد';
+  //         counts[cat] = (counts[cat] || 0) + 1;
+  //       });
+  //       const labels = Object.keys(counts);
+  //       const data = Object.values(counts);
+  //       setCategoryData({
+  //         labels,
+  //         datasets: [
+  //           {
+  //             label: 'عدد المزادات',
+  //             data,
+  //             backgroundColor: 'rgba(255, 159, 64, 0.7)',
+  //           },
+  //         ],
+  //       });
+  //     } catch (err) {
+  //       setCategoryData({ labels: [], datasets: [] });
+  //     }
+  //   };
+  //   fetchCategoryData();
+
+  //   return () => {
+  //     unsubscribe();
+  //     unsubPayments();
+  //     unsubComplaints();
+  //   };
+  // }, []);
 
   // Compute statistics from real data
   const totalUsers = allUsers.length;
@@ -98,9 +156,7 @@ const Dashboard = () => {
   const endedAuctions = auctions.filter(a => a.status === 'ended').length;
   const pendingAuctions = auctions.filter(a => a.status === 'pending').length;
   const companyUsers = allUsers.filter(u => u.isCompany).length;
-  // Placeholder for revenue and complaints (replace with real logic if available)
-  // const totalRevenue = 'غير متوفر';
-  // const openComplaints = 'غير متوفر';
+  
 
   const statistics = [
     {
@@ -143,13 +199,6 @@ const Dashboard = () => {
       value: totalRevenue.toLocaleString() + ' ريال',
       icon: FaMoneyBillWave,
       color: 'bg-purple-500',
-      change: '',
-    },
-    {
-      title: 'الشكاوى المفتوحة',
-      value: openComplaints,
-      icon: FaExclamationTriangle,
-      color: 'bg-red-500',
       change: '',
     },
   ];
@@ -259,9 +308,25 @@ const Dashboard = () => {
     { id: 'auctions', name: 'المزادات', icon: FaGavel },
     // { id: 'reports', name: 'التقارير المالية', icon: FaMoneyBillWave },
     // { id: 'ads', name: 'الإعلانات', icon: FaAd },
-    { id: 'complaints', name: 'الشكاوى', icon: FaExclamationTriangle },
-    { id: 'settings', name: 'الإعدادات', icon: FaCog },
+    // { id: 'complaints', name: 'الشكاوى', icon: FaExclamationTriangle },
+    // { id: 'settings', name: 'الإعدادات', icon: FaCog },
   ];
+
+  const barOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: { display: true, text: 'عدد المزادات حسب الفئة' },
+    },
+  };
+
+  const pieOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: { display: true, text: 'عدد المزادات حسب الفئة' },
+    },
+  };
 
   return (
     
@@ -362,16 +427,10 @@ const Dashboard = () => {
                 ))}
               </div>
 
-              {/* Chart Section */}
-              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-8">
-                <h2 className="text-xl font-bold text-gray-800 mb-6">نشاط المزادات خلال الأسبوع</h2>
-                <div className="h-80">
-                  <Line data={chartData} options={chartOptions} />
-                </div>
-              </div>
+         
 
               {/* Tables Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="flex flex-col lg:flex-col mb-8 gap-8">
                 {/* Recent Auctions Table */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200">
                   <div className="p-6 border-b border-gray-200">
@@ -482,6 +541,23 @@ const Dashboard = () => {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              </div>
+                   {/* Chart Section */}
+                   <div className="flex flex-col lg:flex-row gap-8 mb-8">
+                {/* Line Chart Section */}
+                <div className="flex-1 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                  <h2 className="text-xl font-bold text-gray-800 mb-6">نشاط المزادات خلال الأسبوع</h2>
+                  <div className="h-80">
+                    <Line data={chartData} options={chartOptions} />
+                  </div>
+                </div>
+                {/* Pie Chart Section */}
+                <div className="flex-1 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                  <h2 className="text-xl font-bold text-gray-800 mb-6">عدد المزادات حسب الفئة</h2>
+                  <div className="h-80 flex items-center justify-center">
+                    <Pie data={categoryData} options={pieOptions} />
                   </div>
                 </div>
               </div>

@@ -19,44 +19,41 @@ import SignUp from "./Pages/SignUp.jsx";
 import OnboardingPage from "./Pages/OnboardingPage.jsx";
 import AddAuctionPage from "./Pages/AddAuctionPage.jsx";
 import AuctionsPage from "./Pages/AuctionsPage.jsx";
+import FAq from "./Pages/FAq.jsx";
 //to show schema
 import AllDataComponent from "./UsserSchema.jsx";
 import { UserProvider } from "../src/context/UserContext.jsx";
-// import Dashboard from "./Pages/Dashboard.jsx";
+import Dashboard from "./Pages/Dashboard.jsx";
 
 function App() {
   const location = useLocation();
   const isDashboard = location.pathname === "/dashboard" ;
   const isLogin = location.pathname === "/login"
-  const isRegister = location.pathname === "/signup";
+  const isRegister = location.pathname === "/signup" || location.pathname === "/register";
 
   return (
     <div dir="rtl">
       <UserProvider>
-        <Router>
-          <Navbar />
-          <AllDataComponent />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/forgetpass" element={<Forgetpass />} />
-            <Route
-              path="/payment/:auctionId/:type"
-              element={<Payment />}
-            />{" "}
-            {/**غيرت البارامز لان انا بباصي التايب في اللينك*/}
-            <Route path="/auction/:auctionId" element={<TheauctionPage />} />
-            <Route path="/selectCategory" element={<OnboardingPage />} />
-            <Route path="/signUp" element={<SignUp />} />
-            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-            <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route path="/addAuction" element={<AddAuctionPage />} />
-            <Route path="/auctions" element={<AuctionsPage />} />
-          </Routes>
-          <Footer />
-        </Router>
+        {!isDashboard && !isLogin && !isRegister && <Navbar />}
+        <AllDataComponent />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/forgetpass" element={<Forgetpass />} />
+          <Route path="/payment/:auctionId/:type" element={<Payment />} />{" "}
+          {/**غيرت البارامز لان انا بباصي التايب في اللينك*/}
+          <Route path="/auction/:auctionId" element={<TheauctionPage />} />
+          <Route path="/selectCategory" element={<OnboardingPage />} />
+          <Route path="/signUp" element={<SignUp />} />
+          <Route path="/faq" element={<FAq />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/addAuction" element={<AddAuctionPage />} />
+          <Route path="/auctions" element={<AuctionsPage />} />
+        </Routes>
+        {!isDashboard && !isLogin && !isRegister && <Footer />}
       </UserProvider>
     </div>
   );

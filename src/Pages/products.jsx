@@ -1,10 +1,7 @@
 import React, { useState } from "react";
-import Nav from "../components/common/Nav";
-import Footer from "../components/common/Footer";
 import Sidebar from "../components/Mazadat/Sidebar";
 import MazadCard from "../components/common/MazadCard";
 import smartWatch from "../assets/images/smartWatch.png";
-
 
 const products = [
   {
@@ -49,7 +46,7 @@ const products = [
     usersInMAzad: 8,
     time: 5,
   },
-  // Add more products for pagination demo
+
   {
     image: smartWatch,
     price: "3,500 جنيه",
@@ -97,7 +94,7 @@ const Products = () => {
     }
   };
 
-  // Pagination UI logic for ellipsis
+
   const renderPagination = () => {
     let pages = [];
     if (totalPages <= 5) {
@@ -106,11 +103,26 @@ const Products = () => {
       }
     } else {
       if (currentPage <= 3) {
-        pages = [1, 2, 3, 4, '...', totalPages];
+        pages = [1, 2, 3, 4, "...", totalPages];
       } else if (currentPage >= totalPages - 2) {
-        pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        pages = [
+          1,
+          "...",
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages,
+        ];
       } else {
-        pages = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+        pages = [
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          totalPages,
+        ];
       }
     }
     return (
@@ -123,15 +135,23 @@ const Products = () => {
           &lt;
         </button>
         {pages.map((page, idx) =>
-          page === '...'
-            ? <span key={idx} className="px-2">...</span>
-            : <button
-                key={page}
-                className={`px-3 py-1 rounded ${currentPage === page ? 'bg-[#4F5D75] text-white' : 'bg-white border text-[#4F5D75]'}`}
-                onClick={() => handlePageChange(page)}
-              >
-                {page}
-              </button>
+          page === "..." ? (
+            <span key={idx} className="px-2">
+              ...
+            </span>
+          ) : (
+            <button
+              key={page}
+              className={`px-3 py-1 rounded ${
+                currentPage === page
+                  ? "bg-[#4F5D75] text-white"
+                  : "bg-white border text-[#4F5D75]"
+              }`}
+              onClick={() => handlePageChange(page)}
+            >
+              {page}
+            </button>
+          )
         )}
         <button
           className="px-3 py-1 rounded bg-white border text-[#4F5D75]"
@@ -146,7 +166,7 @@ const Products = () => {
 
   return (
     <div className="bg-[#F6F6F6] min-h-screen flex flex-col">
-      <Nav />
+
       <main className="container mx-auto flex flex-row flex-1 gap-6 py-12 px-7">
         {/* Sidebar */}
         <section className="flex-1 flex flex-col gap-8">
@@ -155,7 +175,10 @@ const Products = () => {
             <h2 className="text-right font-bold not-italic leading-normal text-[var(--text-primary,#2D3142)] text-[length:var(--typography-font-size-heading-H4,24px)] font-[Almarai]">
               المزادات المتاحة
             </h2>
-            <form className="flex w-full max-w-xl" onSubmit={e => e.preventDefault()}>
+            <form
+              className="flex w-full max-w-xl"
+              onSubmit={(e) => e.preventDefault()}
+            >
               <input
                 type="text"
                 placeholder="ابحث عن مزاد"
@@ -180,12 +203,14 @@ const Products = () => {
                   <MazadCard key={idx} {...product} />
                 ))}
               </div>
-              <div className="flex justify-center w-full">{renderPagination()}</div>
+              <div className="flex justify-center w-full">
+                {renderPagination()}
+              </div>
             </div>
           </div>
         </section>
       </main>
-      <Footer />
+                
     </div>
   );
 };

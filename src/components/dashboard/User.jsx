@@ -64,7 +64,7 @@ export default function User() {
           {showPendingOnly ? 'عرض الكل' : 'عرض المستخدمين المعلقين'}
         </button>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
