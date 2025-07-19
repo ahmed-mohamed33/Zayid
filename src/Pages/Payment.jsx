@@ -94,7 +94,8 @@ function Payment() {
     if (type === "shroot") {
       return auction?.terms?.price || 100;
     } else if (type === "insurance") {
-      return auction?.insurance?.price || 200;
+
+      return auction?.insurance?.amount || 200;
     }
     return 0;
   };

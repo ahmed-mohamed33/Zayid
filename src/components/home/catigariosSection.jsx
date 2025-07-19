@@ -34,7 +34,8 @@ function Catigarios() {
 
   const handleCategoryClick = (category) => {
     navigate(`/auctions?category=${category}`);
-    window.scrollTo(0, 0);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   return (
     <section className="py-[96px] px-[56px]">

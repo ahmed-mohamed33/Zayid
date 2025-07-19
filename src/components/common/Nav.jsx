@@ -5,8 +5,10 @@ import { UserContext } from "../../context/UserContext";
 // icone
 // import { IoNotificationsOutline } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
+import { IoIosArrowForward } from "react-icons/io";
 import NotificationIcon from "../../assets/icons/notification.svg";
 import { FaUser } from "react-icons/fa";
+import { LuLogOut } from "react-icons/lu";
 
 const ulStyle =
   "link link-hover mx-2.5 text-gray-700 hover:text-[#FA6300] transition-colors duration-200";
@@ -63,7 +65,7 @@ function Nav() {
         </NavLink>
 
         <NavLink
-          to="/contact"
+          to="/contact-us"
           className={({ isActive }) =>
             `${ulStyle} ${
               isActive
@@ -113,29 +115,36 @@ function Nav() {
             {/* img user  */}
             {userData?.profileImage ? (
               <img
-                className=" w-[40px] h-[40px] rounded-full bg-gray-200"
+                className=" w-[40px] h-[40px] rounded-full bg-[#f1f1f1]"
                 src={userData?.profileImage}
                 alt="user"
               />
             ) : (
-              <FaUser className="w-[32px] h-[32px] rounded-full bg-gray-200 text-[#e46e37]" />
+              <FaUser className="w-[32px] h-[32px] rounded-full bg-[#f1f1f1] text-[#e46e37]" />
             )}
             {/* User name > Dropdown & log out */}
-            <div className="dropdown dropdown-bottom ">
+            <div className="dropdown  dropdown-center ">
               <div
                 tabIndex={0}
                 role="button"
                 className="btn bg-transparent border-0 px-0 mr-1 text-[16px]  text-[#2D3142]"
               >
                 {userData?.fullName}
-                <IoIosArrowDown className="text-orange-500" />
+                <IoIosArrowDown className="text-orange-500 bg-[#f1f1f1] rounded-full w-[20px] h-[20px]" />
               </div>
               <ul
                 tabIndex={0}
-                className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 w-36 shadow-sm"
+                className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 w-48 shadow-sm"
               >
-                <li>
-                  <a onClick={handleLogout}>تسجيل خروج</a>
+                <li className="flex-row justify-content-between items-center gap-2">
+                  <a href="/profile">
+                    الحساب الشخصي <FaUser className="w-[16px] h-[16px] mr-6" />
+                  </a>
+                </li>
+                <li className="flex-row justify-content-between items-center gap-2">
+                  <a onClick={handleLogout}>
+                    تسجيل خروج <LuLogOut className="w-[16px] h-[16px] mr-12" />
+                  </a>
                 </li>
               </ul>
             </div>
