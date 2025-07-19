@@ -10,6 +10,7 @@ const BiddingChat = ({
   auctionId,
   isAuctionLive,
   endDate,
+  startDate,
   hasPaidTerms,
   hasPaidInsurance,
   setAuctionWinner,
@@ -29,45 +30,76 @@ const BiddingChat = ({
   const [createdBy, setCreatedBy] = useState(null);
   // بضيف حالة المزاد
   const [status, setStatus] = useState("pending");
+  // الوقت المتبقي
+  const [remainingTime, setRemainingTime] = useState("");
   const bidsContainerRef = useRef(null);
   const db = getDatabase();
 
-  //هنا بحدث الوقت المتبقي
+  //هنا بحدث الوقت للانتهاء  و بدء المزاد
   useEffect(() => {
-    if (!isAuctionLive && endDate) {
-      const updateTime = () => {
-        const now = new Date();
-        const endDateObj = new Date(endDate);
+  if (startDate && endDate) {
+    const updateTime = () => {
+      const now = new Date();
+      const startDateObj = new Date(startDate);
+      const endDateObj = new Date(endDate);
+
+      if (now < startDateObj) {
+        const diffToStart = startDateObj - now;
+        const days = Math.floor(diffToStart / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffToStart % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diffToStart % (1000 * 60 * 60)) / (1000 * 60));
+        setAuctionTime(` : `);
+      } else if (now >= startDateObj && now <= endDateObj) {
         const diffMs = endDateObj - now;
-        console.log("diffMs", diffMs);
-        if (diffMs <= 0) {
-          setAuctionTime("انتهى");
-          // setIsAuctionLive(false);
-          // setStatus("ended");
-        } else {
-          const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-          const hours = Math.floor(
-            (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-          );
+        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        setAuctionTime(`ينتهي خلال: ${days} يوم و ${hours} ساعة و ${minutes} دقيقة`);
+      } else {
+        setAuctionTime("انتهى");
+        if (status !== "ended") {
+          const auctionRef = ref(db, `auctions/${auctionId}`);
+          update(auctionRef, { status: "ended" }).then(() => {
+            setStatus("ended");
+          });
+        }
+      }
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 10000);   
+    return () => clearInterval(interval); 
+  }
+}, [auctionId, startDate, endDate, status]);
+  // حساب الوقت المتبقي للبداية
+  useEffect(() => {
+    if (startDate && !isAuctionLive && status !== "ended") {
+      const updateRemainingTime = () => {
+        const now = new Date();
+        const startDateObj = new Date(startDate);
+        const diffMs = startDateObj - now;
+
+        if (diffMs > 0) {
+          const hours = Math.floor(diffMs / (1000 * 60 * 60));
           const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-          if (days > 0) {
-            setAuctionTime(
-              `${days} يوم${
-                days > 1 ? "" : ""
-              } و ${hours} ساعة و ${minutes} دقيقة`
-            );
-          } else if (hours > 0) {
-            setAuctionTime(`${hours} ساعة و ${minutes} دقيقة`);
-          } else {
-            setAuctionTime(`${minutes} دقيقة`);
-          }
+          const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+          setRemainingTime(
+            `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+              .toString()
+              .padStart(2, "0")}`
+          );
+        } else {
+          setRemainingTime("0:00:00"); 
         }
       };
-      updateTime();
-      const interval = setInterval(updateTime, 60000); //هنا بحدث كل دقيقه لحد م يوصل لوقت الانتهاء ويخلي المزاد متاح
+
+      updateRemainingTime();
+      const interval = setInterval(updateRemainingTime, 1000);
       return () => clearInterval(interval);
+    } else {
+      setRemainingTime(""); 
     }
-  }, [isAuctionLive, endDate]);
+  }, [startDate, isAuctionLive, status]);
 
   // هنا بجيب الداتا من الفايربيز
   useEffect(() => {
@@ -126,11 +158,21 @@ const BiddingChat = ({
       alert("السعر يجب أن يكون أكبر من صفر!");
       return;
     }
+    // حساب الحد الأدنى المسموح للمزايدة
+    const startPrice = Number(auction.startPrice) || 0;
+    const minIncrement = Number(auction.minIncrement) || 0;
+    const minimumBid = startPrice + minIncrement;
+    // تحقق من أول مزايدة
+    if (bids.length === 0 && newBidAmount < minimumBid) {
+      alert(`السعر الأول يجب أن يكون أكبر من أو يساوي ${minimumBid} ج.م!`);
+      return;
+    }
+
     // اعلي سعر بيتحدث
-    const highestBid =
+    const highestBidAmount =
       bids.length > 0 ? Math.max(...bids.map((b) => Number(b.bidAmount))) : 0;
-    if (newBidAmount <= highestBid) {
-      alert("السعر المضاف أقل من اعلي سعر حالي!");
+    if (bids.length > 0 && newBidAmount <= highestBidAmount) {
+      alert("السعر المضاف أقل من أعلى سعر حالي!");
       return;
     }
 
@@ -194,7 +236,7 @@ const BiddingChat = ({
   // هنا بقي الداتا بقت دينامك
   const stats = [
     {
-      label: `ينتهي خلال : ${auctionTime} `,
+      label: `${auctionTime} `,
       icon: <img src={calendarIcon} alt="calendar" className="w-5 h-5" />,
       color: "border-[#FA6300] bg-[rgba(250,99,0,0.1)] text-[#702D00]",
     },
@@ -286,7 +328,8 @@ const BiddingChat = ({
             onClick={handleEndAuction}
             className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-6 py-3 rounded-lg transition-colors duration-200 w-full"
           >
-test tany          </button>
+            أنهاء المزاد
+          </button>
         </div>
       ) : status !== "ended" ? (
         <div className="flex h-12">
@@ -308,10 +351,17 @@ test tany          </button>
         </div>
       ) : null}
 
-      {/* لو المزاد مش شغال يوقف شكل المزاد */}
-      {!isAuctionLive && (
+      {/* لو المزاد مبدأش  يوقف شكل المزاد */}
+      {!isAuctionLive && status != "ended" && (
+        <div className="w-full h-full absolute top-0 left-0 bg-[#65656596] text-[#d75a29e5] font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center flex-col">
+          <h2>تبقى على بدء المزاد :</h2>
+          <span className="ml-2 text-lg">{remainingTime}</span>{" "}
+        </div>
+      )}
+      {/* لو المزاد انتهي  يوقف شكل المزاد */}
+      {status === "ended" && (
         <div className="w-full h-full absolute top-0 left-0 bg-[#65656596] text-black font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
-          تبقى على بدء المزاد ...
+          انتهي المزاد
         </div>
       )}
     </div>
