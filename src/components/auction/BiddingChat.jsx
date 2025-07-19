@@ -32,6 +32,8 @@ const BiddingChat = ({
   const [status, setStatus] = useState("pending");
   // الوقت المتبقي
   const [remainingTime, setRemainingTime] = useState("");
+  // winner
+  const [winner, setWinner] = useState(null);
   const bidsContainerRef = useRef(null);
   const db = getDatabase();
 
@@ -71,7 +73,7 @@ const BiddingChat = ({
     return () => clearInterval(interval); 
   }
 }, [auctionId, startDate, endDate, status]);
-  // حساب الوقت المتبقي للبداية
+  // بحسب الوقت المتبقي للبداية
   useEffect(() => {
     if (startDate && !isAuctionLive && status !== "ended") {
       const updateRemainingTime = () => {
@@ -140,6 +142,17 @@ const BiddingChat = ({
     return () => unsubscribe();
   }, [auctionId]);
 
+//winners
+  useEffect(() => {
+    if (status === "ended" && bids.length > 0) {
+      const winnerBid = bids.reduce((max, current) =>
+        Number(current.bidAmount) > Number(max.bidAmount) ? current : max
+      );
+      setWinner(winnerBid);
+      setAuctionWinner(winnerBid);
+    }
+  }, [status, bids]);
+
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
     if (!isAuctionLive || status === "ended") {
@@ -203,33 +216,51 @@ const BiddingChat = ({
   };
 
   // ف حاله صاحب المزاد
-  const handleEndAuction = () => {
+ const handleEndAuction = () => {
     if (user.uid === createdBy) {
+      if (bids.length === 0) {
+        alert("لا يوجد مزايدات لتحديد فائز!");
+        return;
+      }
+// جديد
       setAuctionTime("انتهى");
       const auctionRef = ref(db, `auctions/${auctionId}`);
-      // بحدث ف الفاير بيز
       update(auctionRef, { status: "ended" });
       setStatus("ended");
       setIsAuctionLive(false);
-      setAuctionWinner(bids[0]);
-      update(auctionRef, {
-        // selim
-        winnerId: bids[0].userId,
-        winnerName: bids[0].userName,
-        winnerBid: bids[0].bidAmount,
-        winnerTime: bids[0].bidTime,
+
+      const winnerBid = bids.reduce((max, current) =>
+        Number(current.bidAmount) > Number(max.bidAmount) ? current : max
+      );
+      setWinner(winnerBid);
+      setAuctionWinner(winnerBid);
+
+      console.log("تفاصيل الفايز:", {
+        winnerId: winnerBid.userId,
+        winnerName: winnerBid.userName,
+        winnerBid: winnerBid.bidAmount,
+        winnerTime: winnerBid.bidTime,
       });
-      update(ref(db, `users/${bids[0].userId}/auctions/${auctionId}`), {
+
+      update(auctionRef, {
+        winnerId: winnerBid.userId,
+        winnerName: winnerBid.userName,
+        winnerBid: winnerBid.bidAmount,
+        winnerTime: winnerBid.bidTime,
+      });
+      update(ref(db, `users/${winnerBid.userId}/auctions/${auctionId}`), {
         isWinner: true,
-        winnerBid: bids[0].bidAmount,
-        winnerTime: bids[0].bidTime,
+        winnerBid: winnerBid.bidAmount,
+        winnerTime: winnerBid.bidTime,
       });
       update(ref(db, `winners/${auctionId}`), {
-        winnerId: bids[0].userId,
-        winnerName: bids[0].userName,
-        winnerBid: bids[0].bidAmount,
-        winnerTime: bids[0].bidTime,
+        winnerId: winnerBid.userId,
+        winnerName: winnerBid.userName,
+        winnerBid: winnerBid.bidAmount,
+        winnerTime: winnerBid.bidTime,
       });
+
+      setRemainingTime("");
     }
   };
 
@@ -360,8 +391,8 @@ const BiddingChat = ({
       )}
       {/* لو المزاد انتهي  يوقف شكل المزاد */}
       {status === "ended" && (
-        <div className="w-full h-full absolute top-0 left-0 bg-[#65656596] text-black font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
-          انتهي المزاد
+        <div className="w-full h-full absolute top-0 left-0 bg-[#6565655c] text-black font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
+          <h1 className=" bg-[#150e0ec5] text-white text-center w-full p-4">  انتهي المزاد لصالح {winner?.userName || " "} </h1>
         </div>
       )}
     </div>
