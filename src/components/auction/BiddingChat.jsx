@@ -42,8 +42,8 @@ const BiddingChat = ({
         console.log("diffMs", diffMs);
         if (diffMs <= 0) {
           setAuctionTime("انتهى");
-          setIsAuctionLive(false);
-          setStatus("ended");
+          // setIsAuctionLive(false);
+          // setStatus("ended");
         } else {
           const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
           const hours = Math.floor(
@@ -67,7 +67,7 @@ const BiddingChat = ({
       const interval = setInterval(updateTime, 60000); //هنا بحدث كل دقيقه لحد م يوصل لوقت الانتهاء ويخلي المزاد متاح
       return () => clearInterval(interval);
     }
-  }, [isAuctionLive, endDate, status, auction.status]);
+  }, [isAuctionLive, endDate]);
 
   // هنا بجيب الداتا من الفايربيز
   useEffect(() => {
@@ -110,7 +110,7 @@ const BiddingChat = ({
 
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
-    if (!isAuctionLive || status === "ended" || auction.status === "ended") {
+    if (!isAuctionLive || status === "ended") {
       alert("المزاد لم يبدأ بعد!");
       return;
     }
@@ -280,8 +280,7 @@ const BiddingChat = ({
       user.uid &&
       createdBy !== null &&
       user.uid === createdBy &&
-      status !== "ended" &&
-      auction.status === "ended" ? (
+      status !== "ended" ? (
         <div className="flex justify-center items-center mt-4 w-full">
           <button
             onClick={handleEndAuction}
@@ -290,7 +289,7 @@ const BiddingChat = ({
             إنهاء المزاد
           </button>
         </div>
-      ) : status !== "ended" && auction.status !== "ended" ? (
+      ) : status !== "ended" ? (
         <div className="flex h-12">
           <input
             type="text"
@@ -311,14 +310,11 @@ const BiddingChat = ({
       ) : null}
 
       {/* لو المزاد مش شغال يوقف شكل المزاد */}
-      {!isAuctionLive ||
-        (status === "ended" && auction.status === "ended" && (
-          <div className="w-full h-full absolute top-0 left-0 bg-[#65656596] text-white font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
-            {status === "ended" && auction.status === "ended"
-              ? `  المزاد انتهى والفائز هو ${bids[0].userName} بسعر ${bids[0].bidAmount} ج.م`
-              : "تبقى على بدء المزاد ..."}
-          </div>
-        ))}
+      {!isAuctionLive && (
+        <div className="w-full h-full absolute top-0 left-0 bg-[#65656596] text-black font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
+          تبقى على بدء المزاد ...
+        </div>
+      )}
     </div>
   );
 };
