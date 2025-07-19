@@ -9,10 +9,11 @@ function HomePage() {
   return (
     <>
     <HeroSection/>
-    <OurNumbers/>
-    <Catigarios/>
-    <TopMazad/>
     <ZayidFeatures/>
+    <OurNumbers/>
+    <TopMazad/>
+    <Catigarios/>
+   
     </>
   )
 }

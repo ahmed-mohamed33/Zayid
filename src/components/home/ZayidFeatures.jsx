@@ -8,7 +8,7 @@ import Variety from "../../assets/icons/variety.svg";
 
 function FeatureCard({ icon, title, desc }) {
   return (
-    <div className="bg-[#F1F1F1] py-6 px-4 rounded-lg shadow-md">
+    <div className="bg-white py-6 px-4 rounded-lg shadow-md">
       <div className="flex justify-center mb-2">
         <span className="p-2 rounded-full">
           <img src={icon} alt={title} className="w-12 h-12" />
@@ -22,7 +22,7 @@ function FeatureCard({ icon, title, desc }) {
 
 function ZayidFeatures() {
   return (
-    <div className=" px-[56px]  py-[96px] text-center">
+    <div className=" px-[56px] bg-[#F1F1F1] py-[96px] text-center">
       <h2 className="text-2xl font-bold text-gray-700 mb-6">مميزات المنصة</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         <FeatureCard icon={Hummer} title="مزايدات حقيقية مباشرة" desc="شارك في مزايدات حية ومباشرة مع مزايدين حقيقيين" />

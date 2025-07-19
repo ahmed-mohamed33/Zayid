@@ -307,6 +307,7 @@ export const UserProvider = ({ children }) => {
         userId: user.uid,
         onboardingCompleted: false,
         userInterests: [],
+        profileImage: "",
       };
 
       if (companyName && companyName.trim() !== "") {

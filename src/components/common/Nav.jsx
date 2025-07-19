@@ -6,12 +6,12 @@ import { UserContext } from "../../context/UserContext";
 // import { IoNotificationsOutline } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
 import NotificationIcon from "../../assets/icons/notification.svg";
+import { FaUser } from "react-icons/fa";
 
 const ulStyle =
   "link link-hover mx-2.5 text-gray-700 hover:text-[#FA6300] transition-colors duration-200";
 
 function Nav() {
-
   const location = useLocation();
   const hideOnRoutes = ["/login", "/signup", "/forgetpass"];
   //to hide navbar
@@ -111,10 +111,15 @@ function Nav() {
             </button>
 
             {/* img user  */}
-            <img
-              className=" w-[40px] h-[40px] rounded-full bg-gray-200"
-              src=""
-            />
+            {userData?.profileImage ? (
+              <img
+                className=" w-[40px] h-[40px] rounded-full bg-gray-200"
+                src={userData?.profileImage}
+                alt="user"
+              />
+            ) : (
+              <FaUser className="w-[32px] h-[32px] rounded-full bg-gray-200 text-[#e46e37]" />
+            )}
             {/* User name > Dropdown & log out */}
             <div className="dropdown dropdown-bottom ">
               <div
