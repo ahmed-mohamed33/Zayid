@@ -6,7 +6,7 @@ function AddAuctionPage() {
     <div
       className="
         bg-[#f1f1f1]
-        py-10 px-30 
+        py-10 px-[56px]
         flex flex-row gap-[24px]
         max-md:flex-col 
         max-md:px-[24px]

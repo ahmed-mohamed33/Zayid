@@ -34,44 +34,47 @@ const Products = () => {
   console.log("User Interests:", userInterests);
 
   const applyFilters = () => {
-    const term = searchTerm.trim().toLowerCase();
+  const term = searchTerm.trim().toLowerCase();
 
-    return auctions.filter((auction) => {
-      const matchesSearch =
-        term === "" || auction.title?.toLowerCase().includes(term);
+  return auctions.filter((auction) => {
 
-      const matchesCategory =
-        filters.categories.length === 0 ||
-        filters.categories.includes(auction.categoryId);
+    const matchesSearch =
+      term === "" || auction.title?.toLowerCase().includes(term);
 
-      const matchesCondition =
-        filters.productConditions.length === 0 ||
-        filters.productConditions.includes(auction.productCondition);
+    const matchesCategory =
+      filters.categories.length === 0 ||
+      filters.categories.includes(auction.categoryId);
 
-      const matchesStatus =
-        filters.auctionStatuses.length === 0 ||
-        filters.auctionStatuses.includes(auction.auctionStatus);
+    const matchesCondition =
+      filters.productConditions.length === 0 ||
+      filters.productConditions.includes(auction.productCondition);
 
-      const matchesMinPrice =
-        !filters.minPrice || auction.startPrice >= parseFloat(filters.minPrice);
+    const matchesStatus =
+      filters.auctionStatuses.length === 0 ||
+      filters.auctionStatuses.includes(auction.status);
 
-      const matchesMaxPrice =
-        !filters.maxPrice || auction.startPrice <= parseFloat(filters.maxPrice);
+    const matchesMinPrice =
+      !filters.minPrice || auction.startPrice >= parseFloat(filters.minPrice);
 
-      const matchesInterest =
-        !filters.filterByInterest || userInterests.includes(auction.categoryId);
+    const matchesMaxPrice =
+      !filters.maxPrice || auction.startPrice <= parseFloat(filters.maxPrice);
 
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesCondition &&
-        matchesStatus &&
-        matchesMinPrice &&
-        matchesMaxPrice &&
-        matchesInterest
-      );
-    });
-  };
+    const matchesInterest =
+      !filters.filterByInterest ||
+      userInterests.includes(auction.categoryId);
+
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesCondition &&
+      matchesStatus &&
+      matchesMinPrice &&
+      matchesMaxPrice &&
+      matchesInterest
+    );
+  });
+};
+
 
   const filteredProducts = applyFilters();
   const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
@@ -98,79 +101,82 @@ const Products = () => {
   };
 
   const renderPagination = () => {
-    if (totalPages <= 1) return null;
-    let pages = [];
+  if (totalPages <= 1) return null;
+  let pages = [];
 
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
+  if (totalPages <= 5) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    if (currentPage <= 3) {
+      pages = [1, 2, 3, 4, "...", totalPages];
+    } else if (currentPage >= totalPages - 2) {
+      pages = [
+        1,
+        "...",
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
     } else {
-      if (currentPage <= 3) {
-        pages = [1, 2, 3, 4, "...", totalPages];
-      } else if (currentPage >= totalPages - 2) {
-        pages = [
-          1,
-          "...",
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages,
-        ];
-      } else {
-        pages = [
-          1,
-          "...",
-          currentPage - 1,
-          currentPage,
-          currentPage + 1,
-          "...",
-          totalPages,
-        ];
-      }
+      pages = [
+        1,
+        "...",
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+        "...",
+        totalPages,
+      ];
     }
-
-    return (
-      <div className="flex justify-center items-center gap-2 mb-8">
-        <button
-          className="px-3 py-1 rounded bg-white border text-[#4F5D75]"
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          <img src={arrowRight} alt="prev" />
-        </button>
-        {pages.map((page, idx) =>
-          page === "..." ? (
-            <span key={idx} className="px-2">
-              ...
-            </span>
-          ) : (
-            <button
-              key={page}
-              className={`px-3 py-1 rounded ${
-                currentPage === page
-                  ? "bg-[#4F5D75] text-white"
-                  : "bg-white border text-[#4F5D75]"
-              }`}
-              onClick={() => handlePageChange(page)}
-            >
-              {page}
-            </button>
-          )
-        )}
-        <button
-          className="px-3 py-1 rounded bg-white border text-[#4F5D75]"
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          <img src={arrowLeft} alt="next" />
-        </button>
-      </div>
-    );
-  };
+  }
 
   return (
-    <div className="bg-[#F6F6F6] min-h-screen flex flex-col">
-      <main className="container mx-auto flex flex-row flex-1 gap-6 py-12 px-7">
-        <section className="flex-1 flex flex-col gap-8">
+    <div className="flex justify-center items-center gap-2 mb-8">
+      <button
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="w-10 h-10 bg-white rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition disabled:opacity-50"
+      >
+        <img src={arrowRight} alt="prev" />
+      </button>
+
+      {pages.map((page, idx) =>
+        page === "..." ? (
+          <span key={idx} className="w-10 h-10 flex items-center justify-center text-gray-500">
+            ...
+          </span>
+        ) : (
+          <button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={`w-10 h-10 rounded-full border flex items-center justify-center transition ${
+              currentPage === page
+                ? "bg-[#4F5D75] text-white"
+                : "bg-white text-gray-500 border-gray-300 hover:bg-gray-200"
+            }`}
+          >
+            {page}
+          </button>
+        )
+      )}
+
+      <button
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="w-10 h-10 bg-white rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition disabled:opacity-50"
+      >
+        <img src={arrowLeft} alt="next" />
+      </button>
+    </div>
+  );
+};
+
+
+  return (
+    <div className="bg-[#f1f1f1] min-h-screen flex flex-col px-[56px">
+      <main className="container mx-auto flex flex-row flex-1 py-6 px-7">
+        <section className="flex-1 flex flex-col">
           <div className="flex flex-row justify-between items-center w-full mb-6">
             <h2 className="text-right font-bold text-[#2D3142] text-[24px] font-[Almarai]">
               المزادات المتاحة
@@ -195,7 +201,7 @@ const Products = () => {
             </form>
           </div>
 
-          <div className="flex w-full gap-6">
+          <div className="flex w-full">
             <aside className="hidden lg:block w-72 shrink-0">
               <Sidebar
                 onFilterChange={handleFilterChange}
@@ -204,7 +210,7 @@ const Products = () => {
               />
             </aside>
             <div className="flex-1 flex flex-col">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[24px] mb-8">
                 {getPaginatedProducts().length > 0 ? (
                   getPaginatedProducts().map((product, idx) => (
                     <MazadCard key={idx} auctionId={product.id} />

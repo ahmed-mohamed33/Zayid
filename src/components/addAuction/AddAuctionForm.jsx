@@ -56,7 +56,8 @@ function AddAuctionForm() {
     if (!category.trim()) newErrors.category = "يجب اختيار تصنيف المنتج";
     if (!initialPrice.trim()) newErrors.initialPrice = "هذا الحقل مطلوب";
     if (!minIncrement.trim()) newErrors.minIncrement = "هذا الحقل مطلوب";
-    if (!productCondition) newErrors.productCondition = "يجب اختيار حالة المنتج"; 
+    if (!productCondition)
+      newErrors.productCondition = "يجب اختيار حالة المنتج";
     // Date validation
     const now = new Date();
 
@@ -151,7 +152,7 @@ function AddAuctionForm() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-3xl max-md:w-full">
+    <div className="bg-white p-6 rounded-3xl max-md:w-full w-[75%]">
       <div className="text-[#2d3142] text-2xl font-bold mb-6">
         إضافة منتج للمزايدة
       </div>
@@ -193,7 +194,11 @@ function AddAuctionForm() {
         }}
         error={errors.productName}
       />
-
+      <label
+        className="text-[18px]  font-normal  text-[#2d3142]  block"
+      >
+        اختر فئة المزاد
+      </label>
       <ProductCategorySelector
         selectedCategory={category}
         setSelectedCategory={(val) => {
@@ -389,10 +394,10 @@ function AddAuctionForm() {
         }}
         error={errors.termsText}
       />
-      
-<div className="mb-4">
+
+      <div className="mb-4">
         <label className="text-[#2d3142] text-base font-medium mb-2 block">
-          حالة المنتج *
+          حالة المنتج
         </label>
         <div className="dropdown dropdown-bottom w-full">
           <div
@@ -400,9 +405,14 @@ function AddAuctionForm() {
             role="button"
             className="btn bg-transparent border-1 text-right w-full flex justify-between items-center"
           >
-          {productCondition === "new" ? "جديد" : productCondition === "veryGood" ? "مستعمل بعناية" : "مستعمل"}            <IoIosArrowDown className="text-orange-500" />
-            
+            {productCondition === "new"
+              ? "جديد"
+              : productCondition === "veryGood"
+              ? "جيد جدًا"
+              : "مستعمل"}
+            <IoIosArrowDown className="text-orange-500" />
           </div>
+
           <ul
             tabIndex={0}
             className="dropdown-content menu bg-base-100 rounded-box z-10 w-full p-2 shadow-sm"
@@ -422,6 +432,18 @@ function AddAuctionForm() {
             <li>
               <a
                 onClick={() => {
+                  setProductCondition("veryGood");
+                  if (errors.productCondition) {
+                    setErrors((prev) => ({ ...prev, productCondition: null }));
+                  }
+                }}
+              >
+                جيد جدًا
+              </a>
+            </li>
+            <li>
+              <a
+                onClick={() => {
                   setProductCondition("old");
                   if (errors.productCondition) {
                     setErrors((prev) => ({ ...prev, productCondition: null }));
@@ -429,18 +451,6 @@ function AddAuctionForm() {
                 }}
               >
                 مستعمل
-              </a>
-            </li>
-            <li>
-              <a
-                onClick={() => {
-                  setProductCondition("veryGood");
-                  if (errors.productCondition) {
-                    setErrors((prev) => ({ ...prev, productCondition: null }));
-                  }
-                }}
-              >
-                مستعمل بعنايه 
               </a>
             </li>
           </ul>

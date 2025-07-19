@@ -4,7 +4,7 @@ import HeroSection from '../components/home/HeroSection.jsx'
 import OurNumbers from '../components/home/OurNumbers.jsx'
 import Catigarios from '../components/home/catigariosSection.jsx'
 import TopMazad from '../components/home/TopMazad.jsx'
-
+import ZayidFeatures from '../components/home/ZayidFeatures.jsx'
 function HomePage() {
   return (
     <>
@@ -12,6 +12,7 @@ function HomePage() {
     <OurNumbers/>
     <Catigarios/>
     <TopMazad/>
+    <ZayidFeatures/>
     </>
   )
 }
