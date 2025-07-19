@@ -1,42 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Logo from '../assets/images/Logo.png';
 import logbg from '../assets/images/logbg.png';
-import SmsIcon from '../assets/svg/sms.svg';
-import LockIcon from '../assets/svg/lock.svg';
-import EyeIcon from '../assets/svg/eye.svg';
-import EyeOffIcon from '../assets/svg/eye-off.svg';
+import SmsIcon from '../assets/icons/sms.svg';
+import LockIcon from '../assets/icons/lock-register.svg';
+import EyeIcon from '../assets/icons/eye.svg';
+import EyeOffIcon from '../assets/icons/eye-off.svg';
 import { useFormik } from 'formik';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../context/UserContext';
+import { loginValidationSchema } from '../utils/validationSchemas';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
   const navigate = useNavigate();
-
-  const validate = values => {
-    const errors = {};
-    if (!values.email) {
-      errors.email = 'الرجاء إدخال عنوان بريد إلكتروني صحيح';
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
-      errors.email = 'الرجاء إدخال عنوان بريد إلكتروني صحيح';
-    }
-
-    if (!values.password) {
-      errors.password = 'الرجاء إدخال كلمة المرور الصحيحة';
-    } else if (values.password.length < 8) {
-      errors.password = 'كلمة المرور يجب أن تكون 8 أحرف أو أكثر';
-    }
-    return errors;
-  };
+  const { login } = useContext(UserContext);
 
   const formik = useFormik({
     initialValues: {
       email: '',
       password: '',
     },
-    validate,
-    onSubmit: () => {
-      // Handle login
-      navigate('/');
+    validationSchema: loginValidationSchema,
+    onSubmit: async (values) => {
+      try {
+        setLoginError('');
+        await login(values.email, values.password);
+        navigate('/');
+      } catch (error) {
+        setLoginError('خطأ في البريد الإلكتروني أو كلمة المرور');
+      }
     },
   });
 
@@ -55,6 +48,12 @@ export default function Login() {
             <h2 className="text-3xl font-bold text-gray-800 mb-2">تسجيل الدخول</h2>
             <p className="text-gray-500 mb-8 text-center">قم بتسجيل الدخول للوصول إلى حسابك</p>
           </div>
+          {/* Login Error Message */}
+          {loginError && (
+            <div className="w-full mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center">
+              {loginError}
+            </div>
+          )}
           {/* Email Input */}
           <div className="w-full mb-2">
             <label className="block text-gray-700 mb-2">البريد الالكتروني</label>
@@ -87,7 +86,7 @@ export default function Login() {
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 placeholder="ادخل كلمة المرور"
-                className="w-full pr-12 pl-4 py-3 rounded-lg border ${formik.touched.password && formik.errors.password ? 'border-red-400' : 'border-gray-300'} focus:outline-none focus:border-orange-500 text-gray-700 bg-gray-50"
+                className={`w-full pr-12 pl-4 py-3 rounded-lg border ${formik.touched.password && formik.errors.password ? 'border-red-400' : 'border-gray-300'} focus:outline-none focus:border-orange-500 text-gray-700 bg-gray-50`}
                 dir="rtl"
               />
               
@@ -102,7 +101,7 @@ export default function Login() {
                 onClick={() => setShowPassword((prev) => !prev)}
                 tabIndex={-1}
               >
-                <img src={showPassword ? EyeIcon : EyeOffIcon } alt="show/hide password" className="w-5 h-5" />
+                <img src={showPassword ? EyeIcon : EyeOffIcon} alt="show/hide password" className="w-5 h-5" />
               </button>
             </div>
             {formik.touched.password && formik.errors.password ? (
@@ -114,12 +113,23 @@ export default function Login() {
             <a href="/forgetpass" className="text-sm text-gray-500 hover:underline">هل نسيت كلمة المرور؟</a>
           </div>
           {/* Login Button */}
-          
-          <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg text-lg transition mb-4">تسجيل الدخول</button>
+          <button 
+            type="submit" 
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg text-lg transition mb-4"
+            disabled={formik.isSubmitting}
+          >
+            {formik.isSubmitting ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+          </button>
           {/* Register Link */}
           <div className="w-full text-center">
             <span className="text-gray-500">أليس لديك حساب؟ </span>
-            <a href="/Register" className="text-orange-500 font-semibold hover:underline">سجل الان</a>
+            <button
+              type="button"
+              onClick={() => navigate("/signup")}
+              className="text-orange-500 font-semibold hover:underline bg-transparent border-none p-0 m-0 cursor-pointer"
+            >
+              سجل الان
+            </button>
           </div>
         </form>
       </div>
