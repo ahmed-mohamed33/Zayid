@@ -1,5 +1,13 @@
 import React from "react";
-import { FaGem, FaPaintBrush, FaTools, FaHome, FaCar, FaTv, FaCouch } from "react-icons/fa";
+import {
+  FaGem,
+  FaPaintBrush,
+  FaTools,
+  FaHome,
+  FaCar,
+  FaTv,
+  FaCouch,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 const categories = [
   { icon: <FaGem />, label: "مجوهرات" },
@@ -25,24 +33,33 @@ function Catigarios() {
     navigate(`/auctions?category=${category}`);
   };
   return (
-<section className="py-[96px] px-[56px]">
+    <section className="py-[96px] px-[56px]">
       <h2 className="text-center text-2xl text-[#232634] font-bold mb-8">
         تصفح حسب الفئات
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center mb-6">
         {categories.slice(0, 4).map((cat, idx) => (
-          <Card key={idx} icon={cat.icon} label={cat.label} />
+          <Card
+            key={idx}
+            icon={cat.icon}
+            label={cat.label}
+            onClick={() => handleCategoryClick(cat.label)}
+          />
         ))}
       </div>
 
       <div className="flex justify-center gap-6 flex-wrap">
         {categories.slice(4).map((cat, idx) => (
-          <Card key={idx + 4} icon={cat.icon} label={cat.label} />
+          <Card
+            key={idx + 4}
+            icon={cat.icon}
+            label={cat.label}
+            onClick={() => handleCategoryClick(cat.label)}
+          />
         ))}
       </div>
     </section>
-
   );
 }
 
