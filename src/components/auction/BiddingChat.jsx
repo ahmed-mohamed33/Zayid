@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef, useContext ,useMemo } from "react";
 import highestBidIcon from "../../assets/icons/highestBid.svg";
 import calendarIcon from "../../assets/icons/calendar.svg";
 import participantsIcon from "../../assets/icons/participants.svg";
@@ -269,30 +269,29 @@ useEffect(() => {
   };
 
   // هنا بقي الداتا بقت دينامك
-  const stats = [
-    {
-      label: `${auctionTime} `,
-      icon: <img src={calendarIcon} alt="calendar" className="w-5 h-5" />,
-      color: "border-[#FA6300] bg-[rgba(250,99,0,0.1)] text-[#702D00]",
-    },
-    {
-      label: `عدد المشاركين : ${participantsCount}`,
-      icon: (
-        <img src={participantsIcon} alt="participants" className="w-5 h-5" />
-      ),
-      color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
-    },
-    {
-      label: `عدد المزايدات : ${noOfBids}`, // دي بتيجي متحدثه من افاير بيز
-      icon: <img src={noOfBidsIcon} alt="noOfBids" className="w-4 h-4" />,
-      color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
-    },
-    {
-      label: `أعلى عرض : ${highestBid}`, // زي اللي قبها
-      icon: <img src={highestBidIcon} alt="highestBid" className="w-6 h-6" />,
-      color: "border-[#4CAF80] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
-    },
-  ];
+  // useMemo
+const stats = useMemo(() => [
+  {
+    label: `${auctionTime} `,
+    icon: <img src={calendarIcon} alt="calendar" className="w-5 h-5" />,
+    color: "border-[#FA6300] bg-[rgba(250,99,0,0.1)] text-[#702D00]",
+  },
+  {
+    label: `عدد المشاركين : ${participantsCount}`,
+    icon: <img src={participantsIcon} alt="participants" className="w-5 h-5" />,
+    color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
+  },
+  {
+    label: `عدد المزايدات : ${noOfBids}`,
+    icon: <img src={noOfBidsIcon} alt="noOfBids" className="w-4 h-4" />,
+    color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
+  },
+  {
+    label: `أعلى عرض : ${highestBid}`,
+    icon: <img src={highestBidIcon} alt="highestBid" className="w-6 h-6" />,
+    color: "border-[#4CAF80] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
+  },
+], [auctionTime, participantsCount, noOfBids, highestBid]);
 
   return (
     <div
