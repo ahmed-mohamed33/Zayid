@@ -397,7 +397,7 @@ const BiddingChat = ({
       ) : null}
 
       {!isAuctionLive && status !== "ended" && (
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-xs z-10 rounded-2xl flex flex-col items-center justify-center text-center p-6 shadow-xl">
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-2xl flex flex-col items-center justify-center text-center p-6 shadow-xl">
           <h2 className="text-2xl font-bold text-[#FA6300] mb-2 animate-pulse">
             المزاد سيبدأ قريبًا
           </h2>
