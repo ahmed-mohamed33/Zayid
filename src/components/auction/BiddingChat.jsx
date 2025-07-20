@@ -88,13 +88,16 @@ const BiddingChat = ({
         const diffMs = startDateObj - now;
 
         if (diffMs > 0) {
-          const hours = Math.floor(diffMs / (1000 * 60 * 60));
+          const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          const hours = Math.floor(
+            (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          );
           const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
           setRemainingTime(
-            `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+            `${days} يوم و ${hours.toString().padStart(2, "0")}  : ${minutes
               .toString()
-              .padStart(2, "0")}`
+              .padStart(2, "0")} : ${seconds.toString().padStart(2, "0")}`
           );
         } else {
           setRemainingTime("0:00:00");
@@ -401,7 +404,7 @@ const BiddingChat = ({
           <div className="text-[#2D3142] text-lg font-semibold">
             تبقّى على بدء المزاد:
           </div>
-          <div className="mt-2 text-3xl font-extrabold text-[#2D3142] tracking-wide animate-pulse">
+          <div  className="mt-2 text-2xl font-extrabold text-[#2D3142] tracking-wide animate-pulse">
             {remainingTime}
           </div>
           <div className="mt-4 text-sm text-[#555] italic">
