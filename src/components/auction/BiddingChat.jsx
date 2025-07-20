@@ -38,7 +38,7 @@ const BiddingChat = ({
   const db = getDatabase();
 
   //هنا بحدث الوقت للانتهاء  و بدء المزاد
-  useEffect(() => {
+useEffect(() => {
   if (startDate && endDate) {
     const updateTime = () => {
       const now = new Date();
@@ -46,18 +46,19 @@ const BiddingChat = ({
       const endDateObj = new Date(endDate);
 
       if (now < startDateObj) {
-        const diffToStart = startDateObj - now;
-        const days = Math.floor(diffToStart / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diffToStart % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diffToStart % (1000 * 60 * 60)) / (1000 * 60));
-        setAuctionTime(` : `);
+        // لسه المزاد مبدأش
+        setAuctionTime("لم يبدأ بعد");
       } else if (now >= startDateObj && now <= endDateObj) {
+        // المزاد شغال
         const diffMs = endDateObj - now;
         const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        setAuctionTime(`ينتهي خلال: ${days} يوم و ${hours} ساعة و ${minutes} دقيقة`);
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+        setAuctionTime(`ينتهي خلال: ${days} يوم و ${hours} ساعة و ${minutes} دقيقة و ${seconds} ثانية`);
       } else {
+        // المزاد خلص
         setAuctionTime("انتهى");
         if (status !== "ended") {
           const auctionRef = ref(db, `auctions/${auctionId}`);
@@ -69,10 +70,12 @@ const BiddingChat = ({
     };
 
     updateTime();
-    const interval = setInterval(updateTime, 10000);   
-    return () => clearInterval(interval); 
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
   }
 }, [auctionId, startDate, endDate, status]);
+
+
   // بحسب الوقت المتبقي للبداية
   useEffect(() => {
     if (startDate && !isAuctionLive && status !== "ended") {
@@ -91,7 +94,8 @@ const BiddingChat = ({
               .padStart(2, "0")}`
           );
         } else {
-          setRemainingTime("0:00:00"); 
+          setRemainingTime("0:00:00");
+          setIsAuctionLive(true);
         }
       };
 
@@ -99,7 +103,7 @@ const BiddingChat = ({
       const interval = setInterval(updateRemainingTime, 1000);
       return () => clearInterval(interval);
     } else {
-      setRemainingTime(""); 
+      setRemainingTime("");
     }
   }, [startDate, isAuctionLive, status]);
 
@@ -142,7 +146,7 @@ const BiddingChat = ({
     return () => unsubscribe();
   }, [auctionId]);
 
-//winners
+  //winners
   useEffect(() => {
     if (status === "ended" && bids.length > 0) {
       const winnerBid = bids.reduce((max, current) =>
@@ -216,13 +220,13 @@ const BiddingChat = ({
   };
 
   // ف حاله صاحب المزاد
- const handleEndAuction = () => {
+  const handleEndAuction = () => {
     if (user.uid === createdBy) {
       if (bids.length === 0) {
         alert("لا يوجد مزايدات لتحديد فائز!");
         return;
       }
-// جديد
+      // جديد
       setAuctionTime("انتهى");
       const auctionRef = ref(db, `auctions/${auctionId}`);
       update(auctionRef, { status: "ended" });
@@ -392,7 +396,10 @@ const BiddingChat = ({
       {/* لو المزاد انتهي  يوقف شكل المزاد */}
       {status === "ended" && (
         <div className="w-full h-full absolute top-0 left-0 bg-[#6565655c] text-black font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
-          <h1 className=" bg-[#150e0ec5] text-white text-center w-full p-4">  انتهي المزاد لصالح {winner?.userName || " "} </h1>
+          <h1 className=" bg-[#150e0ec5] text-white text-center w-full p-4">
+            {" "}
+            انتهي المزاد لصالح {winner?.userName || "  : لا احد"}{" "}
+          </h1>
         </div>
       )}
     </div>
