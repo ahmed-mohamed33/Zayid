@@ -134,7 +134,8 @@ export const UserProvider = ({ children }) => {
             }
           );
           setAuctions(allAuctions);
-        } else { // sellllllllllllllllllllim 
+        } else {
+          // sellllllllllllllllllllim
           setAuctions([]);
         }
       },
@@ -322,11 +323,7 @@ export const UserProvider = ({ children }) => {
     companyImageFile
   ) => {
     try {
-      const result = await registerUser(
-        values.email,
-        values.password,
-        values.fullName
-      );
+      const result = await registerUser(values.email, values.password);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -499,6 +496,7 @@ export const UserProvider = ({ children }) => {
         register,
         logout,
         updateUserData,
+        setUserData,
         createAuction,
       }}
     >

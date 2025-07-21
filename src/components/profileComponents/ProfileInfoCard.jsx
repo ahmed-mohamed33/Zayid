@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { UserContext } from './../../context/UserContext';
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { UserContext } from "../../context/UserContext";
 
 export default function ProfileInfoCard() {
   const inputRef = useRef();
@@ -10,7 +10,7 @@ export default function ProfileInfoCard() {
   useEffect(() => {
     if (user && userData) {
       setLoading(false);
-      console.log('📦 بيانات المستخدم:', user, userData?.fullName);
+      console.log("📦 بيانات المستخدم:", user, userData?.fullName);
     }
   }, [user, userData]);
 
@@ -18,14 +18,14 @@ export default function ProfileInfoCard() {
 
   const uploadProfileImageToCloudinary = async (file) => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'profile_pictures');
-    formData.append('cloud_name', 'dtdqcxn9c');
+    formData.append("file", file);
+    formData.append("upload_preset", "profile_pictures");
+    formData.append("cloud_name", "dtdqcxn9c");
 
     const res = await fetch(
-      'https://api.cloudinary.com/v1_1/dtdqcxn9c/image/upload',
+      "https://api.cloudinary.com/v1_1/dtdqcxn9c/image/upload",
       {
-        method: 'POST',
+        method: "POST",
         body: formData,
       }
     );
@@ -43,7 +43,7 @@ export default function ProfileInfoCard() {
 
       const imageUrl = await uploadProfileImageToCloudinary(file);
 
-      await updateUserData(user.uid, {
+      await updateUserData({
         profileImage: imageUrl,
       });
       setUserData((prev) => ({
@@ -51,10 +51,10 @@ export default function ProfileInfoCard() {
         profileImage: imageUrl,
       }));
 
-      alert(' تم تحديث صورة البروفايل بنجاح');
+      alert(" تم تحديث صورة البروفايل بنجاح");
     } catch (error) {
-      console.error(' خطأ أثناء رفع أو تحديث الصورة:', error);
-      alert('حدث خطأ أثناء رفع الصورة');
+      console.error(" خطأ أثناء رفع أو تحديث الصورة:", error);
+      alert("حدث خطأ أثناء رفع الصورة");
     } finally {
       setLoading(false);
     }
@@ -77,11 +77,11 @@ export default function ProfileInfoCard() {
             <div className="w-24 h-24 rounded-full border-4 border-[#F3F4F6] bg-gray-300 text-gray-700 flex items-center justify-center text-2xl font-bold">
               {userData?.fullName
                 ?.trim()
-                ?.split(' ')
+                ?.split(" ")
                 ?.map((word) => word[0])
                 ?.slice(0, 2)
-                ?.join('')
-                ?.toUpperCase() || '؟'}
+                ?.join("")
+                ?.toUpperCase() || "؟"}
             </div>
           )}
 
@@ -136,7 +136,7 @@ export default function ProfileInfoCard() {
           <button
             onClick={() => inputRef.current.click()}
             className={`flex items-center gap-2 mb-12 bg-[#FA6300] hover:bg-[#e65a00] text-white px-6 py-2 rounded-lg font-semibold text-base transition ${
-              loading && 'opacity-50 pointer-events-none'
+              loading && "opacity-50 pointer-events-none"
             }`}
           >
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24">

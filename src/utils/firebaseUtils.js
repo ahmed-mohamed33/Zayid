@@ -20,15 +20,13 @@ import {
 } from 'firebase/database';
 
 // Authentication utilities
-export const registerUser = async (email, password, displayName) => {
+export const registerUser = async (email, password) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
       password,
-      {
-        displayName: displayName,
-      }
+
     );
     return {
       user: userCredential.user,
