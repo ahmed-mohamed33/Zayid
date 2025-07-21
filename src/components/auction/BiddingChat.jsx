@@ -262,6 +262,11 @@ const BiddingChat = ({
         isWinner: true,
         winnerBid: winnerBid.bidAmount,
         winnerTime: winnerBid.bidTime,
+        auctionId: auctionId,
+        auctionTitle: auction.title || "مزاد",
+        auctionImage: auction.image || "",
+        hasPaid : false,
+
       });
       update(ref(db, `winners/${auctionId}`), {
         winnerId: winnerBid.userId,

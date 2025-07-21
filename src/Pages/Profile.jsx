@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import {
   ref,
   get,
@@ -17,8 +17,9 @@ import { getAuctionsByUser, getUserActivities } from "../utils/firebaseUtils";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import Settings from "../components/profileComponents/ProfileSettings";
 import ProfileInfoCard from "../components/profileComponents/ProfileInfoCard";
-
-const Profile = () => {
+import { UserContext } from "../context/UserContext";
+const Profile = ({}) => {
+  const { auctions } = useContext(UserContext);
   const navigate = useNavigate();
 
   //taps
@@ -194,7 +195,7 @@ const Profile = () => {
 
     return () => unsubscribe();
   }, []);
-
+  console.log("Auctions:", auctions);
   // النشاطات
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(true);

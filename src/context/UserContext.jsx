@@ -487,6 +487,7 @@ export const UserProvider = ({ children }) => {
         user,
         userData,
         isAuthenticated,
+        setAuctions,
         auctions,
         winners,
         payments,
