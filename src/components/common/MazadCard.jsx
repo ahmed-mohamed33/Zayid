@@ -80,7 +80,7 @@ function MazadCard({ auctionId }) {
           <div className="flex items-center justify-center">
             <img className="w-[15px] h-[15px]" src={timer} />
             <p className="text-[#FA6300] mx-1">
-              متبقي: {auction.remainingTime || "غير محدد"} أيام
+              متبقي: {auction.remainingTime || "غير محدد"} 
             </p>
           </div>
         </div>

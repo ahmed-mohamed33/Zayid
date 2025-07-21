@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef, useContext, useMemo } from "react";
 import highestBidIcon from "../../assets/icons/highestBid.svg";
 import calendarIcon from "../../assets/icons/calendar.svg";
 import participantsIcon from "../../assets/icons/participants.svg";
@@ -10,6 +10,7 @@ const BiddingChat = ({
   auctionId,
   isAuctionLive,
   endDate,
+  startDate,
   hasPaidTerms,
   hasPaidInsurance,
   setAuctionWinner,
@@ -29,45 +30,88 @@ const BiddingChat = ({
   const [createdBy, setCreatedBy] = useState(null);
   // بضيف حالة المزاد
   const [status, setStatus] = useState("pending");
+  // الوقت المتبقي
+  const [remainingTime, setRemainingTime] = useState("");
+  // winner
+  const [winner, setWinner] = useState(null);
   const bidsContainerRef = useRef(null);
   const db = getDatabase();
 
-  //هنا بحدث الوقت المتبقي
+  //هنا بحدث الوقت للانتهاء  و بدء المزاد
   useEffect(() => {
-    if (!isAuctionLive && endDate) {
+    if (startDate && endDate) {
       const updateTime = () => {
         const now = new Date();
+        const startDateObj = new Date(startDate);
         const endDateObj = new Date(endDate);
-        const diffMs = endDateObj - now;
-        console.log("diffMs", diffMs);
-        if (diffMs <= 0) {
-          setAuctionTime("انتهى");
-          // setIsAuctionLive(false);
-          // setStatus("ended");
-        } else {
+
+        if (now < startDateObj) {
+          // لسه المزاد مبدأش
+          setAuctionTime("لم يبدأ بعد");
+        } else if (now >= startDateObj && now <= endDateObj) {
+          // المزاد شغال
+          const diffMs = endDateObj - now;
           const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
           const hours = Math.floor(
             (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
           );
           const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-          if (days > 0) {
-            setAuctionTime(
-              `${days} يوم${
-                days > 1 ? "" : ""
-              } و ${hours} ساعة و ${minutes} دقيقة`
-            );
-          } else if (hours > 0) {
-            setAuctionTime(`${hours} ساعة و ${minutes} دقيقة`);
-          } else {
-            setAuctionTime(`${minutes} دقيقة`);
+          const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+          setAuctionTime(
+            `ينتهي خلال: ${days} يوم و ${hours} ساعة و ${minutes} دقيقة و ${seconds} ثانية`
+          );
+        } else {
+          // المزاد خلص
+          setAuctionTime("انتهى");
+          if (status !== "ended") {
+            const auctionRef = ref(db, `auctions/${auctionId}`);
+            update(auctionRef, { status: "ended" }).then(() => {
+              setStatus("ended");
+            });
           }
         }
       };
+
       updateTime();
-      const interval = setInterval(updateTime, 60000); //هنا بحدث كل دقيقه لحد م يوصل لوقت الانتهاء ويخلي المزاد متاح
+      const interval = setInterval(updateTime, 1000);
       return () => clearInterval(interval);
     }
-  }, [isAuctionLive, endDate]);
+  }, [auctionId, startDate, endDate, status]);
+
+  // بحسب الوقت المتبقي للبداية
+  useEffect(() => {
+    if (startDate && !isAuctionLive && status !== "ended") {
+      const updateRemainingTime = () => {
+        const now = new Date();
+        const startDateObj = new Date(startDate);
+        const diffMs = startDateObj - now;
+
+        if (diffMs > 0) {
+          const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          const hours = Math.floor(
+            (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          );
+          const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+          setRemainingTime(
+            `${days} يوم و ${hours.toString().padStart(2, "0")}  : ${minutes
+              .toString()
+              .padStart(2, "0")} : ${seconds.toString().padStart(2, "0")}`
+          );
+        } else {
+          setRemainingTime("0:00:00");
+          setIsAuctionLive(true);
+        }
+      };
+
+      updateRemainingTime();
+      const interval = setInterval(updateRemainingTime, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setRemainingTime("");
+    }
+  }, [startDate, isAuctionLive, status]);
 
   // هنا بجيب الداتا من الفايربيز
   useEffect(() => {
@@ -108,6 +152,17 @@ const BiddingChat = ({
     return () => unsubscribe();
   }, [auctionId]);
 
+  //winners
+  useEffect(() => {
+    if (status === "ended" && bids.length > 0) {
+      const winnerBid = bids.reduce((max, current) =>
+        Number(current.bidAmount) > Number(max.bidAmount) ? current : max
+      );
+      setWinner(winnerBid);
+      setAuctionWinner(winnerBid);
+    }
+  }, [status, bids]);
+
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
     if (!isAuctionLive || status === "ended") {
@@ -126,11 +181,21 @@ const BiddingChat = ({
       alert("السعر يجب أن يكون أكبر من صفر!");
       return;
     }
+    // حساب الحد الأدنى المسموح للمزايدة
+    const startPrice = Number(auction.startPrice) || 0;
+    const minIncrement = Number(auction.minIncrement) || 0;
+    const minimumBid = startPrice + minIncrement;
+    // تحقق من أول مزايدة
+    if (bids.length === 0 && newBidAmount < minimumBid) {
+      alert(`السعر الأول يجب أن يكون أكبر من أو يساوي ${minimumBid} ج.م!`);
+      return;
+    }
+
     // اعلي سعر بيتحدث
-    const highestBid =
+    const highestBidAmount =
       bids.length > 0 ? Math.max(...bids.map((b) => Number(b.bidAmount))) : 0;
-    if (newBidAmount <= highestBid) {
-      alert("السعر المضاف أقل من اعلي سعر حالي!");
+    if (bids.length > 0 && newBidAmount <= highestBidAmount) {
+      alert("السعر المضاف أقل من أعلى سعر حالي!");
       return;
     }
 
@@ -163,59 +228,81 @@ const BiddingChat = ({
   // ف حاله صاحب المزاد
   const handleEndAuction = () => {
     if (user.uid === createdBy) {
+      if (bids.length === 0) {
+        alert("لا يوجد مزايدات لتحديد فائز!");
+        return;
+      }
+      // جديد
       setAuctionTime("انتهى");
       const auctionRef = ref(db, `auctions/${auctionId}`);
-      // بحدث ف الفاير بيز
       update(auctionRef, { status: "ended" });
       setStatus("ended");
       setIsAuctionLive(false);
-      setAuctionWinner(bids[0]);
-      update(auctionRef, {
-        // selim
-        winnerId: bids[0].userId,
-        winnerName: bids[0].userName,
-        winnerBid: bids[0].bidAmount,
-        winnerTime: bids[0].bidTime,
+
+      const winnerBid = bids.reduce((max, current) =>
+        Number(current.bidAmount) > Number(max.bidAmount) ? current : max
+      );
+      setWinner(winnerBid);
+      setAuctionWinner(winnerBid);
+
+      console.log("تفاصيل الفايز:", {
+        winnerId: winnerBid.userId,
+        winnerName: winnerBid.userName,
+        winnerBid: winnerBid.bidAmount,
+        winnerTime: winnerBid.bidTime,
       });
-      update(ref(db, `users/${bids[0].userId}/auctions/${auctionId}`), {
+
+      update(auctionRef, {
+        winnerId: winnerBid.userId,
+        winnerName: winnerBid.userName,
+        winnerBid: winnerBid.bidAmount,
+        winnerTime: winnerBid.bidTime,
+      });
+      update(ref(db, `users/${winnerBid.userId}/auctions/${auctionId}`), {
         isWinner: true,
-        winnerBid: bids[0].bidAmount,
-        winnerTime: bids[0].bidTime,
+        winnerBid: winnerBid.bidAmount,
+        winnerTime: winnerBid.bidTime,
       });
       update(ref(db, `winners/${auctionId}`), {
-        winnerId: bids[0].userId,
-        winnerName: bids[0].userName,
-        winnerBid: bids[0].bidAmount,
-        winnerTime: bids[0].bidTime,
+        winnerId: winnerBid.userId,
+        winnerName: winnerBid.userName,
+        winnerBid: winnerBid.bidAmount,
+        winnerTime: winnerBid.bidTime,
       });
+
+      setRemainingTime("");
     }
   };
 
   // هنا بقي الداتا بقت دينامك
-  const stats = [
-    {
-      label: `ينتهي خلال : ${auctionTime} `,
-      icon: <img src={calendarIcon} alt="calendar" className="w-5 h-5" />,
-      color: "border-[#FA6300] bg-[rgba(250,99,0,0.1)] text-[#702D00]",
-    },
-    {
-      label: `عدد المشاركين : ${participantsCount}`,
-      icon: (
-        <img src={participantsIcon} alt="participants" className="w-5 h-5" />
-      ),
-      color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
-    },
-    {
-      label: `عدد المزايدات : ${noOfBids}`, // دي بتيجي متحدثه من افاير بيز
-      icon: <img src={noOfBidsIcon} alt="noOfBids" className="w-4 h-4" />,
-      color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
-    },
-    {
-      label: `أعلى عرض : ${highestBid}`, // زي اللي قبها
-      icon: <img src={highestBidIcon} alt="highestBid" className="w-6 h-6" />,
-      color: "border-[#4CAF80] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
-    },
-  ];
+  // useMemo
+  const stats = useMemo(
+    () => [
+      {
+        label: `${auctionTime} `,
+        icon: <img src={calendarIcon} alt="calendar" className="w-5 h-5" />,
+        color: "border-[#FA6300] bg-[rgba(250,99,0,0.1)] text-[#702D00]",
+      },
+      {
+        label: `عدد المشاركين : ${participantsCount}`,
+        icon: (
+          <img src={participantsIcon} alt="participants" className="w-5 h-5" />
+        ),
+        color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
+      },
+      {
+        label: `عدد المزايدات : ${noOfBids}`,
+        icon: <img src={noOfBidsIcon} alt="noOfBids" className="w-4 h-4" />,
+        color: "border-[#44A46F] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
+      },
+      {
+        label: `أعلى عرض : ${highestBid}`,
+        icon: <img src={highestBidIcon} alt="highestBid" className="w-6 h-6" />,
+        color: "border-[#4CAF80] bg-[rgba(68,164,111,0.1)] text-[#2A6046]",
+      },
+    ],
+    [auctionTime, participantsCount, noOfBids, highestBid]
+  );
 
   return (
     <div
@@ -286,7 +373,7 @@ const BiddingChat = ({
             onClick={handleEndAuction}
             className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-6 py-3 rounded-lg transition-colors duration-200 w-full"
           >
-            إنهاء المزاد
+            أنهاء المزاد
           </button>
         </div>
       ) : status !== "ended" ? (
@@ -309,10 +396,38 @@ const BiddingChat = ({
         </div>
       ) : null}
 
-      {/* لو المزاد مش شغال يوقف شكل المزاد */}
-      {!isAuctionLive && (
-        <div className="w-full h-full absolute top-0 left-0 bg-[#65656596] text-black font-bold rounded-2xl shadow-2xl z-10 flex justify-center items-center">
-          تبقى على بدء المزاد ...
+      {!isAuctionLive && status !== "ended" && (
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-2xl flex flex-col items-center justify-center text-center p-6 shadow-xl">
+          <h2 className="text-2xl font-bold text-[#FA6300] mb-2 animate-pulse">
+            المزاد سيبدأ قريبًا
+          </h2>
+          <div className="text-[#2D3142] text-lg font-semibold">
+            تبقّى على بدء المزاد:
+          </div>
+          <div  className="mt-2 text-2xl font-extrabold text-[#2D3142] tracking-wide animate-pulse">
+            {remainingTime}
+          </div>
+          <div className="mt-4 text-sm text-[#555] italic">
+            يرجى الانتظار حتى يتم تفعيل المزاد تلقائيًا
+          </div>
+        </div>
+      )}
+
+      {/* لو المزاد انتهي  يوقف شكل المزاد */}
+      {status === "ended" && (
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-1 rounded-2xl flex flex-col justify-center items-center p-6 shadow-2xl">
+          <div className="bg-white text-center flex justify-center items-center rounded-xl p-6 shadow-md max-w-md w-full animate-fade-in-up">
+            <h1 className="text-xl font-extrabold text-[#fa3a00] mx-2 ">
+              المزاد انتهى
+            </h1>
+            <div className="text-lg text-[#2D3142] flex ">
+              الفائز:{" "}
+              <p className="font-bold text-[#44A46F] animate-bounce mx-2">
+                {winner?.userName || "لا يوجد فائز"}
+              </p>
+            </div>
+            🎉
+          </div>
         </div>
       )}
     </div>

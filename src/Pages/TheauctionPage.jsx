@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import ProductImages from "../components/auction/ProductImages";
 import ProductDetails from "../components/auction/ProductDetails";
@@ -43,16 +43,28 @@ function TheauctionPage() {
   const { auctions, user } = useContext(UserContext);
   const { auctionId } = useParams();
   const auction = auctions.find((a) => a.id === auctionId);
-  // State for terms if paid
+
+  // State declarations
   const [hasPaidTerms, setHasPaidTerms] = useState(false);
-  // State for insurance if paid
   const [hasPaidInsurance, setHasPaidInsurance] = useState(false);
-  // State for check if auction time start
   const [isAuctionLive, setIsAuctionLive] = useState(false);
-  // state to set auction winner //selim
   const [auctionWinner, setAuctionWinner] = useState(null);
+
+  // UseMemo declarations (moved outside conditional logic)
+  const formattedDuration = useMemo(() => {
+    return auction ? formatAuctionDuration(auction.startDate, auction.endDate) : "غير محدد";
+  }, [auction?.startDate, auction?.endDate]);
+
+  const displayCondition = useMemo(() => {
+    const conditionMap = {
+      new: "جديد",
+      old: "مستعمل",
+      veryGood: "مستعمل بعناية",
+    };
+    return auction ? (conditionMap[auction.productCondition] || "غير محدد") : "غير محدد";
+  }, [auction?.productCondition]);
+
   useEffect(() => {
-    // انا عدلت تعديل بسيط بس اختصرتهم ف if واده
     const getParticipantData = async () => {
       if (user && auctionId) {
         const db = getDatabase();
@@ -65,10 +77,7 @@ function TheauctionPage() {
             const participantData = snapshot.val();
             setHasPaidTerms(participantData.hasPurchasedShroot === true);
             setHasPaidInsurance(participantData.hasPaidInsurance === true);
-            console.log(
-              "Participant Data from TheauctionPage:",
-              participantData
-            );
+            console.log("Participant Data from TheauctionPage:", participantData);
           } else {
             setHasPaidTerms(false);
             setHasPaidInsurance(false);
@@ -79,18 +88,18 @@ function TheauctionPage() {
     };
     getParticipantData();
 
-    //  بحسب الوقت اللي المزاد هيبداء فيه
-    if (auction?.endDate) {
+    if (auction?.startDate && auction?.endDate) {
       const checkAuctionTime = () => {
         const now = new Date();
         const startDate = new Date(auction.startDate);
-        setIsAuctionLive(now >= startDate);
+        const endDate = new Date(auction.endDate);
+        setIsAuctionLive(now >= startDate && now <= endDate);
       };
       checkAuctionTime();
       const interval = setInterval(checkAuctionTime, 60000);
       return () => clearInterval(interval);
     }
-  }, [user, auctionId, auction?.startDate]);
+  }, [user, auctionId, auction?.startDate, auction?.endDate]);
 
   // هنا بعمل سبينر
   if (!auction) {
@@ -100,19 +109,6 @@ function TheauctionPage() {
       </div>
     );
   }
-
-  const formattedDuration = formatAuctionDuration(
-    auction.startDate,
-    auction.endDate
-  );
-
-  // بهندل عرض حاله المزاد
-  const conditionMap = {
-    new: "جديد",
-    old: "مستعمل",
-    veryGood: "مستعمل بعناية",
-  };
-  const displayCondition = conditionMap[auction.productCondition] || "غير محدد";
 
   return (
     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
@@ -134,7 +130,27 @@ function TheauctionPage() {
 
       {/* Dynamic section */}
       {/**لو دفع الشروط  هيظهر ده */}
-      {hasPaidTerms ? (
+      {user && auction.createdBy && user.uid === auction.createdBy ? (
+        <BiddingChat
+          auctionId={auctionId}
+          isAuctionLive={isAuctionLive}
+          endDate={auction.endDate}
+          startDate={auction.startDate}
+          hasPaidTerms={true}
+          hasPaidInsurance={true}
+          setAuctionWinner={setAuctionWinner}
+          auctionWinner={auctionWinner}
+          setIsAuctionLive={setIsAuctionLive}
+          auction={auction}
+        >
+          {/*  لو المزاد لسه ما بدأش هعرض كانه مش شغال */}
+          {!isAuctionLive && (
+            <div className="w-full h-full absolute top-0 left-0 bg-[#8e5135b8] z-10 flex justify-center items-center text-white">
+              تبقى على بدء المزاد ...
+            </div>
+          )}
+        </BiddingChat>
+      ) : hasPaidTerms ? (
         <>
           <CardsInfo
             sellerName={auction?.seller?.name || ""}
@@ -150,6 +166,7 @@ function TheauctionPage() {
               auctionId={auctionId}
               isAuctionLive={isAuctionLive}
               endDate={auction.endDate}
+              startDate={auction.startDate}
               hasPaidTerms={hasPaidTerms}
               hasPaidInsurance={hasPaidInsurance}
               setAuctionWinner={setAuctionWinner}
@@ -157,7 +174,7 @@ function TheauctionPage() {
               setIsAuctionLive={setIsAuctionLive}
               auction={auction}
             >
-              {/*  لو المزاد لسه ما بدأش هعرض كانه مش شغال*/}
+              {/*  لو المزاد لسه ما بدأش هعرض كانه مش شغال */}
               {!isAuctionLive && (
                 <div className="w-full h-full absolute top-0 left-0 bg-[#8e5135b8] z-10 flex justify-center items-center text-white">
                   تبقى على بدء المزاد ...
