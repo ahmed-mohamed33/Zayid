@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useContext, useMemo } from "react";
+import Swal from "sweetalert2";
 import highestBidIcon from "../../assets/icons/highestBid.svg";
 import calendarIcon from "../../assets/icons/calendar.svg";
 import participantsIcon from "../../assets/icons/participants.svg";
@@ -166,19 +167,37 @@ const BiddingChat = ({
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
     if (!isAuctionLive || status === "ended") {
-      alert("المزاد لم يبدأ بعد!");
+      Swal.fire({
+        title: "المزاد غير متاح!",
+        text: "المزاد لم يبدأ بعد أو انتهى!",
+        icon: "warning",
+        confirmButtonText: "حسنًا",
+        confirmButtonColor: "#FA6300",
+      });
       return;
     }
 
     // بتاكد بردو انه دافع علشان لو شغل من لينك مثلا
     if (!hasPaidTerms || !hasPaidInsurance) {
-      alert("يجب دفع كراسة الشروط والتأمين للمشاركة!");
+      Swal.fire({
+        title: "الدفع غير مكتمل!",
+        text: "يجب دفع كراسة الشروط والتأمين للمشاركة!",
+        icon: "error",
+        confirmButtonText: "حسنًا",
+        confirmButtonColor: "#FA6300",
+      });
       return;
     }
 
     const newBidAmount = Number(bidAmount);
     if (newBidAmount <= 0) {
-      alert("السعر يجب أن يكون أكبر من صفر!");
+      Swal.fire({
+        title: "سعر غير صحيح!",
+        text: "السعر يجب أن يكون أكبر من صفر!",
+        icon: "error",
+        confirmButtonText: "حسنًا",
+        confirmButtonColor: "#FA6300",
+      });
       return;
     }
     // حساب الحد الأدنى المسموح للمزايدة
@@ -187,7 +206,13 @@ const BiddingChat = ({
     const minimumBid = startPrice + minIncrement;
     // تحقق من أول مزايدة
     if (bids.length === 0 && newBidAmount < minimumBid) {
-      alert(`السعر الأول يجب أن يكون أكبر من أو يساوي ${minimumBid} ج.م!`);
+      Swal.fire({
+        title: "  اعد ادخال السعر!",
+        text: `السعر الأول يجب أن يكون أكبر من أو يساوي ${minimumBid} ج.م!`,
+        icon: "error",
+        confirmButtonText: "حسنًا",
+        confirmButtonColor: "#FA6300",
+      });
       return;
     }
 
@@ -195,13 +220,24 @@ const BiddingChat = ({
     const highestBidAmount =
       bids.length > 0 ? Math.max(...bids.map((b) => Number(b.bidAmount))) : 0;
     if (bids.length > 0 && newBidAmount <= highestBidAmount) {
-      alert("السعر المضاف أقل من أعلى سعر حالي!");
-      return;
+Swal.fire({
+        title: "السعر منخفض!",
+        text: "السعر المضاف أقل من أعلى سعر حالي!",
+        icon: "error",
+        confirmButtonText: "حسنًا",
+        confirmButtonColor: "#FA6300",
+      });      return;
     }
 
     // تشكايه علي انه مسجل دخول انه صاحب المزاد
     if (!user || !user.uid || user.uid === createdBy) {
-      alert("صاحب المزاد ما ينفعش يزايد!");
+Swal.fire({
+        title: "غير مسموح!",
+        text: "صاحب المزاد ما ينفعش يزايد!",
+        icon: "warning",
+        confirmButtonText: "حسنًا",
+        confirmButtonColor: "#FA6300",
+      });
       return;
     }
 
@@ -221,15 +257,26 @@ const BiddingChat = ({
       setBidAmount("");
     } catch (error) {
       console.error("Error updating bid:", error);
-      alert("حدث خطأ أثناء إضافة المزايدة، حاول مرة أخرى!");
-    }
+Swal.fire({
+        title: "خطأ!",
+        text: "حدث خطأ أثناء إضافة المزايدة، حاول مرة أخرى!",
+        icon: "error",
+        confirmButtonText: "حسنًا",
+        confirmButtonColor: "#FA6300",
+      });    }
   };
 
   // ف حاله صاحب المزاد
   const handleEndAuction = () => {
     if (user.uid === createdBy) {
       if (bids.length === 0) {
-        alert("لا يوجد مزايدات لتحديد فائز!");
+        Swal.fire({
+          title: "لا يوجد مزايدات!",
+          text: "لا يوجد مزايدات لتحديد فائز!",
+          icon: "warning",
+          confirmButtonText: "حسنًا",
+          confirmButtonColor: "#FA6300",
+        });
         return;
       }
       // جديد
