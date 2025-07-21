@@ -286,7 +286,11 @@ export const UserProvider = ({ children }) => {
     companyImageFile
   ) => {
     try {
-      const result = await registerUser(values.email, values.password);
+      const result = await registerUser(
+        values.email,
+        values.password,
+        values.fullName
+      );
       if (!result.success) {
         throw new Error(result.error);
       }

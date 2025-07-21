@@ -1,39 +1,62 @@
-import { auth } from "../config/Firebase";
+import { auth } from '../config/Firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
-} from "firebase/auth";
-import { getDatabase, ref, set, get, remove, update, query, orderByChild, equalTo, onValue, push } from "firebase/database";
+  onAuthStateChanged,
+} from 'firebase/auth';
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  remove,
+  update,
+  query,
+  orderByChild,
+  equalTo,
+  onValue,
+  push,
+} from 'firebase/database';
 
 // Authentication utilities
-export const registerUser = async (email, password) => {
+export const registerUser = async (email, password, displayName) => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password,
+      {
+        displayName: displayName,
+      }
+    );
     return {
       user: userCredential.user,
-      success: true
+      success: true,
     };
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
 
 export const loginUser = async (email, password) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     return {
       user: userCredential.user,
-      success: true
+      success: true,
     };
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
@@ -45,7 +68,7 @@ export const logoutUser = async () => {
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
@@ -56,13 +79,13 @@ export const writeUserData = async (userId, userData) => {
     const db = getDatabase();
     await set(ref(db, `users/${userId}`), {
       ...userData,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     });
     return { success: true };
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
@@ -72,13 +95,13 @@ export const updateUserData = async (userId, updates) => {
     const db = getDatabase();
     await update(ref(db, `users/${userId}`), {
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     });
     return { success: true };
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
@@ -91,7 +114,7 @@ export const deleteUserData = async (userId) => {
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
@@ -118,20 +141,20 @@ export const createAuction = async (auctionData) => {
       createdAt: new Date().toISOString(),
       insurance: {
         rate: 0.05,
-        amount: Math.round(auctionData.startPrice * 0.05) // 5% of start price
-      }
+        amount: Math.round(auctionData.startPrice * 0.05), // 5% of start price
+      },
     };
 
     await set(newAuctionRef, auction);
 
     return {
       success: true,
-      auctionId
+      auctionId,
     };
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
@@ -145,17 +168,17 @@ export const getAuction = async (auctionId) => {
     if (snapshot.exists()) {
       return {
         data: snapshot.val(),
-        success: true
+        success: true,
       };
     }
     return {
       data: null,
-      success: true
+      success: true,
     };
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
@@ -165,13 +188,13 @@ export const updateAuctionStatus = async (auctionId, status) => {
     const db = getDatabase();
     await update(ref(db, `auctions/${auctionId}`), {
       status,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     });
     return { success: true };
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
@@ -181,15 +204,19 @@ export const subscribeToUserData = (userId, callback) => {
   const db = getDatabase();
   const userRef = ref(db, `users/${userId}`);
 
-  const unsubscribe = onValue(userRef, (snapshot) => {
-    if (snapshot.exists()) {
-      callback({ data: snapshot.val(), exists: true });
-    } else {
-      callback({ data: null, exists: false });
+  const unsubscribe = onValue(
+    userRef,
+    (snapshot) => {
+      if (snapshot.exists()) {
+        callback({ data: snapshot.val(), exists: true });
+      } else {
+        callback({ data: null, exists: false });
+      }
+    },
+    (error) => {
+      callback({ error: error.message, exists: false });
     }
-  }, (error) => {
-    callback({ error: error.message, exists: false });
-  });
+  );
 
   return unsubscribe;
 };
@@ -198,15 +225,19 @@ export const subscribeToAllUsers = (callback) => {
   const db = getDatabase();
   const usersRef = ref(db, 'users');
 
-  const unsubscribe = onValue(usersRef, (snapshot) => {
-    if (snapshot.exists()) {
-      callback({ data: snapshot.val(), exists: true });
-    } else {
-      callback({ data: null, exists: false });
+  const unsubscribe = onValue(
+    usersRef,
+    (snapshot) => {
+      if (snapshot.exists()) {
+        callback({ data: snapshot.val(), exists: true });
+      } else {
+        callback({ data: null, exists: false });
+      }
+    },
+    (error) => {
+      callback({ error: error.message, exists: false });
     }
-  }, (error) => {
-    callback({ error: error.message, exists: false });
-  });
+  );
 
   return unsubscribe;
 };
@@ -215,15 +246,19 @@ export const subscribeToAuction = (auctionId, callback) => {
   const db = getDatabase();
   const auctionRef = ref(db, `auctions/${auctionId}`);
 
-  const unsubscribe = onValue(auctionRef, (snapshot) => {
-    if (snapshot.exists()) {
-      callback({ data: snapshot.val(), exists: true });
-    } else {
-      callback({ data: null, exists: false });
+  const unsubscribe = onValue(
+    auctionRef,
+    (snapshot) => {
+      if (snapshot.exists()) {
+        callback({ data: snapshot.val(), exists: true });
+      } else {
+        callback({ data: null, exists: false });
+      }
+    },
+    (error) => {
+      callback({ error: error.message, exists: false });
     }
-  }, (error) => {
-    callback({ error: error.message, exists: false });
-  });
+  );
 
   return unsubscribe;
 };
@@ -239,17 +274,17 @@ export const getUserByEmail = async (email) => {
     if (snapshot.exists()) {
       return {
         data: snapshot.val(),
-        success: true
+        success: true,
       };
     }
     return {
       data: null,
-      success: true
+      success: true,
     };
   } catch (error) {
     return {
       error: error.message,
-      success: false
+      success: false,
     };
   }
 };
@@ -259,4 +294,119 @@ export const subscribeToAuthState = (callback) => {
   return onAuthStateChanged(auth, (user) => {
     callback(user);
   });
+};
+
+/////////////////////// profile ////////////////////////////
+// get user activiries
+export const getUserActivities = async (userId) => {
+  try {
+    const db = getDatabase();
+
+    // Fetch all payments
+    const paymentsSnap = await get(ref(db, 'payments'));
+    const paymentsData = paymentsSnap.exists() ? paymentsSnap.val() : {};
+
+    // Filter payments related to this user (insurance or shroot)
+    const userPayments = Object.values(paymentsData).filter(
+      (p) => p.userId === userId && ['insurance', 'shroot'].includes(p.type)
+    );
+
+    // Get unique auction IDs
+    const auctionIds = [...new Set(userPayments.map((p) => p.auctionId))];
+
+    const activities = await Promise.all(
+      auctionIds.map(async (auctionId) => {
+        const auctionSnap = await get(ref(db, `auctions/${auctionId}`));
+        const auction = auctionSnap.val();
+
+        const insurancePayment = userPayments.find(
+          (p) => p.auctionId === auctionId && p.type === 'insurance'
+        );
+        const shrootPayment = userPayments.find(
+          (p) => p.auctionId === auctionId && p.type === 'shroot'
+        );
+
+        return {
+          name: auction?.title || 'غير معروف',
+          auctionStatus: auction?.status === 'active' ? 'جاري' : 'منتهي',
+          insurance: insurancePayment ? 'تم الدفع' : 'لم يتم الدفع',
+          chair: shrootPayment ? 'تم الشراء' : 'لم تُشترى',
+        };
+      })
+    );
+
+    return { data: activities, success: true };
+  } catch (error) {
+    return { error: error.message, success: false };
+  }
+};
+
+// Get all auctions created by specific user
+export const getAuctionsByUser = async (userId) => {
+  try {
+    const db = getDatabase();
+    const auctionsRef = ref(db, 'auctions');
+    const snapshot = await get(auctionsRef);
+
+    if (!snapshot.exists()) {
+      return { data: null, success: true };
+    }
+
+    const allAuctions = snapshot.val();
+
+    const userAuctions = Object.entries(allAuctions)
+      .filter(([_, auction]) => auction.createdBy === userId)
+      .reduce((acc, [id, auction]) => {
+        acc[id] = auction;
+        return acc;
+      }, {});
+
+    return {
+      data: userAuctions,
+      success: true,
+    };
+  } catch (error) {
+    return {
+      error: error.message,
+      success: false,
+    };
+  }
+};
+
+// Get all auctions the user has won
+
+export const getWonAuctionsByUser = async (userId) => {
+  try {
+    const db = getDatabase();
+    const winnersRef = ref(db, 'winners');
+    const snapshot = await get(winnersRef);
+
+    if (snapshot.exists()) {
+      const winnersData = snapshot.val();
+
+      // رجعي كل المزادات اللي المستخدم كسبها
+      const userWins = Object.entries(winnersData)
+        .filter(([auctionId, value]) => value.userId === userId)
+        .map(([auctionId, value]) => ({
+          auctionId,
+          ...value,
+        }));
+
+      return {
+        data: userWins,
+        success: true,
+      };
+    }
+
+    return {
+      data: [],
+      success: true,
+    };
+  } catch (error) {
+    console.error('❌ Error fetching won auctions:', error);
+    return {
+      error: error.message,
+      success: false,
+    };
+  }
 };
