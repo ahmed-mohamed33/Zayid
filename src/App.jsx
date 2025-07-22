@@ -22,11 +22,11 @@ import AuctionsPage from "./Pages/AuctionsPage.jsx";
 //to show schema
 import AllDataComponent from "./UsserSchema.jsx";
 import { UserProvider } from "../src/context/UserContext.jsx";
-// import Dashboard from "./Pages/Dashboard.jsx";
 import TermsAndConditions from "./Pages/TermsAndConditions.jsx";
-
 import ContactUs from "./Pages/ContactUs.jsx";
 import Profile from "./Pages/Profile.jsx";
+import Dashboard from "./Pages/Dashboard.jsx";
+import FAq from "./Pages/FAq.jsx";
 
 function App() {
   return (
@@ -49,14 +49,17 @@ function App() {
             <Route path="/auction/:auctionId" element={<TheauctionPage />} />
             <Route path="/selectCategory" element={<OnboardingPage />} />
             <Route path="/signUp" element={<SignUp />} />
-            {/* <Route path="/dashboard" element={<Dashboard />} /> */}
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/addAuction" element={<AddAuctionPage />} />
             <Route path="/auctions" element={<AuctionsPage />} />
-            <Route path="/profile" element={<Profile/>}/>
-            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route
+              path="/terms-and-conditions"
+              element={<TermsAndConditions />}
+            />
             <Route path="/contact-us" element={<ContactUs />} />
-            
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/faq" element={<FAq />} />
           </Routes>
           <Footer />
         </Router>
