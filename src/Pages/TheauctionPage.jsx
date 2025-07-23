@@ -11,6 +11,7 @@ import BiddingChat from "../components/auction/BiddingChat";
 import { UserContext } from "../context/UserContext";
 import { getDatabase, ref, onValue } from "firebase/database";
 import Loading from "../components/common/Loading";
+import ErrorPage from "../components/common/errorPage";
 
 // انا عملت دي علشان احسب مدة المزاد ب  (أيام/ساعات/دقايق)
 const formatAuctionDuration = (startDateStr, endDateStr) => {
@@ -49,10 +50,14 @@ function TheauctionPage() {
   const [hasPaidInsurance, setHasPaidInsurance] = useState(false);
   const [isAuctionLive, setIsAuctionLive] = useState(false);
   const [auctionWinner, setAuctionWinner] = useState(null);
+  const [isParticipant, setIsParticipant] = useState(false);
+  const [auctionStatus, setAuctionStatus] = useState("pending");
 
   // UseMemo declarations (moved outside conditional logic)
   const formattedDuration = useMemo(() => {
-    return auction ? formatAuctionDuration(auction.startDate, auction.endDate) : "غير محدد";
+    return auction
+      ? formatAuctionDuration(auction.startDate, auction.endDate)
+      : "غير محدد";
   }, [auction?.startDate, auction?.endDate]);
 
   const displayCondition = useMemo(() => {
@@ -61,7 +66,9 @@ function TheauctionPage() {
       old: "مستعمل",
       veryGood: "مستعمل بعناية",
     };
-    return auction ? (conditionMap[auction.productCondition] || "غير محدد") : "غير محدد";
+    return auction
+      ? conditionMap[auction.productCondition] || "غير محدد"
+      : "غير محدد";
   }, [auction?.productCondition]);
 
   useEffect(() => {
@@ -77,13 +84,20 @@ function TheauctionPage() {
             const participantData = snapshot.val();
             setHasPaidTerms(participantData.hasPurchasedShroot === true);
             setHasPaidInsurance(participantData.hasPaidInsurance === true);
-            console.log("Participant Data from TheauctionPage:", participantData);
+            setIsParticipant(true);
+            console.log(
+              "Participant Data from TheauctionPage:",
+              participantData
+            );
           } else {
             setHasPaidTerms(false);
             setHasPaidInsurance(false);
+            setIsParticipant(false);
           }
         });
         return () => unsubscribe();
+      } else {
+        setIsParticipant(false);
       }
     };
     getParticipantData();
@@ -99,6 +113,17 @@ function TheauctionPage() {
       const interval = setInterval(checkAuctionTime, 60000);
       return () => clearInterval(interval);
     }
+    if (auctionId) {
+      const db = getDatabase();
+      const auctionRef = ref(db, `auctions/${auctionId}`);
+      const unsubscribeStatus = onValue(auctionRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          setAuctionStatus(data.status || "pending");
+        }
+      });
+      return () => unsubscribeStatus();
+    }
   }, [user, auctionId, auction?.startDate, auction?.endDate]);
 
   // هنا بعمل سبينر
@@ -107,6 +132,19 @@ function TheauctionPage() {
       <div className="flex justify-center items-center h-screen">
         <Loading />
       </div>
+    );
+  }
+
+  if (auctionStatus === "rejected" ||(auctionStatus === "ended" && !isParticipant) ||(isAuctionLive && !isParticipant)) {
+    return auctionStatus === "rejected" ? (
+      <ErrorPage message="هذا المزاد لم يتم الموافقه عليه" redirectTo="/" />
+    ) : auctionStatus === "ended" ? (
+      <ErrorPage message="المزاد انتهى" redirectTo="/" />
+    ) : (
+      <ErrorPage
+        message="عذرًا، ليس لديك إذن بالدخول إلى هذا المزاد. يرجى التأكد من أنك مسجل كمشارك وأنك دفعته كراسة الشروط والتأمين قبل بدء المزاد."
+        redirectTo="/"
+      />
     );
   }
 
