@@ -196,7 +196,7 @@ const Sidebar = ({ onFilterChange, filters }) => {
 
       <div className="text-sm text-[#2D3142] font-semibold">حالة المزاد</div>
       <div className="flex flex-col gap-2">
-        {["pending", "ended"].map((status) => (
+        {["approved", "ended"].map((status) => (
           <label
             key={status}
             className="flex items-center gap-2 cursor-pointer"
