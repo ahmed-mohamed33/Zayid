@@ -122,7 +122,7 @@ export const UserProvider = ({ children }) => {
                   remainingTime = `${diffMinutes} دقيقة`;
                 }
               } else {
-                remainingTime = "بدأ بالفعل";
+                remainingTime = "انتهي ";
               }
 
               return {
