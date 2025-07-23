@@ -209,8 +209,8 @@ const Sidebar = ({ onFilterChange, filters }) => {
               className="w-4 h-4"
             />
             <span className="text-sm">
-              {status === "pending"
-                ? "معاينة"
+              {status === "approved"
+                ? "متاح للمعاينة"
                 : "منتهي"}
             </span>
           </label>

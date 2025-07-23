@@ -13,7 +13,7 @@ const Products = () => {
   const [filters, setFilters] = useState({
     categories: [],
     productConditions: [],
-    auctionStatuses: ["pending", "ended"],
+    auctionStatuses: [],
     minPrice: "",
     maxPrice: "",
     filterByInterest: false,
@@ -212,7 +212,7 @@ const Products = () => {
             <div className="flex-1 flex flex-col">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[24px] mb-8">
                 {getPaginatedProducts().length > 0 ? (
-                  getPaginatedProducts().map((product, idx) => (product.status === "pending" || product.status === "ended" ?
+                  getPaginatedProducts().map((product, idx) => (product.status === "approved" || product.status === "ended" ?
                     <MazadCard key={idx} auctionId={product.id}  />
                   : null))
                 ) : (

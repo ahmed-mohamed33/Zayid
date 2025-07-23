@@ -18,7 +18,7 @@ function MazadCard({ auctionId }) {
       return;
     }
 
-    if (auction?.status !== "pending") {
+    if (auction?.status !== "approved") {
       navigate(`/auction/${auction.id}`);
       return;
     }
@@ -66,7 +66,7 @@ function MazadCard({ auctionId }) {
         
         className="rounded-t-md w-full h-60 object-cover"
       />
-      <div className={`badge border-none text-[12px] ${auction.status === "pending" ? "bg-[#44A46F]" : "bg-[#FA6300]"} text-white absolute top-1 left-1`}>{auction.status === "pending" ? "متاح للمعاينة" : "منتهي"} </div>
+      <div className={`badge border-none text-[12px] ${auction.status === "approved" ? "bg-[#44A46F]" : "bg-[#FA6300]"} text-white absolute top-1 left-1`}>{auction.status === "approved" ? "متاح للمعاينة" : "منتهي"} </div>
 
       <div dir="rtl" className="card-body ">
       
