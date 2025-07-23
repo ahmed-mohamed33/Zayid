@@ -110,7 +110,8 @@ function TheauctionPage() {
     );
   }
 
-  return (
+  return ( 
+    
     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
       <div className="flex flex-col md:flex-row mb-6">
         {/* Fixed section */}
@@ -130,7 +131,7 @@ function TheauctionPage() {
 
       {/* Dynamic section */}
       {/**لو دفع الشروط  هيظهر ده */}
-      {user && auction.createdBy && user.uid === auction.createdBy ? (
+      {user && auction.createdBy && user.uid === auction.createdBy  ? (
         <BiddingChat
           auctionId={auctionId}
           isAuctionLive={isAuctionLive}
@@ -150,7 +151,7 @@ function TheauctionPage() {
             </div>
           )}
         </BiddingChat>
-      ) : hasPaidTerms ? (
+      ) : hasPaidTerms && (auction.status === "approved" || auction.status === "active") ? (
         <>
           <CardsInfo
             sellerName={auction?.seller?.name || ""}
@@ -159,7 +160,7 @@ function TheauctionPage() {
             sellerLocation={auction?.inspection?.place || ""}
             auctionId={auctionId}
           />
-          <PreviewOptions />
+          {auction.status === "approved" && <PreviewOptions />}
 
           {/* لو دفع التأمين هيظهر ده */}
           {hasPaidInsurance ? (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getDatabase, ref, onValue, query, orderByChild, get } from 'firebase/database';
 
 export const usePaymentData = () => {
@@ -8,8 +8,10 @@ export const usePaymentData = () => {
     const [lastUpdated, setLastUpdated] = useState(null);
     const [users, setUsers] = useState({});
     const [auctions, setAuctions] = useState({});
+    const [rawPayments, setRawPayments] = useState([]);
 
-    const db = getDatabase();
+    // Memoize database reference to prevent recreation
+    const db = useMemo(() => getDatabase(), []);
 
     // Fetch users data for mapping
     useEffect(() => {
@@ -22,7 +24,7 @@ export const usePaymentData = () => {
         });
 
         return () => unsubscribe();
-    }, [db]);
+    }, []);
 
     // Fetch auctions data for mapping
     useEffect(() => {
@@ -35,9 +37,9 @@ export const usePaymentData = () => {
         });
 
         return () => unsubscribe();
-    }, [db]);
+    }, []);
 
-    // Fetch payments data
+    // Fetch raw payments data (separate from enrichment)
     useEffect(() => {
         setLoading(true);
         setError(null);
@@ -54,89 +56,20 @@ export const usePaymentData = () => {
                 (snapshot) => {
                     if (snapshot.exists()) {
                         const data = snapshot.val();
-                        const paymentsArray = Object.entries(data).map(([id, payment]) => {
-                            // Enrich payment with user details
-                            const paymentUserId = payment.userId; // This is Firebase Auth UID
+                        const paymentsArray = Object.entries(data).map(([id, payment]) => ({
+                            id,
+                            ...payment,
+                            // Ensure timestamp exists
+                            timestamp: payment.timestamp || payment.createdAt || new Date().toISOString(),
+                            // Normalize amount to number
+                            amount: Number(payment.amount) || 0,
+                            fee: Number(payment.fee) || 0,
+                        }));
 
-                            // Find user by searching through all users for matching userId property
-                            let user = null;
-                            if (paymentUserId) {
-                                user = Object.values(users).find(u => u.userId === paymentUserId);
-                            }
-
-                            // If still not found, try other fallback methods
-                            if (!user && paymentUserId) {
-                                user = Object.values(users).find(u =>
-                                    u.id === paymentUserId ||
-                                    u.nationalID === paymentUserId ||
-                                    u.email === payment.userEmail
-                                );
-                            }
-
-                            // Debug logging (temporary)
-                            if (paymentUserId && !user) {
-                                console.log('User mapping failed for payment:', {
-                                    paymentId: id,
-                                    paymentUserId,
-                                    userEmail: payment.userEmail,
-                                    totalUsers: Object.keys(users).length,
-                                    sampleUserKeys: Object.keys(users).slice(0, 2),
-                                    sampleUserData: Object.values(users).slice(0, 1).map(u => ({
-                                        userId: u.userId,
-                                        fullName: u.fullName,
-                                        email: u.email
-                                    }))
-                                });
-                            } else if (user) {
-                                console.log('User mapping successful:', {
-                                    paymentId: id,
-                                    userName: user.fullName,
-                                    userEmail: user.email
-                                });
-                            }
-
-                            // Enrich payment with auction details
-                            const auction = payment.auctionId ? auctions[payment.auctionId] : null;
-
-                            return {
-                                id,
-                                ...payment,
-                                // Ensure timestamp exists
-                                timestamp: payment.timestamp || payment.createdAt || new Date().toISOString(),
-                                // Normalize amount to number
-                                amount: Number(payment.amount) || 0,
-                                fee: Number(payment.fee) || 0,
-
-                                // Enhanced user information
-                                userName: user?.fullName || user?.username || payment.userName || `مستخدم (${paymentUserId?.substring(0, 8)}...)`,
-                                userEmail: user?.email || payment.userEmail || 'غير محدد',
-                                userPhone: user?.phone || payment.userPhone || 'غير محدد',
-                                userType: user?.isCompany ? 'شركة' : 'فرد',
-                                userStatus: user?.isActive === true ? 'نشط' : user?.isActive === false ? 'غير نشط' : 'غير محدد',
-
-                                // Enhanced auction information
-                                auctionTitle: auction?.title || payment.auctionTitle || 'غير محدد',
-                                auctionCategory: auction?.category || payment.auctionCategory,
-                                auctionStartPrice: auction?.startPrice || payment.auctionStartPrice,
-                                auctionStatus: auction?.status || payment.auctionStatus,
-                                auctionCreatedBy: auction?.createdBy,
-                                auctionEndDate: auction?.endDate,
-                                auctionImages: auction?.imageUrls || auction?.images,
-                            };
-                        });
-
-                        // Sort by timestamp descending (newest first)
-                        paymentsArray.sort((a, b) => {
-                            const dateA = new Date(a.timestamp || a.createdAt || 0);
-                            const dateB = new Date(b.timestamp || b.createdAt || 0);
-                            return dateB - dateA;
-                        });
-
-                        setPayments(paymentsArray);
-                        setLastUpdated(new Date());
+                        setRawPayments(paymentsArray);
                         setError(null);
                     } else {
-                        setPayments([]);
+                        setRawPayments([]);
                     }
                     setLoading(false);
                 },
@@ -153,7 +86,71 @@ export const usePaymentData = () => {
             setError(error.message || 'حدث خطأ في الاتصال بقاعدة البيانات');
             setLoading(false);
         }
-    }, [db, users, auctions]);
+    }, [db]);
+
+    // Enrich payments with user and auction data (memoized)
+    const enrichedPayments = useMemo(() => {
+        if (rawPayments.length === 0) return [];
+
+        const enriched = rawPayments.map(payment => {
+            // Enrich payment with user details
+            const paymentUserId = payment.userId; // This is Firebase Auth UID
+
+            // Find user by searching through all users for matching userId property
+            let user = null;
+            if (paymentUserId) {
+                user = Object.values(users).find(u => u.userId === paymentUserId);
+            }
+
+            // If still not found, try other fallback methods
+            if (!user && paymentUserId) {
+                user = Object.values(users).find(u =>
+                    u.id === paymentUserId ||
+                    u.nationalID === paymentUserId ||
+                    u.email === payment.userEmail
+                );
+            }
+
+            // Enrich payment with auction details
+            const auction = payment.auctionId ? auctions[payment.auctionId] : null;
+
+            return {
+                ...payment,
+                // Enhanced user information
+                userName: user?.fullName || user?.username || payment.userName || `مستخدم (${paymentUserId?.substring(0, 8)}...)`,
+                userEmail: user?.email || payment.userEmail || 'غير محدد',
+                userPhone: user?.phone || payment.userPhone || 'غير محدد',
+                userType: user?.isCompany ? 'شركة' : 'فرد',
+                userStatus: user?.isActive === true ? 'نشط' : user?.isActive === false ? 'غير نشط' : 'غير محدد',
+
+                // Enhanced auction information
+                auctionTitle: auction?.title || payment.auctionTitle || 'غير محدد',
+                auctionCategory: auction?.category || payment.auctionCategory,
+                auctionStartPrice: auction?.startPrice || payment.auctionStartPrice,
+                auctionStatus: auction?.status || payment.auctionStatus,
+                auctionCreatedBy: auction?.createdBy,
+                auctionEndDate: auction?.endDate,
+                auctionImages: auction?.imageUrls || auction?.images,
+            };
+        });
+
+        // Sort by timestamp descending (newest first)
+        enriched.sort((a, b) => {
+            const dateA = new Date(a.timestamp || a.createdAt || 0);
+            const dateB = new Date(b.timestamp || b.createdAt || 0);
+            return dateB - dateA;
+        });
+
+        return enriched;
+    }, [rawPayments, users, auctions]);
+
+    // Update payments state when enriched data changes
+    useEffect(() => {
+        setPayments(enrichedPayments);
+        if (enrichedPayments.length > 0) {
+            setLastUpdated(new Date());
+        }
+    }, [enrichedPayments]);
 
     // Calculate total statistics
     const totalStats = useMemo(() => {
@@ -263,45 +260,39 @@ export const usePaymentData = () => {
         return stats;
     }, [payments]);
 
-    // Get payments by date range
-    const getPaymentsByDateRange = (startDate, endDate) => {
+
+    const getPaymentsByDateRange = useCallback((startDate, endDate) => {
         return payments.filter(payment => {
             const paymentDate = new Date(payment.timestamp || payment.createdAt);
             const start = new Date(startDate);
             const end = new Date(endDate);
             return paymentDate >= start && paymentDate <= end;
         });
-    };
+    }, [payments]);
 
-    // Get payments by status
-    const getPaymentsByStatus = (status) => {
+    const getPaymentsByStatus = useCallback((status) => {
         return payments.filter(payment => payment.status === status);
-    };
+    }, [payments]);
 
-    // Get payments by method
-    const getPaymentsByMethod = (method) => {
+    const getPaymentsByMethod = useCallback((method) => {
         return payments.filter(payment => payment.method === method);
-    };
+    }, [payments]);
 
-    // Get payments by type
-    const getPaymentsByType = (type) => {
+    const getPaymentsByType = useCallback((type) => {
         return payments.filter(payment => payment.type === type);
-    };
+    }, [payments]);
 
-    // Get recent payments
-    const getRecentPayments = (limit = 10) => {
+    const getRecentPayments = useCallback((limit = 10) => {
         return payments.slice(0, limit);
-    };
+    }, [payments]);
 
-    // Get top payments by amount
-    const getTopPaymentsByAmount = (limit = 10) => {
+    const getTopPaymentsByAmount = useCallback((limit = 10) => {
         return [...payments]
             .sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))
             .slice(0, limit);
-    };
+    }, [payments]);
 
-    // Search payments (enhanced with user and auction data)
-    const searchPayments = (searchTerm) => {
+    const searchPayments = useCallback((searchTerm) => {
         if (!searchTerm) return payments;
 
         const term = searchTerm.toLowerCase();
@@ -317,14 +308,13 @@ export const usePaymentData = () => {
             payment.auctionTitle?.toLowerCase().includes(term) ||
             payment.auctionCategory?.toLowerCase().includes(term)
         );
-    };
+    }, [payments]);
 
-    // Force refetch
-    const refetch = () => {
+    const refetch = useCallback(() => {
         setLoading(true);
         setError(null);
         // The useEffect will handle the refetch automatically
-    };
+    }, []);
 
     return {
         // Data

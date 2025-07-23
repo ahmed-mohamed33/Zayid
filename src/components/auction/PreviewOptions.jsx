@@ -66,7 +66,7 @@ function PreviewOptions() {
   };
   return (
     <>
-      {hasBookedInspection ? ( // لو المعاينه محجوزه هيطلعله بيانات الحجز
+      {hasBookedInspection && auction.status === "approved" ? ( // لو المعاينه محجوزه هيطلعله بيانات الحجز
         <div className="py-4 px-6 bg-white rounded-lg shadow-md border border-gray-200 text-right text-gray-800 font-semibold">
           تم حجز المعاينة بنجاح.
           <br />
@@ -91,7 +91,8 @@ function PreviewOptions() {
             </>
           )}
         </div>
-      ) : (
+      ) : 
+        auction.status === "approved" && (
         // هيطلعله انه يحجز
         <div className="py-4 px-6 bg-white rounded-lg shadow-md border border-gray-200">
           <h2 className="text-lg font-semibold py-3 text-gray-800">
@@ -174,7 +175,8 @@ function PreviewOptions() {
             ننصح بمعاينة المنتج قبل بدء المزاد للتأكد من مطابقة كل شيء للوصف.
           </button>
         </div>
-      )}
+        
+        )}
     </>
   );
 }

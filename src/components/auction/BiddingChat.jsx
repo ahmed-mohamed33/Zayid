@@ -4,7 +4,7 @@ import highestBidIcon from "../../assets/icons/highestBid.svg";
 import calendarIcon from "../../assets/icons/calendar.svg";
 import participantsIcon from "../../assets/icons/participants.svg";
 import noOfBidsIcon from "../../assets/icons/noOfBids.svg";
-import { getDatabase, ref, onValue, push, update } from "firebase/database";
+import { getDatabase, ref, onValue, update } from "firebase/database";
 import { UserContext } from "../../context/UserContext";
 
 const BiddingChat = ({
