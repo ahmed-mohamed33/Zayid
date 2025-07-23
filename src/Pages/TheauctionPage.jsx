@@ -157,6 +157,7 @@ function TheauctionPage() {
             insurancePrice={auction?.insurance?.amount || 0}
             lowestBid={auction?.minIncrement || 0}
             sellerLocation={auction?.inspection?.place || ""}
+            auctionId={auctionId}
           />
           <PreviewOptions />
 

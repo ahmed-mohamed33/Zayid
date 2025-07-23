@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaLocationDot } from "react-icons/fa6";
 import { IoCheckmarkCircleSharp } from "react-icons/io5";
 import { RiStarSFill } from "react-icons/ri";
+import { useTermsActions } from "../../hooks/useTermsActions";
 
 const CardItem = ({ title, children }) => {
   return (
@@ -14,7 +15,37 @@ const CardItem = ({ title, children }) => {
   );
 };
 
-function CardsInfo({ sellerName, insurancePrice, lowestBid, sellerLocation }) {
+function CardsInfo({ sellerName, insurancePrice, lowestBid, sellerLocation, auctionId }) {
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const { generateTermsPDF } = useTermsActions();
+
+  const handleDownloadTerms = async () => {
+    if (!auctionId) {
+      alert("معرف المزاد غير متوفر");
+      return;
+    }
+
+    setIsGeneratingPDF(true);
+    try {
+      const result = await generateTermsPDF({
+        auctionId,
+        sellerName,
+        sellerLocation,
+        lowestBid,
+        insurancePrice
+      });
+
+      if (!result.success) {
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error("Error downloading terms:", error);
+      alert("حدث خطأ أثناء تحميل كراسة الشروط");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   return (
     <>
       <div className="py-4  grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -38,8 +69,12 @@ function CardsInfo({ sellerName, insurancePrice, lowestBid, sellerLocation }) {
             <p>تم الشراء</p>
             <IoCheckmarkCircleSharp />
           </div>
-          <button className="w-full text-[14px] bg-[#FA6300] text-white py-1.5 mt-6 rounded-md hover:bg-[#fa4b00] cursor-pointer transition-colors duration-200">
-            تحميل كراسة الشروط
+          <button 
+            onClick={handleDownloadTerms}
+            disabled={isGeneratingPDF}
+            className="w-full text-[14px] bg-[#FA6300] text-white py-1.5 mt-6 rounded-md hover:bg-[#fa4b00] disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer transition-colors duration-200"
+          >
+            {isGeneratingPDF ? "جاري الإنشاء..." : "تحميل كراسة الشروط"}
           </button>
         </CardItem>
       </div>
