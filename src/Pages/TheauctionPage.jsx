@@ -52,8 +52,8 @@ function TheauctionPage() {
   const [auctionWinner, setAuctionWinner] = useState(null);
   const [isParticipant, setIsParticipant] = useState(false);
   const [auctionStatus, setAuctionStatus] = useState("pending");
+const [isUserActive, setIsUserActive] = useState(true);
 
-  // UseMemo declarations (moved outside conditional logic)
   const formattedDuration = useMemo(() => {
     return auction
       ? formatAuctionDuration(auction.startDate, auction.endDate)
@@ -124,6 +124,20 @@ function TheauctionPage() {
       });
       return () => unsubscribeStatus();
     }
+
+    if (user && user.uid) {
+      const db = getDatabase();
+      const userRef = ref(db, `users/${user.uid}`);
+      const unsubscribeProfile = onValue(userRef, (snapshot) => {
+        const userData = snapshot.val();
+        if (userData && userData.isActive === true) {
+          setIsUserActive(true);
+        } else {
+          setIsUserActive(false);
+        }
+      });
+      return () => unsubscribeProfile();
+    }
   }, [user, auctionId, auction?.startDate, auction?.endDate]);
 
   // هنا بعمل سبينر
@@ -135,11 +149,14 @@ function TheauctionPage() {
     );
   }
 
-  if (auctionStatus === "rejected" ||(auctionStatus === "ended" && !isParticipant) ||(isAuctionLive && !isParticipant)) {
-    return auctionStatus === "rejected" ? (
+if (!isUserActive || auctionStatus === "rejected" || (isAuctionLive && !isParticipant)) {
+    return !isUserActive ? (
+      <ErrorPage
+        message="عذرًا، حسابك غير مفعل بعد. يرجى التواصل مع الدعم أو التحقق من الداشبورد لتفعيله."
+        redirectTo="/"
+      />
+    ) : auctionStatus === "rejected" ? (
       <ErrorPage message="هذا المزاد لم يتم الموافقه عليه" redirectTo="/" />
-    ) : auctionStatus === "ended" ? (
-      <ErrorPage message="المزاد انتهى" redirectTo="/" />
     ) : (
       <ErrorPage
         message="عذرًا، ليس لديك إذن بالدخول إلى هذا المزاد. يرجى التأكد من أنك مسجل كمشارك وأنك دفعته كراسة الشروط والتأمين قبل بدء المزاد."
