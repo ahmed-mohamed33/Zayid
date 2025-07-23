@@ -13,7 +13,6 @@ import { getDatabase, ref, onValue } from "firebase/database";
 import Loading from "../components/common/Loading";
 import ErrorPage from "../components/common/errorPage";
 
-// انا عملت دي علشان احسب مدة المزاد ب  (أيام/ساعات/دقايق)
 const formatAuctionDuration = (startDateStr, endDateStr) => {
   if (!startDateStr || !endDateStr) return "غير محدد";
 
@@ -41,7 +40,7 @@ const formatAuctionDuration = (startDateStr, endDateStr) => {
 };
 
 function TheauctionPage() {
-  const { auctions, user } = useContext(UserContext);
+  const { auctions, user ,userData } = useContext(UserContext);
   const { auctionId } = useParams();
   const auction = auctions.find((a) => a.id === auctionId);
 
@@ -52,7 +51,6 @@ function TheauctionPage() {
   const [auctionWinner, setAuctionWinner] = useState(null);
   const [isParticipant, setIsParticipant] = useState(false);
   const [auctionStatus, setAuctionStatus] = useState("pending");
-const [isUserActive, setIsUserActive] = useState(true);
 
   const formattedDuration = useMemo(() => {
     return auction
@@ -124,20 +122,6 @@ const [isUserActive, setIsUserActive] = useState(true);
       });
       return () => unsubscribeStatus();
     }
-
-    if (user && user.uid) {
-      const db = getDatabase();
-      const userRef = ref(db, `users/${user.uid}`);
-      const unsubscribeProfile = onValue(userRef, (snapshot) => {
-        const userData = snapshot.val();
-        if (userData && userData.isActive === true) {
-          setIsUserActive(true);
-        } else {
-          setIsUserActive(false);
-        }
-      });
-      return () => unsubscribeProfile();
-    }
   }, [user, auctionId, auction?.startDate, auction?.endDate]);
 
   // هنا بعمل سبينر
@@ -149,10 +133,11 @@ const [isUserActive, setIsUserActive] = useState(true);
     );
   }
 
-if (!isUserActive || auctionStatus === "rejected" || (isAuctionLive && !isParticipant)) {
+ const isUserActive = userData?.isActive === true;
+  if (!isUserActive || auctionStatus === "rejected" || (isAuctionLive && !isParticipant)) {
     return !isUserActive ? (
       <ErrorPage
-        message="عذرًا، حسابك غير مفعل بعد. يرجى التواصل مع الدعم أو التحقق من الداشبورد لتفعيله."
+        message="عذرًا، حسابك غير مفعل بعد. يرجى التواصل مع الدع لتفعيله."
         redirectTo="/"
       />
     ) : auctionStatus === "rejected" ? (
@@ -165,7 +150,8 @@ if (!isUserActive || auctionStatus === "rejected" || (isAuctionLive && !isPartic
     );
   }
 
-  return (
+  return ( 
+    
     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
       <div className="flex flex-col md:flex-row mb-6">
         {/* Fixed section */}
@@ -185,7 +171,7 @@ if (!isUserActive || auctionStatus === "rejected" || (isAuctionLive && !isPartic
 
       {/* Dynamic section */}
       {/**لو دفع الشروط  هيظهر ده */}
-      {user && auction.createdBy && user.uid === auction.createdBy ? (
+      {user && auction.createdBy && user.uid === auction.createdBy  ? (
         <BiddingChat
           auctionId={auctionId}
           isAuctionLive={isAuctionLive}
@@ -205,7 +191,7 @@ if (!isUserActive || auctionStatus === "rejected" || (isAuctionLive && !isPartic
             </div>
           )}
         </BiddingChat>
-      ) : hasPaidTerms ? (
+      ) : hasPaidTerms && (auction.status === "approved" || auction.status === "active") ? (
         <>
           <CardsInfo
             sellerName={auction?.seller?.name || ""}
@@ -214,7 +200,7 @@ if (!isUserActive || auctionStatus === "rejected" || (isAuctionLive && !isPartic
             sellerLocation={auction?.inspection?.place || ""}
             auctionId={auctionId}
           />
-          <PreviewOptions />
+          {auction.status === "approved" && <PreviewOptions />}
 
           {/* لو دفع التأمين هيظهر ده */}
           {hasPaidInsurance ? (
