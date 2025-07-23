@@ -1,0 +1,40 @@
+return (
+  <>
+    {activeTab === 'مزاداتي' && (
+      <div className="overflow-x-auto min-h-[100px]">
+        {loadingAuctions ? (
+          // ✅ Skeleton أثناء التحميل
+          <table className="min-w-full text-right animate-pulse">
+            {/* ... باقي JSX كما هو ... */}
+          </table>
+        ) : myAuctions.length > 0 ? (
+          // ✅ الجدول الحقيقي
+          <table className="min-w-full text-right">
+            {/* ... باقي JSX كما هو ... */}
+          </table>
+        ) : (
+          // ✅ لا يوجد مزادات
+          <div className="text-center text-gray-300 py-10">
+            <svg
+              className="mx-auto mb-3"
+              xmlns="http://www.w3.org/2000/svg"
+              width="42"
+              height="42"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 17v-6h6v6m2 4H7a2 2 0 01-2-2V7a2 2 0 012-2h3l2-2h2l2 2h3a2 2 0 012 2v12a2 2 0 01-2 2z"
+              />
+            </svg>
+            لا يوجد مزادات حالياً.
+          </div>
+        )}
+      </div>
+    )}
+  </>
+);
