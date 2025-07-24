@@ -66,7 +66,7 @@ function MazadCard({ auctionId }) {
         
         className="rounded-t-md w-full h-60 object-cover"
       />
-      <div className={`badge border-none text-[12px] ${auction.status === "approved" ? 'bg-green-100 text-white' : 'bg-gray-100 text-gray-800'} absolute top-2 left-2`}>{auction.status === "approved" ? "متاح للمعاينة" : "منتهي"} </div>
+      <div className={`badge border-none text-[12px] ${auction.status === "approved" ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-800'} absolute top-2 left-2`}>{auction.status === "approved" ? "متاح للمعاينة" : "منتهي"} </div>
 
       <div dir="rtl" className="card-body ">
       

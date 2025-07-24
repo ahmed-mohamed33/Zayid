@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 function TopMazad() {
   const sliderRef = useRef(null);
   const { auctions } = useContext(UserContext);
+  const approvedAuctions = auctions.filter(auction => auction.status === "approved");
 
   const settings = {
     dots: false,
@@ -50,7 +51,7 @@ function TopMazad() {
       </h2>
 
       <Slider ref={sliderRef} {...settings}>
-        {auctions.map((auction) => (
+        {approvedAuctions.map((auction) => (
           <div key={auction.id} className="px-3">
             <MazadCard auctionId={auction.id} />
           </div>

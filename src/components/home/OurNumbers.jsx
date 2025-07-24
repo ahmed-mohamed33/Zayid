@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDashboardData } from "../../hooks/useDashboardData";
 import statistic from "../../assets/icons/statistic.svg";
 import Users from "../../assets/icons/profile-2user.svg";
@@ -32,18 +32,30 @@ function OurNumbers() {
     totalUsers: 0,
   });
 
-  useEffect(() => {
-    if (!loading) {
-      const totalAuctions = statistics.reduce((sum, stat) => sum + (stat.title.includes("مزادات") ? stat.value : 0), 0);
-      setStats({
-        totalAuctions,
-        totalCategories: categoryData.labels.length,
-        completedAuctions: statistics.find(stat => stat.title === "المزادات المنتهية")?.value || 0,
-        activeAuctions: statistics.find(stat => stat.title === "المزادات النشطة")?.value || 0,
-        totalUsers: statistics.find(stat => stat.title === "إجمالي المستخدمين")?.value || 0, 
-      });
+  const calculatedStats = useMemo(() => {
+    if (loading || !statistics || !categoryData) {
+      return {
+        totalAuctions: 0,
+        totalCategories: 0,
+        completedAuctions: 0,
+        activeAuctions: 0,
+        totalUsers: 0,
+      };
     }
-  }, [loading, statistics, categoryData]);
+
+    const totalAuctions = statistics.reduce((sum, stat) => sum + (stat.title.includes("مزادات") ? stat.value : 0), 0);
+    return {
+      totalAuctions,
+      totalCategories: categoryData.labels?.length || 0,
+      completedAuctions: statistics.find(stat => stat.title === "المزادات المنتهية")?.value || 0,
+      activeAuctions: statistics.find(stat => stat.title === "المزادات النشطة")?.value || 0,
+      totalUsers: statistics.find(stat => stat.title === "إجمالي المستخدمين")?.value || 0, 
+    };
+  }, [loading, JSON.stringify(statistics), JSON.stringify(categoryData)]);
+
+  useEffect(() => {
+    setStats(calculatedStats);
+  }, [calculatedStats]);
 
   if (loading) {
     return (
