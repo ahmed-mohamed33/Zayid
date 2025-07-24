@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import userIcon from '../assets/icons/profile.svg';
 import { getAuctionsByUser, getUserActivities } from '../utils/firebaseUtils';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import Settings from './../components/auction/ProfileSettings';
+import Settings from './../components/profileComponents/ProfileSettings';
 import ProfileInfoCard from './../components/profileComponents/ProfileInfoCard';
 import MyAuctionsSection from './../components/profileComponents/MyAuctionsSection';
 import MyPurchasesSection from './../components/profileComponents/MyPurchasesSection';
@@ -99,25 +99,38 @@ const Profile = () => {
   };
 
   const getWonAuctionsByAnUser = async (userId) => {
-    const db = getDatabase();
-    const auctionsRef = ref(db, 'auctions');
-    const snapshot = await get(auctionsRef);
+    try {
+      const db = getDatabase();
+      const winnersRef = ref(db, 'winners');
+      const userAuctionsRef = ref(db, `users/${userId}/auctions`);
+      const [winnersSnap, userAuctionsSnap] = await Promise.all([
+        get(winnersRef),
+        get(userAuctionsRef)
+      ]);
 
-    if (!snapshot.exists()) return { data: [] };
+      if (!userAuctionsSnap.exists()) {
+        return { data: [], success: true };
+      }
 
-    const allAuctions = snapshot.val();
-    const wonAuctions = Object.entries(allAuctions)
-      .filter(
-        ([_, auction]) =>
-          auction?.highestBidderId === userId && auction?.status === 'ended'
-      )
-      .map(([auctionId, auction]) => ({
-        auctionId,
-        finalBid: auction.highestBid || 0,
-        isPaid: auction?.payments?.[userId]?.isPaid || false,
-      }));
+      const userAuctions = userAuctionsSnap.val();
+      const wonAuctions = Object.entries(userAuctions)
+        .filter(([_, auction]) => auction.isWinner)
+        .map(([auctionId, auction]) => ({
+          auctionId,
+          finalBid: auction.winnerBid || 0,
+          isPaid: auction.isPaid ,
+          title: auction.auctionTitle || '',
+          imageUrls: auction.auctionImage ? [auction.auctionImage] : []
+        }));
 
-    return { data: wonAuctions };
+      return { data: wonAuctions, success: true };
+    } catch (error) {
+      console.error('❌ Error fetching won auctions:', error);
+      return {
+        error: error.message,
+        success: false
+      };
+    }
   };
 
   // end mazad

@@ -305,14 +305,14 @@ Swal.fire({
         winnerBid: winnerBid.bidAmount,
         winnerTime: winnerBid.bidTime,
       });
-      update(ref(db, `users/${winnerBid.userId}/auctions/${auctionId}`), {
+      set(ref(db, `users/${winnerBid.userId}/auctions/${auctionId}`), {
         isWinner: true,
         winnerBid: winnerBid.bidAmount,
         winnerTime: winnerBid.bidTime,
         auctionId: auctionId,
         auctionTitle: auction.title || "مزاد",
         auctionImage: auction.image || "",
-        hasPaid : false,
+        isPaid : false,
 
       });
       update(ref(db, `winners/${auctionId}`), {
@@ -320,6 +320,10 @@ Swal.fire({
         winnerName: winnerBid.userName,
         winnerBid: winnerBid.bidAmount,
         winnerTime: winnerBid.bidTime,
+        isPaid : false,
+        auctionId: auctionId,
+        auctionTitle: auction.title || "مزاد",
+        auctionImage: auction.imageUrls?.[0] || "",
       });
 
       setRemainingTime("");

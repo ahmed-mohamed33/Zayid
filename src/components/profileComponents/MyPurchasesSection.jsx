@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, database } from '../../config/Firebase';
-import { get } from 'firebase/database';
+import { ref, child, get } from 'firebase/database';
 
 export default function MyPurchasesSection({
   setLoadingPurchases,
@@ -14,42 +13,70 @@ export default function MyPurchasesSection({
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
+        console.log('❌ No user authenticated');
         setLoadingPurchases(false);
+        setPurchases([]);
         return;
       }
 
+      console.log('👤 User authenticated:', user.uid);
+      setLoadingPurchases(true);
+
       try {
-        const { data: wonAuctions } = await getWonAuctionsByAnUser(user.uid);
+        console.log('🔍 Fetching won auctions for user:', user.uid);
+        const result = await getWonAuctionsByAnUser(user.uid);
+        console.log('📦 Raw result from getWonAuctionsByAnUser:', result);
+        
+        const wonAuctions = result?.data || result;
         console.log('✅ Won Auctions:', wonAuctions);
+        
         if (!wonAuctions || wonAuctions.length === 0) {
+          console.log('📭 No won auctions found');
           setPurchases([]);
         } else {
+          console.log(`🎯 Processing ${wonAuctions.length} won auctions`);
           const dbRef = ref(database);
 
           const purchasesList = await Promise.all(
-            wonAuctions.map(async (win) => {
-              const auctionSnap = await get(
-                child(dbRef, `auctions/${win.auctionId}`)
-              );
-              const auctionData = auctionSnap.val();
+            wonAuctions.map(async (win, index) => {
+              console.log(`🔄 Processing auction ${index + 1}:`, win);
+              try {
+                const auctionSnap = await get(
+                  child(dbRef, `auctions/${win.auctionId}`)
+                );
+                const auctionData = auctionSnap.val();
+                console.log(`📋 Auction data for ${win.auctionId}:`, auctionData);
 
-              return {
-                auctionId: win.auctionId,
-                title: auctionData?.title || 'مزاد غير معروف',
-                price: win.finalBid,
-                image: auctionData?.imageUrls?.[0],
-                status: auctionData?.status || 'غير معروف',
-                isPaid: win.isPaid,
-              };
+                const purchase = {
+                  auctionId: win.auctionId,
+                  title: auctionData?.title || 'مزاد غير معروف',
+                  price: win.finalBid,
+                  image: auctionData?.imageUrls?.[0],
+                  status: auctionData?.status || 'غير معروف',
+                  isPaid: win.isPaid,
+                };
+                console.log(`✅ Created purchase object:`, purchase);
+                return purchase;
+              } catch (auctionError) {
+                console.error(`❌ Error fetching auction ${win.auctionId}:`, auctionError);
+                return {
+                  auctionId: win.auctionId,
+                  title: 'خطأ في تحميل البيانات',
+                  price: win.finalBid || 0,
+                  image: null,
+                  status: 'خطأ',
+                  isPaid: win.isPaid || false,
+                };
+              }
             })
           );
 
-          setPurchases(purchasesList);
           console.log('🎯 Final Purchases List:', purchasesList);
-          console.log('purchases state:', purchases);
+          setPurchases(purchasesList);
         }
       } catch (err) {
         console.error('❌ Error fetching purchases:', err);
+        setPurchases([]);
       } finally {
         setLoadingPurchases(false);
       }
@@ -87,37 +114,44 @@ export default function MyPurchasesSection({
               {purchases.map((item, i) => (
                 <div
                   key={i}
-                  className="border border-[#E5E7EB] rounded-xl p-6 flex flex-col items-center shadow-sm"
+                  className="bg-white border border-[#E5E7EB] rounded-xl p-6 "
                 >
-                  <img
-                    src={item.image}
-                    alt="product"
-                    className="w-32 h-32 object-cover mb-4 rounded-lg"
-                  />
-                  <div className="font-bold mb-2 text-lg">{item.title}</div>
-                  <div className="text-green-700 mb-1 text-base">
-                    {item.price} ج.م
+                  <div className="relative mb-4">
+                    <img
+                      src={item.image || '/placeholder.jpg'}
+                      alt={item.title}
+                      className="w-full h-48 object-cover rounded-lg"
+                      onError={(e) => e.target.src = '/placeholder.jpg'}
+                    />
+                    <span className={`absolute top-2 left-2 px-3 py-1 rounded-full text-xs font-medium ${
+                      item.status === 'active'  ? 'bg-green-100 text-green-800' :
+                      item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {item.status === 'active' ? 'جاري' : 
+                       item.status === 'pending' ? 'قيد المراجعة' : 
+                       'منتهي'}
+                    </span>
                   </div>
-                  <div className="text-gray-500 text-sm mb-1">
-                    الحالة:{' '}
-                    {item.status === 'active'
-                      ? 'جاري'
-                      : item.status === 'pending'
-                      ? 'قيد المراجعة'
-                      : 'منتهي'}
-                  </div>
-                  <div
-                    className={`text-xs font-semibold mb-3 ${
-                      item.isPaid ? 'text-green-600' : 'text-red-500'
-                    }`}
-                  >
-                    {item.isPaid ? 'تم الدفع' : 'لم يتم الدفع'}
+                  <h3 className="font-bold text-xl mb-3 text-gray-800">{item.title}</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-lg font-semibold text-green-600">{item.price} ج.م</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      item.isPaid ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                    }`}>
+                      {item.isPaid ? 'تم الدفع' : 'لم يتم الدفع'}
+                    </span>
                   </div>
                   <button
-                    className="bg-gray-200 text-gray-500 px-6 py-2 rounded-lg font-semibold cursor-not-allowed"
-                    disabled
+                    className={`w-full py-3 rounded-lg font-medium transition-colors cursor-pointer ${
+                      item.isPaid 
+                        ? 'bg-green-600 hover:bg-green-700' 
+                        : 'bg-[#FA6300] hover:bg-[#e55a00] disabled:bg-[#e55a00]'
+                    } text-white`}
+                    onClick={() => console.log(item)}
+                    disabled={item.isPaid}
                   >
-                    تم الشراء
+                    {item.isPaid ? 'تم الدفع' : 'اتمام الدفع'}
                   </button>
                 </div>
               ))}

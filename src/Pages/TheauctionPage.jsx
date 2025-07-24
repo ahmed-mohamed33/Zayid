@@ -9,7 +9,7 @@ import PreviewOptions from "../components/auction/PreviewOptions";
 import Insurancepayment from "../components/auction/Insurancepayment";
 import BiddingChat from "../components/auction/BiddingChat";
 import { UserContext } from "../context/UserContext";
-import { getDatabase, ref, onValue } from "firebase/database";
+import { getDatabase, ref, onValue, update } from "firebase/database";
 import Loading from "../components/common/Loading";
 import ErrorPage from "../components/common/errorPage";
 
@@ -106,6 +106,11 @@ function TheauctionPage() {
         const startDate = new Date(auction.startDate);
         const endDate = new Date(auction.endDate);
         setIsAuctionLive(now >= startDate && now <= endDate);
+        setAuctionStatus(now >= startDate && now <= endDate ? "active" : "ended");
+        const db = getDatabase();
+        const auctionRef = ref(db, `auctions/${auctionId}`);
+        update(auctionRef, { status: now >= startDate && now <= endDate ? "active" : "ended" });
+        
       };
       checkAuctionTime();
       const interval = setInterval(checkAuctionTime, 60000);

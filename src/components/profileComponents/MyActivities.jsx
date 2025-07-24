@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { auth } from '../../config/Firebase';
-import { getDatabase, ref } from 'firebase/database';
-import { get } from 'react-hook-form';
+import { getDatabase, ref, get, onValue, off } from 'firebase/database';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function MyActivities({

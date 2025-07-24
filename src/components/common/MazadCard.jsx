@@ -66,7 +66,7 @@ function MazadCard({ auctionId }) {
         
         className="rounded-t-md w-full h-60 object-cover"
       />
-      <div className={`badge border-none text-[12px] ${auction.status === "approved" ? "bg-[#44A46F]" : "bg-[#FA6300]"} text-white absolute top-1 left-1`}>{auction.status === "approved" ? "متاح للمعاينة" : "منتهي"} </div>
+      <div className={`badge border-none text-[12px] ${auction.status === "approved" ? 'bg-green-100 text-white' : 'bg-gray-100 text-gray-800'} absolute top-2 left-2`}>{auction.status === "approved" ? "متاح للمعاينة" : "منتهي"} </div>
 
       <div dir="rtl" className="card-body ">
       
@@ -84,18 +84,27 @@ function MazadCard({ auctionId }) {
           <div className="flex items-center justify-center">
             <img className="w-[15px] h-[15px]" src={timer} />
             <p className="text-[#FA6300] mx-1">
-              متبقي: {auction.remainingTime || "غير محدد"} 
+              متبقي: { auction.status === "approved" ? auction.remainingTime : "انتهي"} 
             </p>
           </div>
         </div>
         {isAuthenticated ? (
-          <button
-            onClick={handleAuctionClick}
-            className="btn w-full h-[48px] border-none rounded-lg bg-[#4F5D75] text-white mt-2 flex items-center justify-center"
-          >
-            <h2 className="mx-2">زايد الان</h2>
-            <img src={hummer} alt="bid" />
-          </button>
+          auction.status === "approved" ? (
+            <button
+              onClick={handleAuctionClick}
+              className="btn w-full h-[48px] border-none rounded-lg bg-[#4F5D75] text-white mt-2 flex items-center justify-center"
+            >
+              <h2 className="mx-2">زايد الان</h2>
+              <img src={hummer} alt="bid" />
+            </button>
+          ) : (
+            <button
+              className="btn w-full bg-gray-300 text-gray-600 mt-2 flex items-center justify-center cursor-not-allowed"
+              disabled
+            >
+              <h2 className="mx-2">المزاد انتهي لا يمكن المزايدة</h2>
+            </button>
+          )
         ) : (
           <button
             className="btn w-full bg-gray-300 text-gray-600 mt-2 flex items-center justify-center cursor-not-allowed"
