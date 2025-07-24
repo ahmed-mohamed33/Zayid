@@ -39,7 +39,11 @@ function ConfirmationScreen({
               <div className="flex justify-between">
                 <span className="text-gray-700">نوع الدفع:</span>
                 <span className="font-medium">
-                  {type === "shroot" ? "دفع الشروط" : "دفع التأمين"}
+                  {type === "shroot" 
+                    ? "دفع الشروط" 
+                    : type === "insurance" 
+                    ? "دفع التأمين"
+                    : "دفع قيمة المزاد"}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -70,19 +74,19 @@ function ConfirmationScreen({
 
               <div className="flex justify-between">
                 <span className="text-gray-700">المبلغ:</span>
-                <span className="font-medium">{getPaymentAmount()} ج.م</span>
+                <span className="font-medium">{getPaymentAmount() } ج.م</span>
               </div>
 
               <div className="flex justify-between">
-                <span className="text-gray-700">رسوم الخدمة:</span>
-                <span className="font-medium">50 ج.م</span>
+                <span className="text-gray-700" >{type === "winner" ? " قيمة التأمين" : "رسوم الخدمة"}</span>
+                <span className="font-medium">{type === "winner" ? "-" + auction?.insurance?.amount : 50} ج.م</span>
               </div>
 
               <div className="border-t pt-2 mt-2">
                 <div className="flex justify-between font-bold text-lg">
                   <span className="text-gray-900">المجموع:</span>
                   <span className="text-orange-500">
-                    {getPaymentAmount() + 50} ج.م
+                    {type === "winner" ? getPaymentAmount() - auction?.insurance?.amount : getPaymentAmount() + 50} ج.م
                   </span>
                 </div>
               </div>

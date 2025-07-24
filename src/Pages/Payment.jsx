@@ -78,11 +78,17 @@ function Payment() {
     const participantSnapshot = await get(
       ref(db, `auctions/${auctionId}/participants/${user.uid}`)
     );
+    const winnerSnapshot = await get(
+      ref(db, `users/${user.uid}/auctions/${auctionId}`)
+    );  
+    const winnerData = winnerSnapshot.val();
+
     if (participantSnapshot.exists()) {
       const participantData = participantSnapshot.val();
       return (
         (type === "shroot" && participantData.hasPurchasedShroot) ||
-        (type === "insurance" && participantData.hasPaidInsurance)
+        (type === "insurance" && participantData.hasPaidInsurance) ||
+        (type === "winner" && winnerData.isPaid)
       );
     }
 
@@ -94,8 +100,10 @@ function Payment() {
     if (type === "shroot") {
       return auction?.terms?.price || 100;
     } else if (type === "insurance") {
-
       return auction?.insurance?.amount || 200;
+    } else if (type === "winner") {
+      // For auction winners, they pay their winning bid amount
+      return auction?.winnerBid || auction?.startPrice || 0;
     }
     return 0;
   };
@@ -125,6 +133,21 @@ function Payment() {
 
     await set(participantRef, { ...currentData, ...updates });
   };
+  const updateWinnerData = async (updates) => {
+    const db = getDatabase();
+    const winnerRef = ref(
+      db,
+      `users/${user.uid}/auctions/${auctionId}`
+    );
+    const snapshot = await get(winnerRef);
+
+    let currentData = {};
+    if (snapshot.exists()) {
+      currentData = snapshot.val();
+    }
+
+    await set(winnerRef, { ...currentData, ...updates });
+  };
 
   // Helper function to create payment record
   const createPaymentRecord = async (amount) => {
@@ -133,7 +156,7 @@ function Payment() {
     const newPaymentRef = push(paymentRef);
 
     await set(newPaymentRef, {
-      amount: amount,
+      amount: type === "winner" ? amount-auction?.insurance?.amount : amount,
       auctionId: auction.id,
       method: selectedPayment,
       status: "paid",
@@ -170,7 +193,7 @@ function Payment() {
         throw new Error("المزاد غير موجود. تأكد من أن الرابط صحيح.");
       }
 
-      if (!type || (type !== "shroot" && type !== "insurance")) {
+      if (!type || (type !== "shroot" && type !== "insurance" && type !== "winner")) {
         throw new Error("نوع الدفع غير صحيح أو غير محدد في الرابط.");
       }
 
@@ -191,6 +214,14 @@ function Payment() {
         await updateParticipantData({
           hasPaidInsurance: true,
           paidInsuranceAt: new Date().toISOString(),
+        });
+      } else if (type === "winner") {
+        await updateWinnerData({
+          isPaid: true,
+          paidAt: new Date().toISOString(),
+          paidAmount: amount,
+          paymentMethod: selectedPayment,
+          
         });
       }
 
@@ -352,6 +383,7 @@ function Payment() {
               showConfirmation={showConfirmation}
               isSubmitting={isSubmitting}
               status={status}
+              auction={auction}
             />
           </div>
         </form>

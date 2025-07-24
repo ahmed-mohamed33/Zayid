@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, database } from '../../config/Firebase';
 import { ref, child, get } from 'firebase/database';
@@ -10,6 +11,7 @@ export default function MyPurchasesSection({
   getWonAuctionsByAnUser,
 }) {
   const [purchases, setPurchases] = useState([]);
+  const navigate = useNavigate();
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -128,7 +130,7 @@ export default function MyPurchasesSection({
                       item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {item.status === 'active' ? 'جاري' : 
+                      {
                        item.status === 'pending' ? 'قيد المراجعة' : 
                        'منتهي'}
                     </span>
@@ -143,12 +145,16 @@ export default function MyPurchasesSection({
                     </span>
                   </div>
                   <button
-                    className={`w-full py-3 rounded-lg font-medium transition-colors cursor-pointer ${
+                    className={`w-full py-3 rounded-lg font-medium transition-colors  ${
                       item.isPaid 
-                        ? 'bg-green-600 hover:bg-green-700' 
-                        : 'bg-[#FA6300] hover:bg-[#e55a00] disabled:bg-[#e55a00]'
+                        ? 'hidden' 
+                        : 'bg-[#FA6300] hover:bg-[#e55a00] disabled:bg-[#e55a00] cursor-pointer'
                     } text-white`}
-                    onClick={() => console.log(item)}
+                    onClick={() => {
+                      if (!item.isPaid) {
+                        navigate(`/payment/${item.auctionId}/winner`);
+                      }
+                    }}
                     disabled={item.isPaid}
                   >
                     {item.isPaid ? 'تم الدفع' : 'اتمام الدفع'}

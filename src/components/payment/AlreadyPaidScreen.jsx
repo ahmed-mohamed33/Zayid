@@ -17,7 +17,9 @@ function AlreadyPaidScreen({ type, onBackToAuction }) {
               <p className="text-lg text-gray-700 mb-6">
                 {type === "shroot"
                   ? "لقد قمت بدفع الشروط لهذا المزاد من قبل"
-                  : "لقد قمت بدفع التأمين لهذا المزاد من قبل"}
+                  : type === "insurance"
+                  ? "لقد قمت بدفع التأمين لهذا المزاد من قبل" 
+                  : "لقد قمت بدفع قيمة المزاد من قبل"}
               </p>
               <button
                 onClick={onBackToAuction}

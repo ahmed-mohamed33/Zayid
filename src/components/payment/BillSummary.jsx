@@ -8,6 +8,7 @@ function BillSummary({
   showConfirmation,
   isSubmitting,
   status,
+  auction,
 }) {
   const getButtonText = () => {
     if (isSubmitting) return "جاري المعالجة...";
@@ -28,15 +29,15 @@ function BillSummary({
           <div className="space-y-4 mb-6">
             <div className="flex justify-between items-center">
               <span className="text-lg text-gray-700">
-                {type === "shroot" ? "قيمة الشروط" : "قيمة التأمين"}
+                {type === "shroot" ? "قيمة الشروط" : type === "winner" ? "قيمة المزاد" : "قيمة التأمين"}
               </span>
               <span className="text-2xl font-bold text-gray-900">
                 {getPaymentAmount()} ج.م
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-lg text-gray-700">رسوم الخدمة</span>
-              <span className="text-2xl font-bold text-gray-900">50 ج.م</span>
+              <span className="text-lg text-gray-700" >{type === "winner" ? " قيمة التأمين" : "رسوم الخدمة"}</span>
+              <span className="text-2xl font-bold text-gray-900"> {type === "winner" ? "-" + auction?.insurance?.amount : 50} ج.م</span>
             </div>
           </div>
 
@@ -47,7 +48,7 @@ function BillSummary({
               المبلغ الإجمالي
             </span>
             <span className="text-2xl font-bold text-orange-500">
-              {getPaymentAmount() + 50} ج.م
+              {type === "winner" ? getPaymentAmount() - auction?.insurance?.amount : getPaymentAmount() + 50} ج.م
             </span>
           </div>
 
