@@ -103,6 +103,11 @@ const BiddingChat = ({
         } else {
           setRemainingTime("0:00:00");
           setIsAuctionLive(true);
+          db = getDatabase();
+          const auctionRef = ref(db, `auctions/${auctionId}`);
+          update(auctionRef, { status: "active" }).then(() => {
+            setStatus("active");
+          });
         }
       };
 
@@ -220,18 +225,19 @@ const BiddingChat = ({
     const highestBidAmount =
       bids.length > 0 ? Math.max(...bids.map((b) => Number(b.bidAmount))) : 0;
     if (bids.length > 0 && newBidAmount <= highestBidAmount) {
-Swal.fire({
+      Swal.fire({
         title: "السعر منخفض!",
         text: "السعر المضاف أقل من أعلى سعر حالي!",
         icon: "error",
         confirmButtonText: "حسنًا",
         confirmButtonColor: "#FA6300",
-      });      return;
+      });
+      return;
     }
 
     // تشكايه علي انه مسجل دخول انه صاحب المزاد
     if (!user || !user.uid || user.uid === createdBy) {
-Swal.fire({
+      Swal.fire({
         title: "غير مسموح!",
         text: "صاحب المزاد ما ينفعش يزايد!",
         icon: "warning",
@@ -257,13 +263,14 @@ Swal.fire({
       setBidAmount("");
     } catch (error) {
       console.error("Error updating bid:", error);
-Swal.fire({
+      Swal.fire({
         title: "خطأ!",
         text: "حدث خطأ أثناء إضافة المزايدة، حاول مرة أخرى!",
         icon: "error",
         confirmButtonText: "حسنًا",
         confirmButtonColor: "#FA6300",
-      });    }
+      });
+    }
   };
 
   // ف حاله صاحب المزاد
@@ -312,15 +319,14 @@ Swal.fire({
         auctionId: auctionId,
         auctionTitle: auction.title || "مزاد",
         auctionImage: auction.image || "",
-        isPaid : false,
-
+        isPaid: false,
       });
       update(ref(db, `winners/${auctionId}`), {
         winnerId: winnerBid.userId,
         winnerName: winnerBid.userName,
         winnerBid: winnerBid.bidAmount,
         winnerTime: winnerBid.bidTime,
-        isPaid : false,
+        isPaid: false,
         auctionId: auctionId,
         auctionTitle: auction.title || "مزاد",
         auctionImage: auction.imageUrls?.[0] || "",
@@ -460,7 +466,7 @@ Swal.fire({
           <div className="text-[#2D3142] text-lg font-semibold">
             تبقّى على بدء المزاد:
           </div>
-          <div  className="mt-2 text-2xl font-extrabold text-[#2D3142] tracking-wide animate-pulse">
+          <div className="mt-2 text-2xl font-extrabold text-[#2D3142] tracking-wide animate-pulse">
             {remainingTime}
           </div>
           <div className="mt-4 text-sm text-[#555] italic">

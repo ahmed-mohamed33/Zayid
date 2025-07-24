@@ -40,7 +40,7 @@ const formatAuctionDuration = (startDateStr, endDateStr) => {
 };
 
 function TheauctionPage() {
-  const { auctions, user ,userData } = useContext(UserContext);
+  const { auctions, user, userData } = useContext(UserContext);
   const { auctionId } = useParams();
   const auction = auctions.find((a) => a.id === auctionId);
 
@@ -108,8 +108,6 @@ function TheauctionPage() {
         setIsAuctionLive(now >= startDate && now <= endDate);
         setAuctionStatus(now >= startDate && now <= endDate ? "active" : "ended");
         const db = getDatabase();
-        const auctionRef = ref(db, `auctions/${auctionId}`);
-        update(auctionRef, { status: now >= startDate && now <= endDate ? "active" : "ended" });
         
       };
       checkAuctionTime();
@@ -138,8 +136,12 @@ function TheauctionPage() {
     );
   }
 
- const isUserActive = userData?.isActive === true;
-  if (!isUserActive || auctionStatus === "rejected" || (isAuctionLive && !isParticipant)) {
+  const isUserActive = userData?.isActive === true;
+  if (
+    !isUserActive ||
+    auctionStatus === "rejected" ||
+    (isAuctionLive && !isParticipant)
+  ) {
     return !isUserActive ? (
       <ErrorPage
         message="عذرًا، حسابك غير مفعل بعد. يرجى التواصل مع الدع لتفعيله."
@@ -155,8 +157,7 @@ function TheauctionPage() {
     );
   }
 
-  return ( 
-    
+  return (
     <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
       <div className="flex flex-col md:flex-row mb-6">
         {/* Fixed section */}
@@ -176,7 +177,7 @@ function TheauctionPage() {
 
       {/* Dynamic section */}
       {/**لو دفع الشروط  هيظهر ده */}
-      {user && auction.createdBy && user.uid === auction.createdBy  ? (
+      {user && auction.createdBy && user.uid === auction.createdBy ? (
         <BiddingChat
           auctionId={auctionId}
           isAuctionLive={isAuctionLive}
@@ -196,7 +197,8 @@ function TheauctionPage() {
             </div>
           )}
         </BiddingChat>
-      ) : hasPaidTerms && (auction.status === "approved" || auction.status === "active") ? (
+      ) : hasPaidTerms &&
+        (auction.status === "approved" || auction.status === "active") ? (
         <>
           <CardsInfo
             sellerName={auction?.seller?.name || ""}
