@@ -14,15 +14,16 @@ function NumberCard({ icon, number, label }) {
           <img src={icon} alt={label} className="w-6 h-6" />
         </span>
       </div>
-      <p className="text-2xl font-semibold text-[#333c65e0]">{number || 0}</p>
+      <p className="text-2xl font-semibold text-[#333c65e0]">
+        {number || 0}
+      </p>
       <p className="text-gray-600">{label}</p>
     </div>
   );
 }
 
 function OurNumbers() {
-  const { statistics, paymentStatistics, categoryData, loading } =
-    useDashboardData();
+  const { statistics, paymentStatistics, categoryData, loading } = useDashboardData();
   const [stats, setStats] = useState({
     totalAuctions: 0,
     totalCategories: 0,
@@ -33,19 +34,13 @@ function OurNumbers() {
 
   useEffect(() => {
     if (!loading) {
-      const totalAuctions = auctions.length;
+      const totalAuctions = statistics.reduce((sum, stat) => sum + (stat.title.includes("مزادات") ? stat.value : 0), 0);
       setStats({
         totalAuctions,
         totalCategories: categoryData.labels.length,
-        completedAuctions:
-          statistics.find((stat) => stat.title === "المزادات المنتهية")
-            ?.value || 0,
-        activeAuctions:
-          statistics.find((stat) => stat.title === "المزادات النشطة")?.value ||
-          0,
-        totalUsers:
-          statistics.find((stat) => stat.title === "إجمالي المستخدمين")
-            ?.value || 0,
+        completedAuctions: statistics.find(stat => stat.title === "المزادات المنتهية")?.value || 0,
+        activeAuctions: statistics.find(stat => stat.title === "المزادات النشطة")?.value || 0,
+        totalUsers: statistics.find(stat => stat.title === "إجمالي المستخدمين")?.value || 0, 
       });
     }
   }, [loading, statistics, categoryData]);
@@ -82,7 +77,11 @@ function OurNumbers() {
           number={stats.activeAuctions}
           label="مزاد حالي"
         />
-        <NumberCard icon={Users} number={stats.totalUsers} label="مستخدم" />
+        <NumberCard
+          icon={Users}
+          number={stats.totalUsers}
+          label="مستخدم"
+        />
       </div>
     </div>
   );
