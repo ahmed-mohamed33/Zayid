@@ -9,6 +9,7 @@ import {
   equalTo,
   set,
   get,
+  child,
   update,
 } from 'firebase/database';
 
@@ -215,7 +216,6 @@ export const UserProvider = ({ children }) => {
     if (user) {
       const db = getDatabase();
       const paymentsRef = ref(db, 'payments');
-
       const userPaymentsQuery = query(
         paymentsRef,
         orderByChild('userId'),
@@ -233,7 +233,6 @@ export const UserProvider = ({ children }) => {
               })
             );
             setPayments(userPayments);
-            console.log('✅ Payments loaded in Context:', userPayments);
           } else {
             setPayments([]);
           }
@@ -466,6 +465,53 @@ export const UserProvider = ({ children }) => {
         setUserData(null);
         setLoading(false);
       }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // بتحدث حالات المزادات
+  useEffect(() => {
+    const db = getDatabase();
+    const auctionsRef = ref(db, 'auctions');
+
+    const unsubscribe = onValue(auctionsRef, async (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      await Promise.all(
+        Object.entries(data).map(async ([id, value]) => {
+          const now = new Date();
+          const startDate = new Date(value.startDate);
+          const endDate = new Date(value.endDate);
+          const status = value.status || 'pending';
+
+          if ((status === 'pending' || status === 'active') && now > endDate) {
+            const bids = value.bids ? Object.values(value.bids) : [];
+            const topBid = bids.reduce(
+              (max, bid) =>
+                parseFloat(bid.bidAmount || 0) > parseFloat(max.bidAmount || 0)
+                  ? bid
+                  : max,
+              { bidAmount: 0, userId: null }
+            );
+
+            await update(ref(db, `auctions/${id}`), {
+              status: 'ended',
+              highestBid: topBid.bidAmount,
+              highestBidderId: topBid.userId || null,
+            });
+          } else if (
+            status === 'pending' &&
+            now >= startDate &&
+            now <= endDate
+          ) {
+            await update(ref(db, `auctions/${id}`), {
+              status: 'active',
+            });
+          }
+        })
+      );
     });
 
     return () => unsubscribe();

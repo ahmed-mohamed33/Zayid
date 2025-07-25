@@ -17,15 +17,21 @@ import { getAuctionsByUser, getUserActivities } from '../utils/firebaseUtils';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import Settings from './../components/auction/ProfileSettings';
 import ProfileInfoCard from './../components/profileComponents/ProfileInfoCard';
-import MyAuctionsSection from './../components/profileComponents/MyAuctionsSection';
-import MyPurchasesSection from './../components/profileComponents/MyPurchasesSection';
-import MyActivities from '../components/profileComponents/MyActivities';
+import MyAuctions from './../components/profileComponents/MyAuctionsSection';
+import MyPurchases from './../components/profileComponents/MyPurchasesSection';
+import MyActivities from './../components/profileComponents/MyActivities';
+import {
+  getWonAuctionsByUser,
+  deleteAuction,
+  endAuctionById,
+} from './../utils/auctionUtils';
 
 const Profile = () => {
   const navigate = useNavigate();
 
   //taps
   const [activeTab, setActiveTab] = useState('مزاداتي');
+  // console.log('activeTab:', activeTab);
 
   const categories = [
     { label: 'الملف الشخصي', icon: userIcon },
@@ -34,15 +40,246 @@ const Profile = () => {
   ];
   const [activeCategory, setActiveCategory] = useState(categories[0]);
 
-  // المزادات\\
+  // المزادات
   const [myAuctions, setAuctions] = useState([]);
-  //done
+  const [loadingAuctions, setLoadingAuctions] = useState(true);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          setLoadingAuctions(true);
+          const { data } = await getAuctionsByUser(user.uid);
+
+          if (data) {
+            const auctionEntries = Object.entries(data);
+
+            const allAuctions = await Promise.all(
+              auctionEntries.map(async ([id, value]) => {
+                const bids = value.bids
+                  ? Object.values(value.bids).filter((bid) => bid?.bidAmount)
+                  : [];
+
+                let topBid = { bidAmount: 0, userName: 'لا يوجد مزايدين' };
+                if (bids.length > 0) {
+                  topBid = bids.reduce(
+                    (max, bid) =>
+                      parseFloat(bid.bidAmount) > parseFloat(max.bidAmount)
+                        ? bid
+                        : max,
+                    { bidAmount: 0, userName: 'لا يوجد مزايدين' }
+                  );
+                }
+
+                const now = new Date();
+                const startDate = new Date(value.startDate);
+                const endDate = new Date(value.endDate);
+
+                let status = value.status || 'pending';
+
+                if (
+                  (status === 'pending' || status === 'active') &&
+                  now > endDate
+                ) {
+                  status = 'ended';
+
+                  let topBid = { bidAmount: 0, userId: null };
+                  if (bids.length > 0) {
+                    topBid = bids.reduce(
+                      (max, bid) =>
+                        parseFloat(bid.bidAmount) > parseFloat(max.bidAmount)
+                          ? bid
+                          : max,
+                      { bidAmount: 0, userId: null }
+                    );
+                  }
+
+                  const auctionRef = ref(database, `auctions/${id}`);
+                  await update(auctionRef, {
+                    status: 'ended',
+                    highestBid: topBid.bidAmount,
+                    highestBidderId: topBid.userId || null,
+                  });
+                }
+
+                // ✅ الحالة تبدأ تلقائيًا
+                else if (
+                  status === 'pending' &&
+                  now >= startDate &&
+                  now <= endDate
+                ) {
+                  status = 'active';
+                  const auctionRef = ref(database, `auctions/${id}`);
+                  await update(auctionRef, { status: 'active' });
+                }
+
+                return {
+                  id,
+                  ...value,
+                  finalBid: topBid.bidAmount,
+                  topBidder: topBid.userName,
+                  status,
+                };
+              })
+            );
+
+            const pending = allAuctions.filter(
+              (a) => a.status === 'pending'
+            ).length;
+            const active = allAuctions.filter(
+              (a) => a.status === 'active'
+            ).length;
+            const ended = allAuctions.filter(
+              (a) => a.status === 'ended'
+            ).length;
+
+            setAuctions(allAuctions);
+            setStats({
+              total: allAuctions.length,
+              active,
+              pending,
+              ended,
+            });
+          } else {
+            setAuctions([]);
+          }
+        } catch (error) {
+          console.error('Error loading auctions:', error);
+        } finally {
+          setLoadingAuctions(false);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // المشتريات
   const [loadingPurchases, setLoadingPurchases] = useState(true);
+  const [purchases, setPurchases] = useState([]);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setLoadingPurchases(false);
+        return;
+      }
+
+      try {
+        const { data: wonAuctions } = await getWonAuctionsByUser(user.uid);
+        console.log('✅ Won Auctions:', wonAuctions);
+        if (!wonAuctions || wonAuctions.length === 0) {
+          setPurchases([]);
+        } else {
+          const dbRef = ref(database);
+
+          const purchasesList = await Promise.all(
+            wonAuctions.map(async (win) => {
+              const auctionSnap = await get(
+                child(dbRef, `auctions/${win.auctionId}`)
+              );
+              const auctionData = auctionSnap.val();
+
+              return {
+                auctionId: win.auctionId,
+                title: auctionData?.title || 'مزاد غير معروف',
+                price: win.finalBid,
+                image: auctionData?.imageUrls?.[0],
+                status: auctionData?.status || 'غير معروف',
+                isPaid: win.isPaid,
+              };
+            })
+          );
+
+          setPurchases(purchasesList);
+          console.log('🎯 Final Purchases List:', purchasesList);
+          console.log('purchases state:', purchases);
+        }
+      } catch (err) {
+        console.error('❌ Error fetching purchases:', err);
+      } finally {
+        setLoadingPurchases(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   // النشاطات
-  const [loadingActivities, setLoadingActivities] = useState(true);
   const [activities, setActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setLoadingActivities(true);
+        try {
+          const db = getDatabase();
+          const paymentsSnap = await get(ref(db, 'payments'));
+          const paymentsData = paymentsSnap.exists() ? paymentsSnap.val() : {};
+          const userPayments = Object.values(paymentsData).filter(
+            (p) =>
+              p.userId === user.uid && ['insurance', 'shroot'].includes(p.type)
+          );
+          const auctionIds = [...new Set(userPayments.map((p) => p.auctionId))];
+
+          const listeners = [];
+
+          auctionIds.forEach((auctionId) => {
+            const auctionRef = ref(db, `auctions/${auctionId}`);
+            const listener = onValue(auctionRef, (snapshot) => {
+              const auction = snapshot.val();
+              console.log('🔥 auction data:', auction);
+              if (!auction) return;
+
+              const insurancePayment = userPayments.find(
+                (p) => p.auctionId === auctionId && p.type === 'insurance'
+              );
+              const shrootPayment = userPayments.find(
+                (p) => p.auctionId === auctionId && p.type === 'shroot'
+              );
+
+              let auctionStatus = 'غير معروف';
+              if (auction.status === 'active') {
+                auctionStatus = 'جاري';
+              } else if (auction.status === 'pending') {
+                auctionStatus = 'لم يبدأ بعد';
+              } else if (auction.status === 'ended') {
+                auctionStatus = 'منتهي';
+              }
+
+              const activity = {
+                auctionId,
+                name: auction?.title || 'غير معروف',
+                auctionStatus,
+                insurance: insurancePayment ? 'تم الدفع' : 'لم يتم الدفع',
+                chair: shrootPayment ? 'تم الشراء' : 'لم تُشترى',
+              };
+
+              setActivities((prev) => {
+                const updated = prev.filter((a) => a.id !== auctionId);
+                return [...updated, activity];
+              });
+            });
+
+            listeners.push({ auctionRef, listener });
+          });
+
+          return () => {
+            listeners.forEach(({ auctionRef }) => off(auctionRef));
+          };
+        } catch (err) {
+          console.error('Error fetching activities:', err);
+          setActivities([]);
+        } finally {
+          setLoadingActivities(false);
+        }
+      } else {
+        setActivities([]);
+        setLoadingActivities(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   // stats
   const [loadingStats, setLoadingStats] = useState(true);
   const [stats, setStats] = useState({
@@ -87,79 +324,24 @@ const Profile = () => {
     fetchStats();
   }, []);
 
-  // delete mazad
+  // حذف
   const handleDeleteAuction = async (auctionId) => {
     try {
-      await remove(ref(database, `auctions/${auctionId}`));
-
+      await deleteAuction(auctionId);
       setAuctions((prev) => prev.filter((item) => item.id !== auctionId));
     } catch (err) {
       console.error('❌ Error deleting auction:', err);
     }
   };
 
-  const getWonAuctionsByAnUser = async (userId) => {
-    const db = getDatabase();
-    const auctionsRef = ref(db, 'auctions');
-    const snapshot = await get(auctionsRef);
-
-    if (!snapshot.exists()) return { data: [] };
-
-    const allAuctions = snapshot.val();
-    const wonAuctions = Object.entries(allAuctions)
-      .filter(
-        ([_, auction]) =>
-          auction?.highestBidderId === userId && auction?.status === 'ended'
-      )
-      .map(([auctionId, auction]) => ({
-        auctionId,
-        finalBid: auction.highestBid || 0,
-        isPaid: auction?.payments?.[userId]?.isPaid || false,
-      }));
-
-    return { data: wonAuctions };
-  };
-
-  // end mazad
-  const handleEndAuction = async (auctionId) => {
+  // إنهاء
+  const endAuction = async (auctionId) => {
     try {
-      const auctionRef = ref(database, `auctions/${auctionId}`);
-      const snapshot = await get(auctionRef);
-
-      if (!snapshot.exists()) {
-        alert('المزاد غير موجود');
-        return;
-      }
-
-      const auction = snapshot.val();
-
-      const bidsObject = auction?.bids || {};
-      const bids = Object.values(bidsObject);
-
-      let topBid = { bidAmount: 0, userId: null };
-      if (bids.length > 0) {
-        topBid = bids.reduce(
-          (max, bid) =>
-            parseFloat(bid.bidAmount) > parseFloat(max.bidAmount) ? bid : max,
-          { bidAmount: 0, userId: null }
-        );
-      }
-
-      await update(auctionRef, {
-        status: 'ended',
-        highestBid: topBid.bidAmount,
-        highestBidderId: topBid.userId || null,
-      });
-
+      const result = await endAuctionById(auctionId);
       setAuctions((prev) =>
         prev.map((auction) =>
           auction.id === auctionId
-            ? {
-                ...auction,
-                status: 'ended',
-                highestBid: topBid.bidAmount,
-                highestBidderId: topBid.userId || null,
-              }
+            ? { ...auction, status: 'ended', ...result }
             : auction
         )
       );
@@ -169,6 +351,7 @@ const Profile = () => {
     }
   };
 
+  // handleLogout
   const handleLogout = async () => {
     try {
       const auth = getAuth();
@@ -265,30 +448,31 @@ const Profile = () => {
             </div>
             {/* Tab Content */}
             <div className="p-8">
-              <MyAuctionsSection
-                setAuctions={setAuctions}
-                myAuctions={myAuctions}
-                activeTab={activeTab}
-                endAuction={handleEndAuction}
-                handleDeleteAuction={handleDeleteAuction}
-                setStats={setStats}
-              />
+              {/* مزاداتي */}
+              {activeTab === 'مزاداتي' && (
+                <MyAuctions
+                  myAuctions={myAuctions}
+                  loadingAuctions={loadingAuctions}
+                  handleDeleteAuction={handleDeleteAuction}
+                  endAuction={endAuction}
+                />
+              )}
 
               {/* المشتريات */}
-              <MyPurchasesSection
-                loadingPurchases={loadingPurchases}
-                setLoadingPurchases={setLoadingPurchases}
-                activeTab={activeTab}
-                getWonAuctionsByAnUser={getWonAuctionsByAnUser}
-              />
+              {activeTab === 'المشتريات' && (
+                <MyPurchases
+                  loadingPurchases={loadingPurchases}
+                  purchases={purchases}
+                />
+              )}
+
               {/* النشاطات */}
-              <MyActivities
-                activeTab={activeTab}
-                setLoadingActivities={setLoadingActivities}
-                loadingActivities={loadingActivities}
-                setActivities={setActivities}
-                activities={activities}
-              />
+              {activeTab === 'النشاطات' && (
+                <MyActivities
+                  activities={activities}
+                  loadingActivities={loadingActivities}
+                />
+              )}
             </div>
           </div>
         </main>
