@@ -8,6 +8,7 @@ import CardsInfo from "../components/auction/CardsInfo";
 import PreviewOptions from "../components/auction/PreviewOptions";
 import Insurancepayment from "../components/auction/Insurancepayment";
 import BiddingChat from "../components/auction/BiddingChat";
+import AuctionResults from "../components/auction/AuctionResults";
 import { UserContext } from "../context/UserContext";
 import { getDatabase, ref, onValue, update } from "firebase/database";
 import Loading from "../components/common/Loading";
@@ -106,9 +107,10 @@ function TheauctionPage() {
         const startDate = new Date(auction.startDate);
         const endDate = new Date(auction.endDate);
         setIsAuctionLive(now >= startDate && now <= endDate);
-        setAuctionStatus(now >= startDate && now <= endDate ? "active" : "ended");
+        setAuctionStatus(
+          now >= startDate && now <= endDate ? "active" : "ended"
+        );
         const db = getDatabase();
-        
       };
       checkAuctionTime();
       const interval = setInterval(checkAuctionTime, 60000);
@@ -236,6 +238,10 @@ function TheauctionPage() {
         </>
       ) : (
         <ProductInspection termsPrice={auction?.terms?.price || 0} />
+      )}
+
+      {auctionStatus === "ended" && (
+        <AuctionResults auctionId={auctionId} auction={auction} />
       )}
     </div>
   );

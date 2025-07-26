@@ -7,7 +7,7 @@ import { UserContext } from "../../context/UserContext";
 import { IoIosArrowDown } from "react-icons/io";
 import { IoIosArrowForward } from "react-icons/io";
 import NotificationIcon from "../../assets/icons/notification.svg";
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaCog } from "react-icons/fa";
 import { LuLogOut } from "react-icons/lu";
 
 const ulStyle =
@@ -141,6 +141,13 @@ function Nav() {
                     الحساب الشخصي <FaUser className="w-[16px] h-[16px] mr-6" />
                   </a>
                 </li>
+                {userData?.isAdmin && (
+                  <li className="flex-row justify-content-between items-center gap-2">
+                    <a href="/dashboard">
+                      لوحة الإدارة <FaCog className="w-[16px] h-[16px] mr-14" />
+                    </a>
+                  </li>
+                )}
                 <li className="flex-row justify-content-between items-center gap-2">
                   <a onClick={handleLogout}>
                     تسجيل خروج <LuLogOut className="w-[16px] h-[16px] mr-12" />

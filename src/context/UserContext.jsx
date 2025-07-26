@@ -33,6 +33,8 @@ export const UserProvider = ({ children }) => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userAuctions, setUserAuctions] = useState([]);
+  const [isActive, setIsActive] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Real-time listeners
   useEffect(() => {
@@ -69,24 +71,34 @@ export const UserProvider = ({ children }) => {
               const [_, userData] = userEntry;
               console.log("Found user data:", userData);
               setUserData(userData);
+              setIsActive(userData.isActive);
+              setIsAdmin(userData.isAdmin);
             } else {
               console.log("No user data found for UID:", user.uid);
               setUserData(null);
+              setIsActive(false);
+              setIsAdmin(false);
             }
           } else {
             console.log("No users data exists");
             setUserData(null);
+            setIsActive(false);
+            setIsAdmin(false);
           }
         },
         (error) => {
           console.error("Error fetching user data:", error);
           setUserData(null);
+          setIsActive(false);
+          setIsAdmin(false);
         }
       );
 
       return () => unsubscribe();
     } else {
       setUserData(null);
+      setIsActive(false);
+      setIsAdmin(false);
     }
   }, [user, isAuthenticated]);
   // Get all auctions (publicly available)
@@ -334,7 +346,7 @@ export const UserProvider = ({ children }) => {
         createdAt: new Date().toISOString(),
         email: values.email,
         fullName: values.fullName,
-        isActive: true,
+        isActive: false,
         isAdmin: false,
         isCompany: companyName && companyName.trim() !== "",
         isVerified: false,
@@ -499,6 +511,8 @@ export const UserProvider = ({ children }) => {
         updateUserData,
         setUserData,
         createAuction,
+        isActive,
+        isAdmin,
       }}
     >
       {children}
