@@ -6,6 +6,7 @@ import participantsIcon from "../../assets/icons/participants.svg";
 import noOfBidsIcon from "../../assets/icons/noOfBids.svg";
 import { getDatabase, ref, onValue, update } from "firebase/database";
 import { UserContext } from "../../context/UserContext";
+import { updateAuctionStatus } from "../../utils/firebaseUtils";
 
 const BiddingChat = ({
   auctionId,
@@ -66,10 +67,7 @@ const BiddingChat = ({
           // المزاد خلص
           setAuctionTime("انتهى");
           if (status !== "ended") {
-            const auctionRef = ref(db, `auctions/${auctionId}`);
-            update(auctionRef, { status: "ended" }).then(() => {
-              setStatus("ended");
-            });
+            updateAuctionStatus(auctionId, "ended");
           }
         }
       };
@@ -103,11 +101,7 @@ const BiddingChat = ({
         } else {
           setRemainingTime("0:00:00");
           setIsAuctionLive(true);
-          db = getDatabase();
-          const auctionRef = ref(db, `auctions/${auctionId}`);
-          update(auctionRef, { status: "active" }).then(() => {
-            setStatus("active");
-          });
+          updateAuctionStatus(auctionId, "active");
         }
       };
 

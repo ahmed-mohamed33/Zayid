@@ -59,17 +59,22 @@ function MazadCard({ auctionId }) {
 
   return (
     <div className="card  bg-white">
-   
       <img
         src={auction.imageUrls ? auction.imageUrls[0] : img}
         alt={auction.title}
-        
         className="rounded-t-md w-full h-60 object-cover"
       />
-      <div className={`badge border-none text-[12px] ${auction.status === "approved" ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-800'} absolute top-2 left-2`}>{auction.status === "approved" ? "متاح للمعاينة" : "منتهي"} </div>
+      <div
+        className={`badge border-none text-[12px] ${
+          auction.status === "approved"
+            ? "bg-orange-500 text-white"
+            : "bg-gray-100 text-gray-800"
+        } absolute top-2 left-2`}
+      >
+        {auction.status === "approved" ? "متاح للمعاينة" : "منتهي"}{" "}
+      </div>
 
       <div dir="rtl" className="card-body ">
-      
         <h2 className="card-title text-[#4F5D75]">{auction.title}</h2>
         <p className="text-[#44A46F] font-semibold my-1">
           السعر الابتدائي: {auction.startPrice || "غير محدد"}
@@ -84,7 +89,8 @@ function MazadCard({ auctionId }) {
           <div className="flex items-center justify-center">
             <img className="w-[15px] h-[15px]" src={timer} />
             <p className="text-[#FA6300] mx-1">
-              متبقي: { auction.status === "approved" ? auction.remainingTime : "انتهي"} 
+              متبقي:{" "}
+              {auction.status === "approved" ? auction.remainingTime : "انتهي"}
             </p>
           </div>
         </div>
@@ -99,10 +105,10 @@ function MazadCard({ auctionId }) {
             </button>
           ) : (
             <button
-              className="btn w-full bg-gray-300 text-gray-600 mt-2 flex items-center justify-center cursor-not-allowed"
-              disabled
+              className="btn w-full bg-[#FA6300] text-white mt-2 flex items-center justify-center "
+              onClick={() => navigate(`/auction/${auction.id}`)}
             >
-              <h2 className="mx-2">المزاد انتهي لا يمكن المزايدة</h2>
+              <h2 className="mx-2">تصفح المزاد</h2>
             </button>
           )
         ) : (
