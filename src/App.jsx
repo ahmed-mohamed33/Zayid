@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 // Components
 import Navbar from "./components/common/Nav";
 import Footer from "./components/common/Footer.jsx";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 // Pages .
 import HomePage from "./Pages/HomePage";
@@ -27,6 +28,7 @@ import ContactUs from "./Pages/ContactUs.jsx";
 import Profile from "./Pages/Profile.jsx";
 import Dashboard from "./Pages/Dashboard.jsx";
 import FAq from "./Pages/FAq.jsx";
+import ErrorPage from "./components/common/errorPage.jsx";
 
 function App() {
   return (
@@ -36,30 +38,50 @@ function App() {
           <Navbar />
           <AllDataComponent />
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/products" element={<Products />} />
+
             <Route path="/forgetpass" element={<Forgetpass />} />
-            <Route
-              path="/payment/:auctionId/:type"
-              element={<Payment />}
-            />{" "}
-            {/**غيرت البارامز لان انا بباصي التايب في اللينك*/}
-            <Route path="/auction/:auctionId" element={<TheauctionPage />} />
+
             <Route path="/selectCategory" element={<OnboardingPage />} />
             <Route path="/signUp" element={<SignUp />} />
-            <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route path="/addAuction" element={<AddAuctionPage />} />
+
             <Route path="/auctions" element={<AuctionsPage />} />
-            <Route path="/profile" element={<Profile />} />
             <Route
               path="/terms-and-conditions"
               element={<TermsAndConditions />}
             />
             <Route path="/contact-us" element={<ContactUs />} />
-            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/faq" element={<FAq />} />
+
+            
+            <Route element={<ProtectedRoute requireActive={true} />}>
+              <Route path="/addAuction" element={<AddAuctionPage />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/payment/:auctionId/:type" element={<Payment />} />
+              <Route path="/auction/:auctionId" element={<TheauctionPage />} />
+              <Route path="/onboarding" element={<OnboardingPage />} />
+            </Route>
+
+            
+            <Route
+              element={
+                <ProtectedRoute requireActive={true} requireAdmin={true} />
+              }
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
+            </Route>
+            <Route
+              path="*"
+              element={
+                <ErrorPage
+                  message="عذرًا، الصفحة التي تبحث عنها غير موجودة أو ليس لديك صلاحية الوصول إليها."
+                  redirectTo="/"
+                />
+              }
+            />
           </Routes>
           <Footer />
         </Router>
