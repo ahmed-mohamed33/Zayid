@@ -11,7 +11,7 @@ import HomePage from "./Pages/HomePage";
 import RegisterPage from "./Pages/RegisterPage";
 import Payment from "./Pages/Payment.jsx";
 import Login from "./Pages/Login.jsx";
-import Products from "./Pages/products.jsx";
+
 import Forgetpass from "./Pages/forgetpass.jsx";
 // انا غيرت اسم الصفحه دي علشان المشكله تتحل
 import TheauctionPage from "./Pages/TheauctionPage.jsx";
@@ -56,7 +56,6 @@ function App() {
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="/faq" element={<FAq />} />
 
-            
             <Route element={<ProtectedRoute requireActive={true} />}>
               <Route path="/addAuction" element={<AddAuctionPage />} />
               <Route path="/profile" element={<Profile />} />
@@ -65,7 +64,6 @@ function App() {
               <Route path="/onboarding" element={<OnboardingPage />} />
             </Route>
 
-            
             <Route
               element={
                 <ProtectedRoute requireActive={true} requireAdmin={true} />
