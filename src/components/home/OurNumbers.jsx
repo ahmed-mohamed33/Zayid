@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDashboardData } from "../../hooks/useDashboardData";
+import CountUp from "react-countup";
 import statistic from "../../assets/icons/statistic.svg";
 import Users from "../../assets/icons/profile-2user.svg";
 import Group from "../../assets/icons/Group.svg";
@@ -15,7 +16,14 @@ function NumberCard({ icon, number, label }) {
         </span>
       </div>
       <p className="text-2xl font-semibold text-[#333c65e0]">
-        {number || 0}
+        <CountUp
+          end={number || 0}
+          duration={2.5}
+          delay={0.2}
+          separator=","
+          enableScrollSpy={true}
+          scrollSpyOnce={true}
+        />
       </p>
       <p className="text-gray-600">{label}</p>
     </div>
@@ -23,7 +31,8 @@ function NumberCard({ icon, number, label }) {
 }
 
 function OurNumbers() {
-  const { statistics, paymentStatistics, categoryData, loading } = useDashboardData();
+  const { statistics, paymentStatistics, categoryData, loading } =
+    useDashboardData();
   const [stats, setStats] = useState({
     totalAuctions: 0,
     totalCategories: 0,
@@ -43,13 +52,21 @@ function OurNumbers() {
       };
     }
 
-    const totalAuctions = statistics.reduce((sum, stat) => sum + (stat.title.includes("مزادات") ? stat.value : 0), 0);
+    const totalAuctions = statistics.reduce(
+      (sum, stat) => sum + (stat.title.includes("مزادات") ? stat.value : 0),
+      0
+    );
     return {
       totalAuctions,
       totalCategories: categoryData.labels?.length || 0,
-      completedAuctions: statistics.find(stat => stat.title === "المزادات المنتهية")?.value || 0,
-      activeAuctions: statistics.find(stat => stat.title === "المزادات النشطة")?.value || 0,
-      totalUsers: statistics.find(stat => stat.title === "إجمالي المستخدمين")?.value || 0, 
+      completedAuctions:
+        statistics.find((stat) => stat.title === "المزادات المنتهية")?.value ||
+        0,
+      activeAuctions:
+        statistics.find((stat) => stat.title === "المزادات النشطة")?.value || 0,
+      totalUsers:
+        statistics.find((stat) => stat.title === "إجمالي المستخدمين")?.value ||
+        0,
     };
   }, [loading, JSON.stringify(statistics), JSON.stringify(categoryData)]);
 
@@ -89,11 +106,7 @@ function OurNumbers() {
           number={stats.activeAuctions}
           label="مزاد حالي"
         />
-        <NumberCard
-          icon={Users}
-          number={stats.totalUsers}
-          label="مستخدم"
-        />
+        <NumberCard icon={Users} number={stats.totalUsers} label="مستخدم" />
       </div>
     </div>
   );

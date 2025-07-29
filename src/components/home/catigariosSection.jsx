@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import {
   FaGem,
   FaPaintBrush,
@@ -19,14 +20,37 @@ const categories = [
   { icon: <FaCouch />, label: "أثاث" },
 ];
 
-const Card = ({ icon, label, onClick }) => (
-  <div
-    className="w-[294px] h-[72px] flex items-center justify-center gap-2 bg-gray-100 text-[#2D3142] text-center rounded-xl px-4 py-3 text-[16px] font-medium transition-all duration-300 cursor-pointer"
+const Card = ({ icon, label, onClick, index }) => (
+  <motion.div
+    className="w-[294px] h-[72px] flex items-center justify-center gap-2 bg-gray-100 text-[#2D3142] text-center rounded-xl px-4 py-3 text-[16px] font-medium cursor-pointer"
     onClick={onClick}
+    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+    whileHover={{
+      y: -3,
+      scale: 1.02,
+      boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+    }}
+    whileTap={{
+      scale: 0.98,
+      y: -1,
+    }}
+    transition={{
+      duration: 0.2,
+      ease: "easeOut",
+      delay: index * 0.05,
+    }}
+    viewport={{ once: true, margin: "-20px" }}
   >
-    <span className="w-[24px]">{icon}</span>
+    <motion.span
+      className="w-[24px]"
+      whileHover={{ rotate: 180 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
+      {icon}
+    </motion.span>
     <span className="text-[18px] font-bold">{label}</span>
-  </div>
+  </motion.div>
 );
 
 function Catigarios() {
@@ -39,31 +63,51 @@ function Catigarios() {
   };
   return (
     <section className="py-[96px] px-[56px]">
-      <h2 className="text-center text-2xl text-[#232634] font-bold mb-8">
+      <motion.h2
+        className="text-center text-2xl text-[#232634] font-bold mb-8"
+        initial={{ opacity: 0, y: -30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
         تصفح حسب الفئات
-      </h2>
+      </motion.h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center mb-6">
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center mb-6"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        viewport={{ once: true }}
+      >
         {categories.slice(0, 4).map((cat, idx) => (
           <Card
             key={idx}
+            index={idx}
             icon={cat.icon}
             label={cat.label}
             onClick={() => handleCategoryClick(cat.label)}
           />
         ))}
-      </div>
+      </motion.div>
 
-      <div className="flex justify-center gap-6 flex-wrap">
+      <motion.div
+        className="flex justify-center gap-6 flex-wrap"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+        viewport={{ once: true }}
+      >
         {categories.slice(4).map((cat, idx) => (
           <Card
             key={idx + 4}
+            index={idx + 4}
             icon={cat.icon}
             label={cat.label}
             onClick={() => handleCategoryClick(cat.label)}
           />
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }

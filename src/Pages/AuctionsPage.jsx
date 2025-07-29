@@ -5,11 +5,13 @@ import arrowRight from "../assets/icons/arrow-right.svg";
 import arrowLeft from "../assets/icons/arrow-left.svg";
 import { UserContext } from "../context/UserContext";
 import { useSearchParams } from "react-router-dom";
+import { HiFilter, HiX } from "react-icons/hi";
 const PRODUCTS_PER_PAGE = 6;
 
 const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [filters, setFilters] = useState({
     categories: [],
     productConditions: [],
@@ -54,10 +56,12 @@ const Products = () => {
           filters.auctionStatuses.includes(auction.status);
 
         const matchesMinPrice =
-          !filters.minPrice || auction.startPrice >= parseFloat(filters.minPrice);
+          !filters.minPrice ||
+          auction.startPrice >= parseFloat(filters.minPrice);
 
         const matchesMaxPrice =
-          !filters.maxPrice || auction.startPrice <= parseFloat(filters.maxPrice);
+          !filters.maxPrice ||
+          auction.startPrice <= parseFloat(filters.maxPrice);
 
         const matchesInterest =
           !filters.filterByInterest ||
@@ -104,6 +108,10 @@ const Products = () => {
     setCurrentPage(1);
   };
 
+  const toggleMobileFilters = () => {
+    setShowMobileFilters(!showMobileFilters);
+  };
+
   const renderPagination = () => {
     if (totalPages <= 1) return null;
     let pages = [];
@@ -147,7 +155,10 @@ const Products = () => {
 
         {pages.map((page, idx) =>
           page === "..." ? (
-            <span key={idx} className="w-10 h-10 flex items-center justify-center text-gray-500">
+            <span
+              key={idx}
+              className="w-10 h-10 flex items-center justify-center text-gray-500"
+            >
               ...
             </span>
           ) : (
@@ -177,15 +188,15 @@ const Products = () => {
   };
 
   return (
-    <div className="bg-[#f1f1f1] min-h-screen flex flex-col px-[56px">
-      <main className="container mx-auto flex flex-row flex-1 py-6 px-7">
+    <div className="bg-[#f1f1f1] min-h-screen flex flex-col px-4 md:px-[56px]">
+      <main className="container mx-auto flex flex-col lg:flex-row flex-1 py-6 px-4 md:px-7">
         <section className="flex-1 flex flex-col">
-          <div className="flex flex-row justify-between items-center w-full mb-6">
-            <h2 className="text-right font-bold text-[#2D3142] text-[24px] font-[Almarai]">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center w-full mb-6 gap-4">
+            <h2 className="text-right font-bold text-[#2D3142] text-[20px] lg:text-[24px] font-[Almarai]">
               المزادات المتاحة
             </h2>
             <form
-              className="flex w-full max-w-xl"
+              className="flex w-full lg:max-w-xl"
               onSubmit={handleSearchSubmit}
             >
               <input
@@ -203,21 +214,59 @@ const Products = () => {
               </button>
             </form>
           </div>
-
+          {/* Mobile Filter Toggle */}
+          <div className="lg:hidden mb-4">
+            <button
+              onClick={toggleMobileFilters}
+              className="flex items-center gap-2 bg-white px-4 py-3 rounded-lg shadow-sm border border-gray-200 text-[#2D3142] font-medium hover:bg-gray-50 transition-colors"
+            >
+              <HiFilter className="w-5 h-5" />
+              <span>الفلاتر</span>
+              {showMobileFilters ? (
+                <HiX className="w-5 h-5 mr-auto" />
+              ) : (
+                <span className="mr-auto text-sm text-gray-500">
+                  {filters.categories.length +
+                    filters.productConditions.length +
+                    filters.auctionStatuses.length +
+                    (filters.minPrice ? 1 : 0) +
+                    (filters.maxPrice ? 1 : 0) +
+                    (filters.filterByInterest ? 1 : 0)}{" "}
+                  فلتر نشط
+                </span>
+              )}
+            </button>
+          </div>
+          {/* Mobile Filter Panel */}
+          {showMobileFilters && (
+            <div className="mb-4">
+              <Sidebar
+                onFilterChange={handleFilterChange}
+                filters={filters}
+                categoryFromUrl={categoryFromUrl}
+              />
+            </div>
+          )}
           <div className="flex w-full">
-            <aside className="hidden lg:block w-72 shrink-0">
+            {/* Desktop Sidebar */}
+            <aside className="hidden lg:block w-72 shrink-0 mr-6">
               <Sidebar
                 onFilterChange={handleFilterChange}
                 filters={filters}
                 categoryFromUrl={categoryFromUrl}
               />
             </aside>
+
+            {/* Main Content */}
             <div className="flex-1 flex flex-col">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[24px] mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px] lg:gap-[24px] mb-8">
                 {getPaginatedProducts().length > 0 ? (
-                  getPaginatedProducts().map((product, idx) => (product.status === "approved" || product.status === "ended" ?
-                    <MazadCard key={idx} auctionId={product.id}  />
-                  : null))
+                  getPaginatedProducts().map((product, idx) =>
+                    product.status === "approved" ||
+                    product.status === "ended" ? (
+                      <MazadCard key={idx} auctionId={product.id} />
+                    ) : null
+                  )
                 ) : (
                   <p className="text-center text-gray-500 col-span-full">
                     لا توجد مزادات مطابقة لبحثك.

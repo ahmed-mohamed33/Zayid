@@ -107,12 +107,13 @@ const Sidebar = ({ onFilterChange, filters }) => {
   };
 
   return (
-    <div className="w-64 bg-white rounded-2xl p-4 flex flex-col gap-4 shadow-md text-right font-sans overflow-y-auto">
+    <div className="w-full lg:w-64 bg-white rounded-2xl p-4 flex flex-col gap-4 shadow-md text-right font-sans overflow-y-auto">
       <h2 className="text-lg font-bold text-[#2D3142] mb-2">
         التصفية والفلاتر
       </h2>
 
-      <div className="flex flex-row items-center gap-2 mb-2">
+      {/* Interest Filter */}
+      <div className="flex flex-row items-center gap-2 mb-4">
         <input
           type="checkbox"
           id="interest"
@@ -128,24 +129,25 @@ const Sidebar = ({ onFilterChange, filters }) => {
         </label>
       </div>
 
-      <div className="text-xs text-[#5F626F] mb-1">الفئات</div>
-      <div className="flex flex-col gap-2 mb-4">
+      {/* Categories Section */}
+      <div className="text-xs text-[#5F626F] mb-2">الفئات</div>
+      <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 mb-6">
         {categories.map((cat) => (
           <button
             key={cat.value}
             type="button"
             onClick={() => handleCategoryClick(cat.value)}
-            className={`flex flex-row-reverse items-center justify-end rounded-lg px-4 py-2 text-sm font-medium w-full transition-colors text-right ${
+            className={`flex flex-row-reverse items-center justify-end rounded-lg px-3 py-2 text-sm font-medium w-full transition-colors text-right ${
               selectedCategories.includes(cat.value)
                 ? "bg-[#5F626F] text-white"
                 : "bg-[#F3F4F6] text-[#2D3142] hover:bg-[#E5E7EB]"
             }`}
           >
-            <span>{cat.label}</span>
+            <span className="truncate">{cat.label}</span>
             <img
               src={cat.icon}
               alt="icon"
-              className={`w-5 h-5 ml-2 ${
+              className={`w-5 h-5 ml-2 flex-shrink-0 ${
                 selectedCategories.includes(cat.value)
                   ? "filter brightness-0 invert"
                   : ""
@@ -155,63 +157,80 @@ const Sidebar = ({ onFilterChange, filters }) => {
         ))}
       </div>
 
-      <div className="text-xs text-[#5F626F] mb-1">نطاق السعر</div>
-      <div className="flex flex-col gap-2 mb-4">
-        <label className="text-sm">من</label>
-        <input
-          type="number"
-          value={minPrice}
-          onChange={(e) => handlePriceChange("min", e.target.value)}
-          className="border rounded px-3 py-1"
-        />
-        <label className="text-sm">إلى</label>
-        <input
-          type="number"
-          value={maxPrice}
-          onChange={(e) => handlePriceChange("max", e.target.value)}
-          className="border rounded px-3 py-1"
-        />
+      {/* Price Range Section */}
+      <div className="text-xs text-[#5F626F] mb-2">نطاق السعر</div>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="flex flex-col gap-1">
+          <label className="text-sm text-[#2D3142]">من</label>
+          <input
+            type="number"
+            value={minPrice}
+            onChange={(e) => handlePriceChange("min", e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FA6300] focus:border-transparent"
+            placeholder="0"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm text-[#2D3142]">إلى</label>
+          <input
+            type="number"
+            value={maxPrice}
+            onChange={(e) => handlePriceChange("max", e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FA6300] focus:border-transparent"
+            placeholder="أي سعر"
+          />
+        </div>
       </div>
 
-      <div className="text-sm text-[#2D3142] font-semibold">حالة المنتج</div>
-      {["new", "veryGood", "old"].map((status) => (
-        <label key={status} className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={productConditions.includes(status)}
-            onChange={(e) =>
-              handleCheckboxChange("condition", status, e.target.checked)
-            }
-            className="w-4 h-4"
-          />
-          <span className="text-sm">
-            {status === "new"
-              ? "جديد"
-              : status === "veryGood"
-              ? "جيد جدًا"
-              : "مستعمل"}
-          </span>
-        </label>
-      ))}
-
-      <div className="text-sm text-[#2D3142] font-semibold">حالة المزاد</div>
-      <div className="flex flex-col gap-2">
-        {["approved", "ended"].map((status) => (
+      {/* Product Condition Section */}
+      <div className="text-sm text-[#2D3142] font-semibold mb-2">
+        حالة المنتج
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 mb-4">
+        {["new", "veryGood", "old"].map((status) => (
           <label
             key={status}
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50"
           >
             <input
               type="checkbox"
+              checked={productConditions.includes(status)}
+              onChange={(e) =>
+                handleCheckboxChange("condition", status, e.target.checked)
+              }
+              className="w-4 h-4 accent-[#FA6300]"
+            />
+            <span className="text-sm text-[#2D3142]">
+              {status === "new"
+                ? "جديد"
+                : status === "veryGood"
+                ? "جيد جدًا"
+                : "مستعمل"}
+            </span>
+          </label>
+        ))}
+      </div>
+
+      {/* Auction Status Section */}
+      <div className="text-sm text-[#2D3142] font-semibold mb-2">
+        حالة المزاد
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+        {["approved", "ended"].map((status) => (
+          <label
+            key={status}
+            className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50"
+          >
+            <input
+              type="checkbox"
+              checked={auctionStatuses.includes(status)}
               onChange={(e) =>
                 handleCheckboxChange("status", status, e.target.checked)
               }
-              className="w-4 h-4"
+              className="w-4 h-4 accent-[#FA6300]"
             />
-            <span className="text-sm">
-              {status === "approved"
-                ? "متاح للمعاينة"
-                : "منتهي"}
+            <span className="text-sm text-[#2D3142]">
+              {status === "approved" ? "متاح للمعاينة" : "منتهي"}
             </span>
           </label>
         ))}

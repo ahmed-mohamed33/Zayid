@@ -1,4 +1,11 @@
 import React, { useState } from "react";
+import smsBlack from "../assets/contact/sms-black.svg";
+import messageText from "../assets/contact/message-text.svg";
+import sms from "../assets/contact/sms.svg";
+import call from "../assets/contact/call.svg";
+import location from "../assets/contact/location.svg";
+import clock from "../assets/contact/clock.svg";
+import profile from "../assets/contact/profile.svg";
 
 export default function ContactUs() {
   return (
@@ -18,17 +25,17 @@ export default function ContactUs() {
             <InputField
               label="الاسم"
               placeholder="ادخل اسمك"
-              icon="/src/assets/contact/profile.svg"
+              icon={profile}
             />
             <InputField
               label="البريد الإلكتروني"
               placeholder="ادخل بريدك الإلكتروني"
-              icon="/src/assets/contact/sms-black.svg"
+              icon={smsBlack}
             />
             <InputField
               label="رسالتك"
               placeholder="اكتب رسالتك"
-              icon="/src/assets/contact/message-text.svg"
+              icon={messageText}
               textarea
             />
             <button
@@ -46,22 +53,22 @@ export default function ContactUs() {
         {/* **** Left: Contact Info **** */}
         <div className="space-y-6">
           <ContactCard
-            icon="/src/assets/contact/sms.svg"
+            icon={sms}
             title="البريد الإلكتروني"
             value="support@zayed.com"
           />
           <ContactCard
-            icon="/src/assets/contact/call.svg"
+            icon={call}
             title="رقم الهاتف"
             value="0100 123 4567"
           />
           <ContactCard
-            icon="/src/assets/contact/location.svg"
+            icon={location}
             title="العنوان"
             value="القاهرة، مصر"
           />
           <ContactCard
-            icon="/src/assets/contact/clock.svg"
+            icon={clock}
             title="ساعات العمل"
             value="السبت - الخميس: 10 ص - 6 م"
           />

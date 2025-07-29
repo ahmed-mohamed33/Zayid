@@ -47,7 +47,7 @@ function Nav() {
   };
 
   return (
-    <div className="Navbar flex items-center py-3 px-4 md:px-[56px] bg-[#fff] justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] z-10 sticky top-0 w-full">
+    <div className="Navbar flex items-center py-3 px-4 md:px-[56px] bg-[#fff] justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] z-50 sticky top-0 w-full">
       <div className="rightSide flex items-center">
         <div className="logo ml-2 md:ml-6">
           <img
@@ -200,18 +200,35 @@ function Nav() {
             </div>
           </>
         ) : (
-          <button
-            className="btn bg-[#FA6300] text-[14px] md:text-[16px] font-medium px-4 md:px-6 border-none rounded-lg mx-2 md:mx-4 text-white"
-            onClick={() => navigate("/login")}
-          >
-            تسجيل الدخول
-          </button>
+          <>
+            {/* Desktop Login Button */}
+            <button
+              className="hidden md:block btn bg-[#FA6300] text-[14px] md:text-[16px] font-medium px-4 md:px-6 border-none rounded-lg mx-2 md:mx-4 text-white"
+              onClick={() => navigate("/login")}
+            >
+              تسجيل الدخول
+            </button>
+
+            {/* Mobile Hamburger Menu for Non-Authenticated Users */}
+            <div className="md:hidden">
+              <button
+                onClick={toggleMobileMenu}
+                className="p-2 rounded-md text-gray-700 hover:text-[#FA6300] focus:outline-none"
+              >
+                {isMobileMenuOpen ? (
+                  <HiX className="w-6 h-6" />
+                ) : (
+                  <HiMenu className="w-6 h-6" />
+                )}
+              </button>
+            </div>
+          </>
         )}
       </div>
 
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50">
+        <div className="md:hidden fixed inset-0 z-[60]">
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black bg-opacity-50"
@@ -224,18 +241,26 @@ function Nav() {
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <div className="flex items-center">
-                  {userData?.profileImage ? (
-                    <img
-                      className="w-[40px] h-[40px] rounded-full bg-[#f1f1f1]"
-                      src={userData?.profileImage}
-                      alt="user"
-                    />
+                  {isAuthenticated ? (
+                    <>
+                      {userData?.profileImage ? (
+                        <img
+                          className="w-[40px] h-[40px] rounded-full bg-[#f1f1f1]"
+                          src={userData?.profileImage}
+                          alt="user"
+                        />
+                      ) : (
+                        <FaUser className="w-[32px] h-[32px] rounded-full bg-[#f1f1f1] text-[#e46e37]" />
+                      )}
+                      <span className="mr-3 text-[16px] text-[#2D3142] font-medium">
+                        {userData?.fullName}
+                      </span>
+                    </>
                   ) : (
-                    <FaUser className="w-[32px] h-[32px] rounded-full bg-[#f1f1f1] text-[#e46e37]" />
+                    <span className="mr-3 text-[16px] text-[#2D3142] font-medium">
+                      مرحباً بك في زايد
+                    </span>
                   )}
-                  <span className="mr-3 text-[16px] text-[#2D3142] font-medium">
-                    {userData?.fullName}
-                  </span>
                 </div>
                 <button
                   onClick={closeMobileMenu}
@@ -305,57 +330,85 @@ function Nav() {
 
               {/* Mobile Menu Actions */}
               <div className="p-4 border-t border-gray-200 space-y-3">
-                {/* Notification */}
-                <button className="w-full flex items-center justify-center py-3 px-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                  <img
-                    src={NotificationIcon}
-                    alt="notfication"
-                    className="w-5 h-5 ml-2"
-                  />
-                  <span className="text-gray-700">الإشعارات</span>
-                </button>
+                {isAuthenticated ? (
+                  <>
+                    {/* Notification */}
+                    <button className="w-full flex items-center justify-center py-3 px-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                      <img
+                        src={NotificationIcon}
+                        alt="notfication"
+                        className="w-5 h-5 ml-2"
+                      />
+                      <span className="text-gray-700">الإشعارات</span>
+                    </button>
 
-                {/* Add Auction */}
-                <button
-                  className="w-full btn bg-[#FA6300] text-white py-3 px-4 rounded-lg border-none"
-                  onClick={() => {
-                    navigate("/addAuction");
-                    closeMobileMenu();
-                  }}
-                >
-                  إضافة مزاد جديد
-                </button>
+                    {/* Add Auction */}
+                    <button
+                      className="w-full btn bg-[#FA6300] text-white py-3 px-4 rounded-lg border-none"
+                      onClick={() => {
+                        navigate("/addAuction");
+                        closeMobileMenu();
+                      }}
+                    >
+                      إضافة مزاد جديد
+                    </button>
 
-                {/* Profile */}
-                <a
-                  href="/profile"
-                  className="block w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="text-gray-700">الحساب الشخصي</span>
-                  <FaUser className="w-[16px] h-[16px] text-gray-500" />
-                </a>
+                    {/* Profile */}
+                    <a
+                      href="/profile"
+                      className="block w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                      onClick={closeMobileMenu}
+                    >
+                      <span className="text-gray-700">الحساب الشخصي</span>
+                      <FaUser className="w-[16px] h-[16px] text-gray-500" />
+                    </a>
 
-                {/* Dashboard (Admin only) */}
-                {userData?.isAdmin && (
-                  <a
-                    href="/dashboard"
-                    className="block w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                    onClick={closeMobileMenu}
-                  >
-                    <span className="text-gray-700">لوحة الإدارة</span>
-                    <FaCog className="w-[16px] h-[16px] text-gray-500" />
-                  </a>
+                    {/* Dashboard (Admin only) */}
+                    {userData?.isAdmin && (
+                      <a
+                        href="/dashboard"
+                        className="block w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={closeMobileMenu}
+                      >
+                        <span className="text-gray-700">لوحة الإدارة</span>
+                        <FaCog className="w-[16px] h-[16px] text-gray-500" />
+                      </a>
+                    )}
+
+                    {/* Logout */}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors text-gray-700"
+                    >
+                      <span>تسجيل خروج</span>
+                      <LuLogOut className="w-[16px] h-[16px]" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Login Button for Non-Authenticated Users */}
+                    <button
+                      className="w-full btn bg-[#FA6300] text-white py-3 px-4 rounded-lg border-none"
+                      onClick={() => {
+                        navigate("/login");
+                        closeMobileMenu();
+                      }}
+                    >
+                      تسجيل الدخول
+                    </button>
+
+                    {/* Register Button for Non-Authenticated Users */}
+                    <button
+                      className="w-full flex items-center justify-center py-3 px-4 rounded-lg border border-[#FA6300] text-[#FA6300] hover:bg-[#FA6300] hover:text-white transition-colors"
+                      onClick={() => {
+                        navigate("/signup");
+                        closeMobileMenu();
+                      }}
+                    >
+                      إنشاء حساب جديد
+                    </button>
+                  </>
                 )}
-
-                {/* Logout */}
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center justify-between py-3 px-4 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors text-gray-700"
-                >
-                  <span>تسجيل خروج</span>
-                  <LuLogOut className="w-[16px] h-[16px]" />
-                </button>
               </div>
             </div>
           </div>
