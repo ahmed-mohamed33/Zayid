@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import ProductImages from "../components/auction/ProductImages";
 import ProductDetails from "../components/auction/ProductDetails";
 import ProductDescription from "../components/auction/ProductDescription";
-import ProductInspection from "../components/auction/ProductInspection";
+import ProductInspection from "../components/auction/productInspection";
 import CardsInfo from "../components/auction/CardsInfo";
 import PreviewOptions from "../components/auction/PreviewOptions";
 import Insurancepayment from "../components/auction/Insurancepayment";
