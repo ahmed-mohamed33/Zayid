@@ -142,6 +142,7 @@ export const UserProvider = ({ children }) => {
                 ...data,
                 startDate: data.startDate || null,
                 remainingTime: remainingTime,
+                highestBid: data.highestBid || "0 ج.م",
               };
             }
           );
@@ -206,6 +207,7 @@ export const UserProvider = ({ children }) => {
                   ...data,
                   startDate: data.startDate || null,
                   remainingTime: remainingTime,
+                  highestBid: data.highestBid || "0 ج.م",
                 };
               }
             );

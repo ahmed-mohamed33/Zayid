@@ -163,6 +163,8 @@ const BiddingChat = ({
     }
   }, [status, bids]);
 
+
+//==================================================================
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
     if (!isAuctionLive || status === "ended") {
@@ -176,7 +178,6 @@ const BiddingChat = ({
       return;
     }
 
-    // بتاكد بردو انه دافع علشان لو شغل من لينك مثلا
     if (!hasPaidTerms || !hasPaidInsurance) {
       Swal.fire({
         title: "الدفع غير مكتمل!",
@@ -199,14 +200,14 @@ const BiddingChat = ({
       });
       return;
     }
-    // حساب الحد الأدنى المسموح للمزايدة
+
     const startPrice = Number(auction.startPrice) || 0;
     const minIncrement = Number(auction.minIncrement) || 0;
     const minimumBid = startPrice + minIncrement;
-    // تحقق من أول مزايدة
+
     if (bids.length === 0 && newBidAmount < minimumBid) {
       Swal.fire({
-        title: "  اعد ادخال السعر!",
+        title: "اعد ادخال السعر!",
         text: `السعر الأول يجب أن يكون أكبر من أو يساوي ${minimumBid} ج.م!`,
         icon: "error",
         confirmButtonText: "حسنًا",
@@ -215,7 +216,6 @@ const BiddingChat = ({
       return;
     }
 
-    // اعلي سعر بيتحدث
     const highestBidAmount =
       bids.length > 0 ? Math.max(...bids.map((b) => Number(b.bidAmount))) : 0;
     if (bids.length > 0 && newBidAmount <= highestBidAmount) {
@@ -223,18 +223,6 @@ const BiddingChat = ({
         title: "السعر منخفض!",
         text: "السعر المضاف أقل من أعلى سعر حالي!",
         icon: "error",
-        confirmButtonText: "حسنًا",
-        confirmButtonColor: "#FA6300",
-      });
-      return;
-    }
-
-    // تشكايه علي انه مسجل دخول انه صاحب المزاد
-    if (!user || !user.uid || user.uid === createdBy) {
-      Swal.fire({
-        title: "غير مسموح!",
-        text: "صاحب المزاد ما ينفعش يزايد!",
-        icon: "warning",
         confirmButtonText: "حسنًا",
         confirmButtonColor: "#FA6300",
       });
@@ -254,7 +242,20 @@ const BiddingChat = ({
     const bidsRef = ref(db, `auctions/${auctionId}/bids/${bidId}`);
     try {
       await update(bidsRef, bidData);
+
+      // Update the highest price immediately
+      const auctionRef = ref(db, `auctions/${auctionId}`);
+      const updatedBids = [...bids, bidData];
+      const newHighestBid = Math.max(
+        ...updatedBids.map((b) => Number(b.bidAmount))
+      );
+      const formattedHighestBid = `${newHighestBid} ج.م`;
+      await update(auctionRef, { highestBid: formattedHighestBid });
+
+      // Update local state
+      setBids(updatedBids);
       setBidAmount("");
+      setHighestBid(formattedHighestBid);
     } catch (error) {
       console.error("Error updating bid:", error);
       Swal.fire({
@@ -266,6 +267,7 @@ const BiddingChat = ({
       });
     }
   };
+  // =========================================================================================
 
   // ف حاله صاحب المزاد
   const handleEndAuction = () => {
