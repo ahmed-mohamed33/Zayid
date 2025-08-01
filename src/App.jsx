@@ -1,26 +1,23 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 
 // Components
 import Navbar from "./components/common/Nav";
 import Footer from "./components/common/Footer.jsx";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import NotificationPermissionBanner from "./components/common/NotificationPermissionBanner";
 
 // Pages .
 import HomePage from "./Pages/HomePage";
-
-import RegisterPage from "./Pages/RegisterPage";
 import Payment from "./Pages/Payment.jsx";
 import Login from "./Pages/Login.jsx";
-
 import Forgetpass from "./Pages/forgetpass.jsx";
-// انا غيرت اسم الصفحه دي علشان المشكله تتحل
 import TheauctionPage from "./Pages/TheauctionPage.jsx";
-
 import SignUp from "./Pages/SignUp.jsx";
 import OnboardingPage from "./Pages/OnboardingPage.jsx";
 import AddAuctionPage from "./Pages/AddAuctionPage.jsx";
 import AuctionsPage from "./Pages/AuctionsPage.jsx";
-//to show schema
+
 import AllDataComponent from "./UsserSchema.jsx";
 import { UserProvider } from "../src/context/UserContext.jsx";
 import TermsAndConditions from "./Pages/TermsAndConditions.jsx";
@@ -31,6 +28,23 @@ import FAq from "./Pages/FAq.jsx";
 import ErrorPage from "./components/common/errorPage.jsx";
 
 function App() {
+  // Initialize service worker for notifications
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/firebase-messaging-sw.js")
+        .then((registration) => {
+          console.log(
+            "Service Worker registered with scope:",
+            registration.scope
+          );
+        })
+        .catch((error) => {
+          console.error("Service Worker registration failed:", error);
+        });
+    }
+  }, []);
+
   return (
     <div dir="rtl">
       <UserProvider>
@@ -40,7 +54,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
-            <Route path="/register" element={<RegisterPage />} />
+
             <Route path="/login" element={<Login />} />
 
             <Route path="/forgetpass" element={<Forgetpass />} />
@@ -81,6 +95,7 @@ function App() {
               }
             />
           </Routes>
+          <NotificationPermissionBanner />
           <Footer />
         </Router>
       </UserProvider>

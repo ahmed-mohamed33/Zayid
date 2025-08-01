@@ -13,12 +13,18 @@ import {
 } from "react-icons/fa";
 
 // Import the category images
-import heroArt from "../../assets/images/heroart.png";
-import heroMetal from "../../assets/images/herometal.jpg";
-import heroElectro from "../../assets/images/heroelectro.jpg";
-import heroimg from "../../assets/images/Hero.webp";
-import heroCar from "../../assets/images/herocars1.jpg";
-import heroJewelry from "../../assets/images/herojewlry.jpg";
+const heroArt =
+  "https://res.cloudinary.com/dtdqcxn9c/image/upload/v1754052493/p6f0bhdzphsp6uvsezbr.png";
+const heroMetal =
+  "https://res.cloudinary.com/dtdqcxn9c/image/upload/v1754052503/ibswb4ymiyf6rpk32kj9.jpg";
+const heroElectro =
+  "https://res.cloudinary.com/dtdqcxn9c/image/upload/v1754052497/eblegwli7wwwuzacitaq.jpg";
+const heroimg =
+  "https://res.cloudinary.com/dtdqcxn9c/image/upload/v1754052490/uir1nirvdc6ol7ifdn5j.webp";
+const heroCar =
+  "https://res.cloudinary.com/dtdqcxn9c/image/upload/v1754053837/rgjfljhij6blzscvdaye.jpg";
+const heroJewelry =
+  "https://res.cloudinary.com/dtdqcxn9c/image/upload/v1754053845/i37evom86axj2t4n5vve.jpg";
 
 function HeroSection() {
   const navigate = useNavigate();

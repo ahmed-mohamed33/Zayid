@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   ref,
   get,
@@ -8,29 +8,29 @@ import {
   onValue,
   child,
   off,
-} from 'firebase/database';
+} from "firebase/database";
 
-import { auth, database } from '../config/Firebase';
-import { useNavigate } from 'react-router-dom';
-import userIcon from '../assets/icons/profile.svg';
-import { getAuctionsByUser, getUserActivities } from '../utils/firebaseUtils';
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import Settings from './../components/profileComponents/ProfileSettings';
-import ProfileInfoCard from './../components/profileComponents/ProfileInfoCard';
-import MyAuctionsSection from './../components/profileComponents/MyAuctionsSection';
-import MyPurchasesSection from './../components/profileComponents/MyPurchasesSection';
-import MyActivities from '../components/profileComponents/MyActivities';
+import { auth, database } from "../config/Firebase";
+import { useNavigate } from "react-router-dom";
+import userIcon from "../assets/icons/profile.svg";
+import { getAuctionsByUser, getUserActivities } from "../utils/firebaseUtils";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import Settings from "./../components/profileComponents/ProfileSettings";
+import ProfileInfoCard from "./../components/profileComponents/ProfileInfoCard";
+import MyAuctionsSection from "./../components/profileComponents/MyAuctionsSection";
+import MyPurchasesSection from "./../components/profileComponents/MyPurchasesSection";
+import MyActivities from "../components/profileComponents/MyActivities";
 
 const Profile = () => {
   const navigate = useNavigate();
 
   //taps
-  const [activeTab, setActiveTab] = useState('مزاداتي');
+  const [activeTab, setActiveTab] = useState("مزاداتي");
 
   const categories = [
-    { label: 'الملف الشخصي', icon: userIcon },
-    { label: 'الاعدادات', icon: userIcon },
-    { label: 'تسجيل الخروج', icon: userIcon },
+    { label: "الملف الشخصي", icon: userIcon },
+    { label: "الاعدادات", icon: userIcon },
+    { label: "تسجيل الخروج", icon: userIcon },
   ];
   const [activeCategory, setActiveCategory] = useState(categories[0]);
 
@@ -53,10 +53,10 @@ const Profile = () => {
   });
 
   const statsArray = [
-    { label: 'إجمالي المزادات', value: stats.total },
-    { label: 'مزادات نشطة', value: stats.active },
-    { label: 'قيد المراجعة', value: stats.pending },
-    { label: 'منتهية', value: stats.ended },
+    { label: "إجمالي المزادات", value: stats.total },
+    { label: "مزادات نشطة", value: stats.active },
+    { label: "قيد المراجعة", value: stats.pending },
+    { label: "منتهية", value: stats.ended },
   ];
 
   useEffect(() => {
@@ -65,20 +65,20 @@ const Profile = () => {
 
       try {
         const db = getDatabase();
-        const auctionsSnap = await get(ref(db, 'auctions'));
+        const auctionsSnap = await get(ref(db, "auctions"));
 
         const auctions = auctionsSnap.exists()
           ? Object.values(auctionsSnap.val())
           : [];
 
         const total = auctions.length;
-        const active = auctions.filter((a) => a.status === 'active').length;
-        const pending = auctions.filter((a) => a.status === 'pending').length;
-        const ended = auctions.filter((a) => a.status === 'ended').length;
+        const active = auctions.filter((a) => a.status === "active").length;
+        const pending = auctions.filter((a) => a.status === "pending").length;
+        const ended = auctions.filter((a) => a.status === "ended").length;
 
         setStats({ total, active, pending, ended });
       } catch (error) {
-        console.error('❌ Error fetching stats:', error);
+        console.error("❌ Error fetching stats:", error);
       } finally {
         setLoadingStats(false);
       }
@@ -94,18 +94,18 @@ const Profile = () => {
 
       setAuctions((prev) => prev.filter((item) => item.id !== auctionId));
     } catch (err) {
-      console.error('❌ Error deleting auction:', err);
+      console.error("❌ Error deleting auction:", err);
     }
   };
 
   const getWonAuctionsByAnUser = async (userId) => {
     try {
       const db = getDatabase();
-      const winnersRef = ref(db, 'winners');
+      const winnersRef = ref(db, "winners");
       const userAuctionsRef = ref(db, `users/${userId}/auctions`);
       const [winnersSnap, userAuctionsSnap] = await Promise.all([
         get(winnersRef),
-        get(userAuctionsRef)
+        get(userAuctionsRef),
       ]);
 
       if (!userAuctionsSnap.exists()) {
@@ -118,17 +118,17 @@ const Profile = () => {
         .map(([auctionId, auction]) => ({
           auctionId,
           finalBid: auction.winnerBid || 0,
-          isPaid: auction.isPaid ,
-          title: auction.auctionTitle || '',
-          imageUrls: auction.auctionImage ? [auction.auctionImage] : []
+          isPaid: auction.isPaid,
+          title: auction.auctionTitle || "",
+          imageUrls: auction.auctionImage ? [auction.auctionImage] : [],
         }));
 
       return { data: wonAuctions, success: true };
     } catch (error) {
-      console.error('❌ Error fetching won auctions:', error);
+      console.error("❌ Error fetching won auctions:", error);
       return {
         error: error.message,
-        success: false
+        success: false,
       };
     }
   };
@@ -140,7 +140,7 @@ const Profile = () => {
       const snapshot = await get(auctionRef);
 
       if (!snapshot.exists()) {
-        alert('المزاد غير موجود');
+        alert("المزاد غير موجود");
         return;
       }
 
@@ -159,7 +159,7 @@ const Profile = () => {
       }
 
       await update(auctionRef, {
-        status: 'ended',
+        status: "ended",
         highestBid: topBid.bidAmount,
         highestBidderId: topBid.userId || null,
       });
@@ -169,7 +169,7 @@ const Profile = () => {
           auction.id === auctionId
             ? {
                 ...auction,
-                status: 'ended',
+                status: "ended",
                 highestBid: topBid.bidAmount,
                 highestBidderId: topBid.userId || null,
               }
@@ -177,8 +177,8 @@ const Profile = () => {
         )
       );
     } catch (error) {
-      console.error('❌ فشل في إنهاء المزاد:', error);
-      alert('حدث خطأ أثناء إنهاء المزاد');
+      console.error("❌ فشل في إنهاء المزاد:", error);
+      alert("حدث خطأ أثناء إنهاء المزاد");
     }
   };
 
@@ -186,9 +186,9 @@ const Profile = () => {
     try {
       const auth = getAuth();
       await signOut(auth);
-      navigate('/login');
+      navigate("/login");
     } catch (error) {
-      console.error('فشل تسجيل الخروج:', error);
+      console.error("فشل تسجيل الخروج:", error);
     }
   };
 
@@ -202,7 +202,7 @@ const Profile = () => {
               key={cat.label}
               type="button"
               onClick={() => {
-                if (cat.label === 'تسجيل الخروج') {
+                if (cat.label === "تسجيل الخروج") {
                   handleLogout();
                 } else {
                   setActiveCategory(idx);
@@ -210,8 +210,8 @@ const Profile = () => {
               }}
               className={`flex flex-row-reverse items-center justify-end rounded-lg px-4 py-3 text-base font-medium transition-colors w-full text-right border ${
                 activeCategory === idx
-                  ? 'bg-[#FFF6F1] text-[#FA6300] border-[#FA6300]'
-                  : 'bg-[#F3F4F6] text-[#2D3142] border-transparent hover:bg-[#E5E7EB]'
+                  ? "bg-[#FFF6F1] text-[#FA6300] border-[#FA6300]"
+                  : "bg-[#F3F4F6] text-[#2D3142] border-transparent hover:bg-[#E5E7EB]"
               }`}
             >
               {/* Sidebar icon */}
@@ -262,14 +262,14 @@ const Profile = () => {
           <div className="bg-white rounded-xl shadow p-0 overflow-hidden">
             {/* Tabs */}
             <div className="flex gap-8 border-b border-[#E5E7EB] px-8 pt-4">
-              {['مزاداتي', 'المشتريات', 'النشاطات'].map((tab) => (
+              {["مزاداتي", "المشتريات", "النشاطات"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`pb-3 text-lg font-semibold transition-colors border-b-2 ${
                     activeTab === tab
-                      ? 'border-[#FA6300] text-[#FA6300]'
-                      : 'border-transparent text-gray-600 hover:text-[#FA6300]'
+                      ? "border-[#FA6300] text-[#FA6300]"
+                      : "border-transparent text-gray-600 hover:text-[#FA6300]"
                   }`}
                 >
                   {tab}

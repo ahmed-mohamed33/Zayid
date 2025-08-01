@@ -10,6 +10,7 @@ import NotificationIcon from "../../assets/icons/notification.svg";
 import { FaUser, FaCog } from "react-icons/fa";
 import { LuLogOut } from "react-icons/lu";
 import { HiMenu, HiX } from "react-icons/hi";
+import NotificationDropdown from "./NotificationDropdown";
 
 const ulStyle =
   "link link-hover mx-2.5 text-gray-700 hover:text-[#FA6300] transition-colors duration-200";
@@ -119,14 +120,8 @@ function Nav() {
           <>
             {/* Desktop Authenticated Menu */}
             <div className="hidden md:flex items-center gap-1">
-              {/* Notification icone */}
-              <div className="pt-2 rounded-[15%] w-[40px] h-[40px] flex justify-center align-middle border-1 shadow-2xl border-[#BFC0C0] cursor-pointer">
-                <img
-                  src={NotificationIcon}
-                  alt="notfication"
-                  className="w-6 h-6"
-                />
-              </div>
+              {/* Notification Dropdown */}
+              <NotificationDropdown />
 
               {/* add mazad BTN */}
               <button

@@ -7,6 +7,7 @@ import noOfBidsIcon from "../../assets/icons/noOfBids.svg";
 import { getDatabase, ref, onValue, update } from "firebase/database";
 import { UserContext } from "../../context/UserContext";
 import { updateAuctionStatus } from "../../utils/firebaseUtils";
+import { sendOutbidNotification } from "../../utils/notificationService";
 
 const BiddingChat = ({
   auctionId,
@@ -255,6 +256,28 @@ const BiddingChat = ({
     try {
       await update(bidsRef, bidData);
       setBidAmount("");
+
+      // Send outbid notifications to previous highest bidders
+      if (bids.length > 0) {
+        const previousHighestBid = bids.reduce((max, current) =>
+          Number(current.bidAmount) > Number(max.bidAmount) ? current : max
+        );
+
+        // Don't send notification to the current bidder
+        if (previousHighestBid.userId !== user.uid) {
+          const auctionData = {
+            id: auctionId,
+            title: auction.title || "المزاد",
+            image: auction.imageUrls?.[0] || "",
+          };
+
+          await sendOutbidNotification(
+            previousHighestBid.userId,
+            auctionData,
+            newBidAmount
+          );
+        }
+      }
     } catch (error) {
       console.error("Error updating bid:", error);
       Swal.fire({
