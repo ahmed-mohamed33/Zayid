@@ -240,7 +240,7 @@ function TheauctionPage() {
         <ProductInspection termsPrice={auction?.terms?.price || 0} />
       )}
 
-      {auctionStatus === "ended" && (
+      {auction.status === "ended" && (
         <AuctionResults auctionId={auctionId} auction={auction} />
       )}
     </div>
