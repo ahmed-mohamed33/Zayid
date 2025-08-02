@@ -118,7 +118,7 @@ function HeroSection() {
   const currentSlideData = slides[currentSlide];
 
   return (
-    <section className="hero-section relative h-screen overflow-hidden">
+    <section className="hero-section relative h-[88.5vh] overflow-hidden">
       {/* Main Content */}
       <div className="relative z-10 h-full flex items-center">
         <AnimatePresence mode="wait">

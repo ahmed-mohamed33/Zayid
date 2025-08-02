@@ -163,6 +163,7 @@ export const UserProvider = ({ children }) => {
                 startDate: data.startDate || null,
                 endDate: data.endDate || null,
                 remainingTime: remainingTime,
+                highestBid: data.highestBid || "0 ج.م",
               };
             }
           );
@@ -261,6 +262,7 @@ export const UserProvider = ({ children }) => {
                   ...data,
                   startDate: data.startDate || null,
                   remainingTime: remainingTime,
+                  highestBid: data.highestBid || "0 ج.م",
                 };
               }
             );
