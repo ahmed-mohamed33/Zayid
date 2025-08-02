@@ -143,6 +143,8 @@ const Products = () => {
       }
     }
 
+    const uniquePages = [...new Set(pages)];
+
     return (
       <div className="flex justify-center items-center gap-2 mb-8">
         <button
@@ -153,17 +155,17 @@ const Products = () => {
           <img src={arrowRight} alt="prev" />
         </button>
 
-        {pages.map((page, idx) =>
+        {uniquePages.map((page, idx) =>
           page === "..." ? (
             <span
-              key={idx}
+              key={`ellipsis-${idx}`}
               className="w-10 h-10 flex items-center justify-center text-gray-500"
             >
               ...
             </span>
           ) : (
             <button
-              key={page}
+              key={`page-${page}`}
               onClick={() => handlePageChange(page)}
               className={`w-10 h-10 rounded-full border flex items-center justify-center transition ${
                 currentPage === page

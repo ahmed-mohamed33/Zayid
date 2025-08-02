@@ -182,6 +182,7 @@ function AddAuctionForm() {
             name: userData.fullName || "",
             email: userData.email || "",
             phone: userData.phone || "",
+            id: userData.userId || "",
           },
           inspection: {
             place: location,

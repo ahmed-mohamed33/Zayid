@@ -9,13 +9,19 @@ const ProtectedRoute = ({
   requireActive = false,
   requireAdmin = false,
 }) => {
-  const { isAuthenticated, loading, isActive, isAdmin } =
+  const { isAuthenticated, loading, isActive, isAdmin, userData } =
     useContext(UserContext);
 
-  if (loading) return <Loading />;
+
+  if (loading || (isAuthenticated && !userData)) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loading message="جاري التحقق من الصلاحيات..." />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
- 
     return (
       <ErrorPage
         message="عذرًا، ليس لديك صلاحية الوصول إلى هذه الصفحة."
@@ -25,7 +31,6 @@ const ProtectedRoute = ({
   }
 
   if (requireActive && isActive !== true) {
-
     return (
       <ErrorPage
         message="عذرًا، حسابك غير مفعل بعد. يرجى التواصل مع الدعم لتفعيله."

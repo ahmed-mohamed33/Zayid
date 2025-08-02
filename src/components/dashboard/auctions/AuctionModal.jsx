@@ -20,9 +20,7 @@ const AuctionModal = ({
 }) => {
   if (!showModal || !selectedAuction) return null;
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
-      
-    });
+    navigator.clipboard.writeText(text).then(() => {});
   };
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -128,20 +126,32 @@ const AuctionModal = ({
                   <span className="font-medium text-gray-700">اسم المزاد:</span>
                   <p className="text-gray-900 mt-1">{selectedAuction.title}</p>
                 </div>
+                <div>
+                  <span className="font-medium text-gray-700">
+                    اسم صاحب المزاد:
+                  </span>
+                  <p className="text-gray-900 mt-1">
+                    {selectedAuction.seller.name} 
+                    
+                  </p>
+                </div>
+                
                 <div className="space-y-4">
-                                    <div >
-                                      <span className="text-gray-700">رقم المزاد:</span>
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-mono text-sm mt-1">{selectedAuction.id}</span>
-                                        <button
-                                          onClick={() => copyToClipboard(selectedAuction.id)}
-                                          className="p-1 hover:bg-gray-100 rounded"
-                                        >
-                                          <FaCopy className="w-3 h-3 text-gray-400" />
-                                        </button>
-                                      </div>
-                                    </div>
-                </div>  
+                  <div>
+                    <span className="text-gray-700">رقم المزاد:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm mt-1">
+                        {selectedAuction.id}
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(selectedAuction.id)}
+                        className="p-1 hover:bg-gray-100 rounded"
+                      >
+                        <FaCopy className="w-3 h-3 text-gray-400" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
                 <div>
                   <span className="font-medium text-gray-700">الفئة:</span>
                   <p className="text-gray-900 mt-1">
@@ -256,8 +266,6 @@ const AuctionModal = ({
               </div>
             )}
           </div>
-          
-         
 
           <div className="mt-6 flex gap-2 justify-end">
             <button

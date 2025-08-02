@@ -112,11 +112,30 @@ export const UserProvider = ({ children }) => {
         if (snapshot.exists()) {
           const allAuctions = Object.entries(snapshot.val()).map(
             // 14-7 2:40 am عملت تعديل اخير هنا عملت الحسبه هنا علشان تكون ف الافيكت
-            ([id, data]) => {
+            async ([id, data]) => {
               const startDate = new Date(data.startDate || null);
+              const endDate = new Date(data.endDate || null);
               const now = new Date();
 
               let remainingTime = "";
+              let currentStatus = data.status || "pending";
+
+              // Check if auction should be active
+              if (
+                now >= startDate &&
+                now <= endDate &&
+                currentStatus === "pending"
+              ) {
+                currentStatus = "active";
+                // Update status in database
+                await update(ref(db, `auctions/${id}`), { status: "active" });
+              }
+              // Check if auction should be ended
+              else if (now > endDate && currentStatus !== "ended") {
+                currentStatus = "ended";
+                // Update status in database
+                await update(ref(db, `auctions/${id}`), { status: "ended" });
+              }
 
               const diffMs = startDate - now;
 
@@ -140,12 +159,17 @@ export const UserProvider = ({ children }) => {
               return {
                 id,
                 ...data,
+                status: currentStatus,
                 startDate: data.startDate || null,
+                endDate: data.endDate || null,
                 remainingTime: remainingTime,
               };
             }
           );
-          setAuctions(allAuctions);
+
+          Promise.all(allAuctions).then((resolvedAuctions) => {
+            setAuctions(resolvedAuctions);
+          });
         } else {
           // sellllllllllllllllllllim
           setAuctions([]);
@@ -159,6 +183,37 @@ export const UserProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
+
+  // Periodic auction status check
+  useEffect(() => {
+    const checkAuctionStatuses = async () => {
+      if (auctions.length === 0) return;
+
+      const db = getDatabase();
+      const now = new Date();
+
+      for (const auction of auctions) {
+        const startDate = new Date(auction.startDate);
+        const endDate = new Date(auction.endDate);
+        const currentStatus = auction.status;
+
+        // Check if auction should be active
+        if (now >= startDate && now <= endDate && currentStatus === "pending") {
+          await update(ref(db, `auctions/${auction.id}`), { status: "active" });
+        }
+        // Check if auction should be ended
+        else if (now > endDate && currentStatus !== "ended") {
+          await update(ref(db, `auctions/${auction.id}`), { status: "ended" });
+        }
+      }
+    };
+
+    // Check every minute
+    const interval = setInterval(checkAuctionStatuses, 60000);
+
+    return () => clearInterval(interval);
+  }, [auctions]);
+
   // Get Auction that user participated in
   useEffect(() => {
     if (user) {
