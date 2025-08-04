@@ -1,6 +1,6 @@
 import React from "react";
 import CustomFileUpload from "../signUp/CustomFileUpload";
-
+import buildings from "../assets/icons/buildings.svg";
 const styles = {
   inputBase: `
     block w-full rounded-md bg-white p-4 text-base text-gray-900 
@@ -43,7 +43,7 @@ export default function CompanyFields({
           />
           <div className={styles.inputIcon}>
             <img
-              src="src\assets\icons\buildings.svg"
+              src={buildings}
               alt="buildings"
               className="input-icon"
             />

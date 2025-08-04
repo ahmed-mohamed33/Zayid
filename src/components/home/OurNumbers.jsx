@@ -7,6 +7,7 @@ import Group from "../../assets/icons/Group.svg";
 import sandClock from "../../assets/icons/sandClock.svg";
 import clock from "../../assets/icons/clock.svg";
 
+
 function NumberCard({ icon, number, label }) {
   return (
     <div className="bg-[#F1F1F1] p-6 rounded-lg shadow-md">
@@ -84,6 +85,7 @@ function OurNumbers() {
 
   return (
     <div className="px-[56px] py-[96px] text-center">
+      
       <h2 className="text-2xl font-bold text-gray-700 mb-6">إحصائيات</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
         <NumberCard

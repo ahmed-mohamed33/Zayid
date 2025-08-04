@@ -1,6 +1,6 @@
 import React from 'react';
 import { Field, ErrorMessage } from 'formik';
-
+import calendar from "../assets/icons/calendar.svg";
 const styles = {
   inputBase: `
     block w-full rounded-md bg-white p-4 text-base text-gray-900 
@@ -29,7 +29,7 @@ export default function DateField({ name, label }) {
           className={styles.inputBase}
         />
         <div className={styles.inputIcon}>
-          <img src="src\assets\icons\calendar.svg" alt="calendar" className="input-icon w-5 h-5" />
+          <img src={calendar} alt="calendar" className="input-icon w-5 h-5" />
         </div>
       </div>
       <ErrorMessage name={name} component="div" className="text-red-600 text-sm mt-1" />

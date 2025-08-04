@@ -1,6 +1,8 @@
 import React from 'react';
 import { Field, ErrorMessage } from 'formik';
-
+import lock from "../assets/icons/lock-register.svg";
+import eye from "../assets/icons/eye.svg";
+import eyeOff from "../assets/icons/eye-off.svg";
 const styles = {
   inputBase: `
     block w-full rounded-md bg-white p-4 text-base text-gray-900 
@@ -31,7 +33,7 @@ export default function PasswordField({ name, label, placeholder, showPassword, 
           className={styles.inputBase}
         />
         <div className={styles.inputIcon}>
-          <img src="src\assets\icons\lock-register.svg" alt="lock" className="input-icon" />
+          <img src={lock} alt="lock" className="input-icon" />
         </div>
         <button
           type="button"
@@ -39,7 +41,7 @@ export default function PasswordField({ name, label, placeholder, showPassword, 
           className="absolute left-3 top-1/2 -translate-y-1/2 focus:outline-none"
         >
           <img
-            src={showPassword ? '/src/assets/icons/eye-off.svg' : '/src/assets/icons/eye.svg'}
+            src={showPassword ? eyeOff : eye}
             alt="toggle visibility"
             className="input-icon"
           />

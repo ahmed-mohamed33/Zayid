@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { uploadToCloudinaryNationalID } from "../utils/CloudinaryNationalID";
 import { uploadToCloudinaryCommercialRecord } from "../utils/CloudinaryCommercialRecord";
-
+import uploadIcon from "../assets/icons/Frame.svg";
 export default function CustomFileUpload({
   onImageSelect,
   documentType = "nationalId",
@@ -106,7 +106,7 @@ export default function CustomFileUpload({
           </>
         ) : (
           <>
-            <img src="src\assets\icons\Frame.svg" alt="رفع" className="w-6 h-6" />
+            <img src={uploadIcon} alt="رفع" className="w-6 h-6" />
             <span className="text-gray-400">{getUploadText()}</span>
           </>
         )}

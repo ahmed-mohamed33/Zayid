@@ -54,13 +54,13 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
-
+            <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/login" element={<Login />} />
 
             <Route path="/forgetpass" element={<Forgetpass />} />
 
             <Route path="/selectCategory" element={<OnboardingPage />} />
-            <Route path="/signUp" element={<SignUp />} />
+            
 
             <Route path="/auctions" element={<AuctionsPage />} />
             <Route
@@ -75,9 +75,10 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/payment/:auctionId/:type" element={<Payment />} />
               <Route path="/auction/:auctionId" element={<TheauctionPage />} />
-              <Route path="/onboarding" element={<OnboardingPage />} />
+              
             </Route>
-
+            
+            <Route path="/signUp" element={<SignUp />} />
             <Route
               element={
                 <ProtectedRoute requireActive={true} requireAdmin={true} />
