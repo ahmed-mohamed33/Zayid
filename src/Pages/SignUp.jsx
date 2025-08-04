@@ -118,8 +118,8 @@ export default function SignUp() {
   return (
     <>
       {isAuthenticated && navigate("/")}
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12  lg:px-8 bg-auth">
-        <div className="w-full max-w-[794px] px-[24px] py-[24px] mx-auto bg-white rounded-3xl flex flex-col items-start">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-4 md:px-6 py-12  lg:px-8 bg-auth">
+        <div className="w-full max-w-[794px] px-[16px] md:px-6 py-[24px] mx-auto bg-white rounded-3xl flex flex-col items-start">
           {/* Header */}
           <img alt="logo-zayid" src={logo} className="size-logo" />
           <h3 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900">

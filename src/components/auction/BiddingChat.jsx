@@ -62,7 +62,7 @@ const BiddingChat = ({
           const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
           setAuctionTime(
-            `ينتهي خلال: ${days} يوم و ${hours} ساعة و ${minutes} دقيقة و ${seconds} ثانية`
+            ` ${days} يوم و ${hours} ساعة و ${minutes} دقيقة و ${seconds} ثانية`
           );
         } else {
           // المزاد خلص
@@ -164,8 +164,7 @@ const BiddingChat = ({
     }
   }, [status, bids]);
 
-
-//==================================================================
+  //==================================================================
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
     if (!isAuctionLive || status === "ended") {
@@ -360,9 +359,15 @@ const BiddingChat = ({
   const stats = useMemo(
     () => [
       {
-        label: `${auctionTime} `,
+        label: (
+          <div className=" w-full flex flex-col md:flex-row"> 
+          <p>ينتهي خلال:</p>
+          <span>{auctionTime}</span>  
+          </div>
+        ),
         icon: <img src={calendarIcon} alt="calendar" className="w-5 h-5" />,
-        color: "border-[#FA6300] bg-[rgba(250,99,0,0.1)] text-[#702D00]",
+        color:
+          "border-[#FA6300] bg-[rgba(250,99,0,0.1)] text-[#702D00] px-2 py-1 rounded gap-1",
       },
       {
         label: `عدد المشاركين : ${participantsCount}`,
@@ -387,7 +392,7 @@ const BiddingChat = ({
 
   return (
     <div
-      className="bg-white rounded-2xl border border-[#BFC0C0] p-6 w-full mt-8 relative"
+      className="bg-white rounded-2xl border border-[#BFC0C0] p-4 md:px-6 w-full mt-8 relative"
       dir="rtl"
     >
       <h2 className="text-2xl font-bold text-[#2D3142] text-right mb-4">
@@ -458,7 +463,7 @@ const BiddingChat = ({
           </button>
         </div>
       ) : status !== "ended" ? (
-        <div className="flex h-12">
+        <div className="flex h-12 ">
           <input
             type="text"
             value={bidAmount}
@@ -469,7 +474,7 @@ const BiddingChat = ({
           />
           <button
             onClick={handleBidSubmit}
-            className="bg-[#FA6300] hover:bg-[#e55a00] text-white font-bold px-4 py-3 rounded-l-lg transition-colors duration-200"
+            className="bg-[#FA6300] hover:bg-[#e55a00] text-white font-bold px-2 py-3 rounded-l-lg transition-colors duration-200"
             disabled={!isAuctionLive || status === "ended"}
           >
             أضف سعرك

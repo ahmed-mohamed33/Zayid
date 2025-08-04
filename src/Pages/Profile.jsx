@@ -225,7 +225,7 @@ const Profile = () => {
       {activeCategory === 1 ? (
         <Settings />
       ) : (
-        <main className="flex-1 flex flex-col gap-6">
+        <main className="  flex-col gap-6 md:w-full w-full" >
           {/* user data */}
           <ProfileInfoCard />
 

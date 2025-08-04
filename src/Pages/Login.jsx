@@ -37,7 +37,7 @@ export default function Login() {
     <div className="min-h-screen flex bg-[#F1F1F1]">
       {/* Right Side Form (now first) */}
       <div className="flex w-full my-6  md:w-1/2 items-center justify-center">
-        <form onSubmit={formik.handleSubmit} className="w-full max-w-md bg-white rounded-3xl shadow-lg p-6 flex flex-col items-center" dir="rtl">
+        <form onSubmit={formik.handleSubmit} className="w-full max-w-md bg-white rounded-3xl shadow-lg p-4 md:p-6 flex flex-col items-center" dir="rtl">
           {/* Logo and Title */}
           <div className="flex flex-row gap-1 items-center mb-4 w-full">
             <img src={Logo} alt="زايد" className=" h-16 rounded-full mb-2 flex items-start justify-start" />

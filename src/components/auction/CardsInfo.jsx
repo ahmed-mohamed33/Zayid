@@ -6,7 +6,7 @@ import { useTermsActions } from "../../hooks/useTermsActions";
 
 const CardItem = ({ title, children }) => {
   return (
-    <div className="max-w-sm p-4   bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+    <div className=" p-4 w-full  bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
       <div className=" mb-2">
         <h3 className="text-lg font-semibold py-2 text-gray-800">{title}</h3>
       </div>
@@ -48,7 +48,7 @@ function CardsInfo({ sellerName, insurancePrice, lowestBid, sellerLocation, auct
 
   return (
     <>
-      <div className="py-4  grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="py-4 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <CardItem title="معلومات المزاد">
           <p className=" font-bold my-2 ">أقل مزايده : {lowestBid} ج.م</p>
           <p className=" font-bold my-3 ">مبلغ التأمين {insurancePrice} ج.م</p>

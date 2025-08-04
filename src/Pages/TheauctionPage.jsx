@@ -160,7 +160,7 @@ function TheauctionPage() {
   }
 
   return (
-    <div className="flex flex-col w-full min-h-screen p-7 bg-[#F1F1F1]">
+    <div className="flex flex-col w-full min-h-screen px-4 md:px-6 lg:px-14 py-6 bg-[#F1F1F1]">
       <div className="flex flex-col md:flex-row mb-6">
         {/* Fixed section */}
         <ProductImages imageUrls={auction.imageUrls} />
@@ -173,6 +173,7 @@ function TheauctionPage() {
           type={auction.type}
           condition={displayCondition}
           startDate={auction.startDate}
+          hasPaidTerms={hasPaidTerms}
         />
       </div>
       <ProductDescription description={auction.description} />

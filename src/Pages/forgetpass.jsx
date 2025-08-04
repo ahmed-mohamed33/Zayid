@@ -63,10 +63,10 @@ export default function Forgetpass() {
   });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F1F1F1]">
+    <div className="min-h-screen flex items-center p-4 justify-center bg-[#F1F1F1]">
       <form
         onSubmit={formik.handleSubmit}
-        className="w-full max-w-md bg-white rounded-3xl shadow-lg p-10 flex flex-col items-center"
+        className="w-full max-w-md bg-white rounded-3xl shadow-lg p-4 md:p-10 flex flex-col items-center"
         dir="rtl"
       >
         <div className="flex flex-row gap-1 items-center mb-8 w-full">
