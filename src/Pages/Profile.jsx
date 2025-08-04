@@ -193,7 +193,7 @@ const Profile = () => {
   };
 
   return (
-    <div className="flex w-full gap-6 justify-between bg-[#F6F6F6]  p-6">
+    <div className="flex w-full gap-6 justify-between bg-[#F6F6F6]  p-4 md:px-6 ">
       {/* Sidebar */}
       <aside className=" bg-white rounded-xl border border-[#E5E7EB] hidden lg:block w-72 shrink-0 min-h-[600px] ">
         <div className=" p-4 flex flex-col gap-2 mb-4">

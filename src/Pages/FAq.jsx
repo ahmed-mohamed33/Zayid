@@ -94,8 +94,8 @@ export default function FAq() {
   };
 
   return (
-    <div className="rtl bg-gray-100 min-h-screen font-sans flex flex-col items-center py-12 px-2 w-full">
-      <div className="w-full max-w-full mx-auto px-4 md:px-8 lg:px-16">
+    <div className="rtl bg-gray-100 min-h-screen font-sans flex flex-col items-center py-12 w-full ">
+      <div className="w-full max-w-full mx-auto px-4 md:px-6 lg:px-14">
         <h2 className="text-3xl md:text-4xl font-bold text-right mb-10 text-gray-800">
           الأسئلة الشائعة
         </h2>

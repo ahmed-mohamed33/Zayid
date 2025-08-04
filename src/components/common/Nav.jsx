@@ -48,7 +48,7 @@ function Nav() {
   };
 
   return (
-    <div className="Navbar flex items-center py-3 px-4 md:px-[56px] bg-[#fff] justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] z-50 sticky top-0 w-full">
+    <div className="Navbar flex items-center py-3 px-4 md:px-[56px] bg-[#fff] justify-between shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] z-50 sticky top-0 w-full  lg:px-[24px] xl:px-[56px]">
       <div className="rightSide flex items-center">
         <div className="logo ml-2 md:ml-6">
           <img
@@ -198,7 +198,7 @@ function Nav() {
           <>
             {/* Desktop Login Button */}
             <button
-              className="hidden md:block btn bg-[#FA6300] text-[14px] md:text-[16px] font-medium px-4 md:px-6 border-none rounded-lg mx-2 md:mx-4 text-white"
+              className="hidden md:block btn bg-[#FA6300] text-[14px] md:text-[16px] font-medium px-4 md:px-6 border-none rounded-lg  text-white"
               onClick={() => navigate("/login")}
             >
               تسجيل الدخول

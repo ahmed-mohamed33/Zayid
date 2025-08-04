@@ -84,7 +84,7 @@ function OurNumbers() {
   }
 
   return (
-    <div className="px-[56px] py-[96px] text-center">
+    <div className="px-4 md:px-6 lg:px-14 py-[96px] text-center">
       
       <h2 className="text-2xl font-bold text-gray-700 mb-6">إحصائيات</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">

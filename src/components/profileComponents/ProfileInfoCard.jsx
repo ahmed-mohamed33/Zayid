@@ -62,7 +62,8 @@ export default function ProfileInfoCard() {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow p-6 flex flex-row items-center justify-between">
+      <div className="bg-white rounded-xl shadow p-4 flex flex-col sm:flex-row w-full sm:justify-between gap-6">
+
         <div className="flex items-center gap-6">
           {/* الصورة */}
           {loading ? (

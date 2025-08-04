@@ -214,7 +214,7 @@ function AddAuctionForm() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-3xl max-md:w-full w-[75%]">
+    <div className="bg-white md:p-6 p-4 rounded-3xl sm:w-full w-[100%] lg ">
       <div className="text-[#2d3142] text-2xl font-bold mb-6">
         إضافة منتج للمزايدة
       </div>

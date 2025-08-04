@@ -167,7 +167,7 @@ const Products = () => {
             <button
               key={`page-${page}`}
               onClick={() => handlePageChange(page)}
-              className={`w-10 h-10 rounded-full border flex items-center justify-center transition ${
+              className={`w-10 h-10 rounded-full border hidden items-center justify-center transition md:inline px-2 py-1 ${page === currentPage ? "bg-gray-300" : ""} ${
                 currentPage === page
                   ? "bg-[#4F5D75] text-white"
                   : "bg-white text-gray-500 border-gray-300 hover:bg-gray-200"
@@ -190,8 +190,8 @@ const Products = () => {
   };
 
   return (
-    <div className="bg-[#f1f1f1] min-h-screen flex flex-col px-4 md:px-[56px]">
-      <main className="container mx-auto flex flex-col lg:flex-row flex-1 py-6 px-4 md:px-7">
+    <div className="bg-[#f1f1f1] min-h-screen flex flex-col px-4 md:px-6 lg:px-14 ">
+      <main className="container  flex flex-col lg:flex-row flex-1 py-6 ">
         <section className="flex-1 flex flex-col">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center w-full mb-6 gap-4">
             <h2 className="text-right font-bold text-[#2D3142] text-[20px] lg:text-[24px] font-[Almarai]">
@@ -210,7 +210,7 @@ const Products = () => {
               />
               <button
                 type="submit"
-                className="text-white px-[15px] py-[11px] rounded-l-[8px] bg-[#FA6300]"
+                className="text-white px-[16px] py-[11px] rounded-l-[8px] bg-[#FA6300]"
               >
                 بحث
               </button>
@@ -227,7 +227,7 @@ const Products = () => {
               {showMobileFilters ? (
                 <HiX className="w-5 h-5 mr-auto" />
               ) : (
-                <span className="mr-auto text-sm text-gray-500">
+                <span className=" text-sm text-gray-500">
                   {filters.categories.length +
                     filters.productConditions.length +
                     filters.auctionStatuses.length +
@@ -251,7 +251,7 @@ const Products = () => {
           )}
           <div className="flex w-full">
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:block w-72 shrink-0 mr-6">
+            <aside className="hidden lg:block w-72 shrink-0">
               <Sidebar
                 onFilterChange={handleFilterChange}
                 filters={filters}

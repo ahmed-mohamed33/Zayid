@@ -48,7 +48,7 @@ function TopMazad() {
   };
 
   return (
-    <section dir="rtl" className="py-10 bg-[#F1F1F1] px-[56px] overflow-hidden">
+    <section dir="rtl" className="py-10 bg-[#F1F1F1] px-4 md:px-6 lg:px-14  overflow-hidden">
       <motion.h2
         className="text-center text-2xl font-bold text-gray-700 mb-8"
         initial={{ opacity: 0, y: -30 }}

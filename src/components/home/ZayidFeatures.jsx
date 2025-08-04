@@ -71,7 +71,7 @@ function FeatureCard({ icon, title, desc, index }) {
 
 function ZayidFeatures() {
   return (
-    <div className=" px-[56px] bg-[#F1F1F1] py-[96px] text-center">
+    <div className=" px-4 md:px-6 lg:px-14  bg-[#F1F1F1] py-[96px] text-center">
       <h2 className="text-2xl font-bold text-gray-700 mb-6">مميزات المنصة</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         <FeatureCard

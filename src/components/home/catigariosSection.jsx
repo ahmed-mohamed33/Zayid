@@ -62,7 +62,7 @@ function Catigarios() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   return (
-    <section className="py-[96px] px-[56px]">
+    <section className="py-[96px] px-4 md:px-6 lg:px-14 ">
       <motion.h2
         className="text-center text-2xl text-[#232634] font-bold mb-8"
         initial={{ opacity: 0, y: -30 }}

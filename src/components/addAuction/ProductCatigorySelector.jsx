@@ -35,7 +35,8 @@ export default function ProductCategorySelector({
           my-2
           sm:grid-cols-3
           md:grid-cols-4
-          mx-auto
+          mx-0
+
         "
       >
         {categories.map((cat, i) => {
@@ -48,7 +49,7 @@ export default function ProductCategorySelector({
               onClick={() => setSelectedCategory(cat.label)}
               className={`
                 flex gap-2 justify-center items-center
-                px-4 py-3
+                px-0 py-3
                 border rounded-lg w-full
                 text-[18px] font-medium
                 cursor-pointer

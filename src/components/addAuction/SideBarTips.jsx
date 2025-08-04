@@ -7,7 +7,7 @@ const lineStyle = "flex gap-1 justify-start items-center  ";
 
 export default function sideBarTips() {
   return (
-    <div className="bg-white border-r-4 border-[#fa6300] rounded-[16px] p-6 w-full flex flex-col gap-5 max-lg:hidden">
+    <div className="bg-white border-r-4 border-[#fa6300] rounded-[16px] px-4 py-6 w-full flex flex-col gap-5 max-lg:hidden">
       <h3 className="text-[24px] font-bold text-[#2D3142] max-lg:text-[18px]">
         نصائح لإنشاء مزاد ناجح
       </h3>

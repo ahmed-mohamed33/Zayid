@@ -58,7 +58,7 @@ function MazadCard({ auctionId }) {
   }
 
   return (
-    <div className="card  bg-white">
+    <div className="card bg-white w-full min-w-0 overflow-hidden break-words">
       <img
         src={auction.imageUrls ? auction.imageUrls[0] : img}
         alt={auction.title}
@@ -99,7 +99,7 @@ function MazadCard({ auctionId }) {
             }`}
           >
             <img className="w-[15px] h-[15px]" src={timer} />
-            <p className="text-[#FA6300] mx-1 overflow-hidden max-w-[100px] text-ellipsis whitespace-nowrap">
+            <p className="text-[#FA6300] mx-1 overflow-hidden max-w-[100px] text-ellipsis whitespace-nowrap ">
               متبقي:{" "}
               {auction.status === "approved" ? auction.remainingTime : "انتهي"}
             </p>
@@ -109,14 +109,14 @@ function MazadCard({ auctionId }) {
           auction.status === "approved" ? (
             <button
               onClick={handleAuctionClick}
-              className="btn w-full h-[48px] border-none rounded-lg bg-[#4F5D75] text-white mt-2 flex items-center justify-center"
+              className="btn w-full h-[48px] border-none rounded-lg bg-[#4F5D75] text-white mt-2  items-center justify-center"
             >
               <h2 className="mx-2">زايد الان</h2>
               <img src={hummer} alt="bid" />
             </button>
           ) : (
             <button
-              className="btn w-full h-[48px] border-none rounded-lg bg-[#FA6300] text-white mt-2 flex items-center justify-center "
+              className="btn w-full h-[48px] border-none rounded-lg bg-[#FA6300] text-white mt-2  items-center justify-center "
               onClick={() => navigate(`/auction/${auction.id}`)}
             >
               <h2 className="mx-2">تصفح المزاد</h2>

@@ -124,7 +124,7 @@ const MyAuctionsSection = ({
   return (
     <>
       {activeTab === 'مزاداتي' && (
-        <div className="overflow-x-auto min-h-[100px]">
+        <div className="overflow-x-auto min-h-[100px] ">
           {loadingAuctions ? (
             <table className="min-w-full text-right animate-pulse">
               <thead>

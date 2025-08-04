@@ -85,7 +85,7 @@ export default function MyActivities({
     <>
       {' '}
       {activeTab === 'النشاطات' && (
-        <div className="overflow-x-auto min-h-[120px]">
+        <div className="overflow-x-auto min-h-[120px] w-full">
           {loadingActivities ? (
             <table className="min-w-full text-right animate-pulse">
               <thead>

@@ -9,15 +9,15 @@ import profile from "../assets/contact/profile.svg";
 
 export default function ContactUs() {
   return (
-    <div className="bg-[#F1F1F1] min-h-screen pt-10 pb-24 px-4 sm:px-10">
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-6">
+    <div  className="bg-[#F1F1F1] min-h-screen py-6 px-4 md:px-6 lg:px-14 ">
+      <div className=" grid md:grid-cols-2 gap-6">
         {/* **** Right: Contact Form **** */}
         <div
-          style={{ padding: "52px 56px" }}
-          className="bg-white rounded-3xl overflow-hidden"
+      
+          className="py-6 px-4 md:px-6 bg-white rounded-3xl overflow-hidden  "
         >
-          <h2 className="font-bold text-[#2D3142] mb-6 text-4xl">تواصل معنا</h2>
-          <p className="text-[#2D3142] mb-6">
+          <h2 className="font-bold text-[#2D3142] mb-4 text-4xl">تواصل معنا</h2>
+          <p className="text-[#2D3142] mb-4">
             نحن هنا للرد على استفساراتك، دعمك، ومساعدتك بكل ترحيب.
           </p>
 
@@ -44,9 +44,9 @@ export default function ContactUs() {
             >
               إرسال رسالة
             </button>
-            <p className="text-[#2D3142] text-center">
+            {/* <p className="text-[#2D3142] text-center">
               سنقوم بالرد على استفسارك في أقرب وقت ممكن.
-            </p>
+            </p> */}
           </form>
         </div>
 
@@ -83,7 +83,7 @@ function ContactCard({ icon, title, value }) {
   return (
     <div
       style={{ border: "0.5px solid  #B9B9B9" }}
-      className="bg-white rounded-3xl px-6 py-12 flex items-center"
+      className="bg-white rounded-3xl px-6 py-8 flex items-center"
     >
       <div
         className="ml-3 flex justify-center"
@@ -92,7 +92,7 @@ function ContactCard({ icon, title, value }) {
           backgroundColor: "rgba(250, 99, 0, 0.10)",
           height: "48px",
           width: "48px",
-          borderRadius: "26px",
+          borderRadius: "24px",
         }}
       >
         <img className="w-6 h-6 object-contain" src={icon} alt="" />
@@ -133,7 +133,7 @@ function InputField({ label, placeholder, icon, textarea = false }) {
 
       {textarea ? (
         <textarea
-          style={{ height: "112px", resize: "none" }}
+          style={{ height: "96px", resize: "none" }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           onInput={handleChange}
