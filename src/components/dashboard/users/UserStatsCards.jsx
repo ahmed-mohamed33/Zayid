@@ -77,22 +77,23 @@ const UserStatsCards = ({ users }) => {
       {stats.map((stat, index) => (
         <div
           key={index}
-          className={`${stat.bgColor} rounded-lg shadow-sm p-6 border border-gray-200`}
+          className={`${stat.bgColor} rounded-lg shadow-sm p-3 gap-2 border border-gray-200`}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">
-                {stat.title}
-              </p>
+          <div className="flex flex-col ">
+            <div className="flex gap-2">
+              <div
+                className={`w-8 h-8 ${stat.color} rounded-lg flex items-center justify-center`}
+              >
+                <stat.icon className="text-white text-xl" />
+              </div>
               <p className={`text-2xl font-bold ${stat.textColor}`}>
                 {stat.value}
               </p>
             </div>
-            <div
-              className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}
-            >
-              <stat.icon className="text-white text-xl" />
-            </div>
+
+            <p className="text-sm font-medium text-gray-600 mb-1">
+              {stat.title}
+            </p>
           </div>
         </div>
       ))}

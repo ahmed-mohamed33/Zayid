@@ -68,9 +68,9 @@ const AuctionTable = ({
               <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 المزايدة الحالية
               </th>
-              <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {/* <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 عدد المزايدات
-              </th>
+              </th> */}
               <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 الحالة
               </th>
@@ -140,10 +140,10 @@ const AuctionTable = ({
                         {currentBid.toLocaleString()} جنيه
                       </span>
                     ) : (
-                      <span className="text-gray-400">لا توجد مزايدات</span>
+                      <span className="text-gray-400">لا توجد </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <span
                       className={`${
                         bidCount > 0
@@ -151,9 +151,9 @@ const AuctionTable = ({
                           : "text-gray-400"
                       }`}
                     >
-                      {bidCount} {bidCount === 1 ? "مزايدة" : "مزايدات"}
+                      {bidCount} {bidCount === 1 ? "مزايدة" : ""}
                     </span>
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(auction.status)}
                   </td>

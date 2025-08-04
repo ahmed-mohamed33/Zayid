@@ -91,12 +91,14 @@ const UserTable = ({
               <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 رقم الهاتف
               </th>
-              <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {/* i think its not important to be displayed in the table */}
+              {/* <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 الرقم القومي
-              </th>
-              <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              </th> */}
+              {/* متكررة مرتين  */}
+              {/* <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 نوع المستخدم
-              </th>
+              </th> */}
               <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 الحالة
               </th>
@@ -154,17 +156,18 @@ const UserTable = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {user.phone || "غير محدد"}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {user.nationalID || "غير محدد"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                </td> */}
+                
+                {/* <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     {getUserTypeIcon(user.isCompany)}
                     <span className="text-sm text-gray-700">
                       {user.isCompany ? "شركة" : "فرد"}
                     </span>
                   </div>
-                </td>
+                </td> */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   {getStatusBadge(user)}
                 </td>
