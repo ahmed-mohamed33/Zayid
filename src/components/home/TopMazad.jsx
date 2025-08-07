@@ -6,13 +6,12 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { UserContext } from "../../context/UserContext";
-import { Link } from "react-router-dom";
 
 function TopMazad() {
   const sliderRef = useRef(null);
   const { auctions } = useContext(UserContext);
-  const approvedAuctions = auctions.filter(
-    (auction) => auction.status === "approved"
+  const filteredAuctions = auctions.filter(
+    (auction) => auction.status === "approved" || auction.status === "active"
   );
 
   const settings = {
@@ -48,7 +47,10 @@ function TopMazad() {
   };
 
   return (
-    <section dir="rtl" className="py-10 bg-[#F1F1F1] px-4 md:px-6 lg:px-14  overflow-hidden">
+    <section
+      dir="rtl"
+      className="py-10 bg-[#F1F1F1] px-4 md:px-6 lg:px-14  overflow-hidden"
+    >
       <motion.h2
         className="text-center text-2xl font-bold text-gray-700 mb-8"
         initial={{ opacity: 0, y: -30 }}
@@ -66,7 +68,7 @@ function TopMazad() {
         viewport={{ once: true }}
       >
         <Slider ref={sliderRef} {...settings}>
-          {approvedAuctions.map((auction, index) => (
+          {filteredAuctions.map((auction, index) => (
             <motion.div
               key={auction.id}
               className="px-3"
@@ -74,7 +76,7 @@ function TopMazad() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{
                 duration: 0.6,
-                delay: index * 0.1,
+                delay: 0.08,
                 ease: "easeOut",
               }}
               viewport={{ once: true }}

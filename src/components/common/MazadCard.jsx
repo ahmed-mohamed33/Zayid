@@ -68,10 +68,20 @@ function MazadCard({ auctionId }) {
         className={`badge border-none text-[12px] ${
           auction.status === "approved"
             ? "bg-orange-500 text-white"
+            : auction.status === "active"
+            ? "bg-green-500 text-white"
+            : auction.status === "ended"
+            ? "bg-red-500 text-white"
             : "bg-gray-100 text-gray-800"
         } absolute top-2 left-2`}
       >
-        {auction.status === "approved" ? "متاح للمعاينة" : "منتهي"}{" "}
+        {auction.status === "approved"
+          ? "متاح للمعاينة"
+          : auction.status === "active"
+          ? "نشط"
+          : auction.status === "ended"
+          ? "منتهي"
+          : "غير معروف"}
       </div>
 
       <div dir="rtl" className="card-body ">
@@ -89,7 +99,13 @@ function MazadCard({ auctionId }) {
             <h2 className="text-[#4F5D75] mx-2 text-sm">
               المزايدين :{" "}
               {auction?.participants
-                ? Object.keys(auction.participants).length
+                ? Object.keys(auction.participants).filter(
+                    (participant) =>
+                      auction.participants[participant].hasPaidInsurance ===
+                        true &&
+                      auction.participants[participant].hasPurchasedShroot ===
+                        true
+                  ).length
                 : 0}
             </h2>
           </div>

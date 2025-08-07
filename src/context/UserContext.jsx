@@ -29,6 +29,7 @@ export const UserProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [auctions, setAuctions] = useState([]);
+  const [auctionsLoading, setAuctionsLoading] = useState(true);
   const [winners, setWinners] = useState({});
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,6 +107,8 @@ export const UserProvider = ({ children }) => {
     const db = getDatabase();
     const auctionsRef = ref(db, "auctions");
 
+    setAuctionsLoading(true);
+
     const unsubscribe = onValue(
       auctionsRef,
       (snapshot) => {
@@ -170,15 +173,18 @@ export const UserProvider = ({ children }) => {
 
           Promise.all(allAuctions).then((resolvedAuctions) => {
             setAuctions(resolvedAuctions);
+            setAuctionsLoading(false);
           });
         } else {
           // sellllllllllllllllllllim
           setAuctions([]);
+          setAuctionsLoading(false);
         }
       },
       (error) => {
         console.error("Error fetching auctions:", error);
         setAuctions([]);
+        setAuctionsLoading(false);
       }
     );
 
@@ -558,6 +564,7 @@ export const UserProvider = ({ children }) => {
         isAuthenticated,
         setAuctions,
         auctions,
+        auctionsLoading,
         winners,
         payments,
         loading,

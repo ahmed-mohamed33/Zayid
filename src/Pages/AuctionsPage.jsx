@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import Sidebar from "../components/Mazadat/Sidebar";
 import MazadCard from "../components/common/MazadCard";
+import AuctionSkeletonGrid from "../components/common/AuctionSkeletonGrid";
 import arrowRight from "../assets/icons/arrow-right.svg";
 import arrowLeft from "../assets/icons/arrow-left.svg";
 import { UserContext } from "../context/UserContext";
@@ -31,7 +32,7 @@ const Products = () => {
       }));
     }
   }, [categoryFromUrl]);
-  const { auctions, userData } = useContext(UserContext);
+  const { auctions, auctionsLoading, userData } = useContext(UserContext);
   const userInterests = userData?.userInterests || [];
   console.log("User Interests:", userInterests);
 
@@ -78,8 +79,16 @@ const Products = () => {
         );
       })
       .sort((a, b) => {
-        if (a.status === "approved" && b.status !== "approved") return -1;
-        if (a.status !== "approved" && b.status === "approved") return 1;
+        const getPriority = (status) => {
+          if (status === "approved") return 3;
+          if (status === "active") return 2;
+          if (status === "ended") return 1;
+          return 0;
+        };
+        const priorityA = getPriority(a.status);
+        const priorityB = getPriority(b.status);
+        if (priorityA > priorityB) return -1;
+        if (priorityA < priorityB) return 1;
         return 0;
       });
   };
@@ -167,7 +176,9 @@ const Products = () => {
             <button
               key={`page-${page}`}
               onClick={() => handlePageChange(page)}
-              className={`w-10 h-10 rounded-full border hidden items-center justify-center transition md:inline px-2 py-1 ${page === currentPage ? "bg-gray-300" : ""} ${
+              className={`w-10 h-10 rounded-full border hidden items-center justify-center transition md:inline px-2 py-1 ${
+                page === currentPage ? "bg-gray-300" : ""
+              } ${
                 currentPage === page
                   ? "bg-[#4F5D75] text-white"
                   : "bg-white text-gray-500 border-gray-300 hover:bg-gray-200"
@@ -261,24 +272,31 @@ const Products = () => {
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px] lg:gap-[24px] mb-8">
-                {getPaginatedProducts().length > 0 ? (
-                  getPaginatedProducts().map((product, idx) =>
-                    product.status === "approved" ||
-                    product.status === "ended" ? (
-                      <MazadCard key={idx} auctionId={product.id} />
-                    ) : null
-                  )
-                ) : (
-                  <p className="text-center text-gray-500 col-span-full">
-                    لا توجد مزادات مطابقة لبحثك.
-                  </p>
-                )}
-              </div>
+              {auctionsLoading ? (
+                <AuctionSkeletonGrid count={PRODUCTS_PER_PAGE} />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px] lg:gap-[24px] mb-8">
+                  {getPaginatedProducts().length > 0 ? (
+                    getPaginatedProducts().map((product, idx) =>
+                      product.status === "approved" ||
+                      product.status === "active" ||
+                      product.status === "ended" ? (
+                        <MazadCard key={idx} auctionId={product.id} />
+                      ) : null
+                    )
+                  ) : (
+                    <p className="text-center text-gray-500 col-span-full">
+                      لا توجد مزادات مطابقة لبحثك.
+                    </p>
+                  )}
+                </div>
+              )}
 
-              <div className="flex justify-center w-full">
-                {renderPagination()}
-              </div>
+              {!auctionsLoading && (
+                <div className="flex justify-center w-full">
+                  {renderPagination()}
+                </div>
+              )}
             </div>
           </div>
         </section>

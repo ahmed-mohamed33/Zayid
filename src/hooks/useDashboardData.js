@@ -238,12 +238,7 @@ export const useDashboardData = () => {
             icon: FaClipboardList,
             color: "bg-orange-500",
         },
-        {
-            title: "المزادات الجديدة",
-            value: newAuctions,
-            icon: FaGavel,
-            color: "bg-purple-500",
-        },
+
         {
             title: "إجمالي الإيرادات",
             value: totalRevenue.toLocaleString() + " جنيه",
