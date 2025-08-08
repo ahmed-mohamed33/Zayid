@@ -90,7 +90,7 @@ function MazadCard({ auctionId }) {
         <p className="text-[#44A46F] font-semibold my-1 ">
           {auction.status === "approved" ? "السعر الابتدائي:" : "السعر الأعلى:"}{" "}
           {auction.status === "approved"
-            ? auction.startPrice || "غير محدد"
+            ? (auction.startPrice || "غير محدد") + " ج.م"
             : auction.highestBid || "لم يتم المزايدة"}
         </p>
         <div className="flex justify-between items-center">
