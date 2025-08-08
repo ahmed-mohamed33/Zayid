@@ -26,6 +26,7 @@ import Profile from "./Pages/Profile.jsx";
 import Dashboard from "./Pages/Dashboard.jsx";
 import FAq from "./Pages/FAq.jsx";
 import ErrorPage from "./components/common/errorPage.jsx";
+import ChatbotWidget from "./components/common/ChatbotWidget.jsx";
 
 function App() {
   // Initialize service worker for notifications
@@ -60,7 +61,6 @@ function App() {
             <Route path="/forgetpass" element={<Forgetpass />} />
 
             <Route path="/selectCategory" element={<OnboardingPage />} />
-            
 
             <Route path="/auctions" element={<AuctionsPage />} />
             <Route
@@ -75,9 +75,8 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/payment/:auctionId/:type" element={<Payment />} />
               <Route path="/auction/:auctionId" element={<TheauctionPage />} />
-              
             </Route>
-            
+
             <Route path="/signUp" element={<SignUp />} />
             <Route
               element={
@@ -98,6 +97,7 @@ function App() {
           </Routes>
           <NotificationPermissionBanner />
           <Footer />
+          <ChatbotWidget />
         </Router>
       </UserProvider>
     </div>

@@ -19,7 +19,7 @@ export const auth = getAuth(app);
 export const database = getDatabase(app);
 export const messaging = getMessaging(app);
 //  export const analytics = getAnalytics(app);
-const db = getFirestore(app);
+export const db = getFirestore(app);
 
 export async function sendEmail({ to, subject, text, html }) {
   try {

@@ -57,7 +57,6 @@ exports.sendOutbidNotification = onValueCreated("/fcm_notifications/{token}", as
     } catch (error) {
         console.error("Error sending message:", error);
 
-  
         if (error.code === 'messaging/invalid-registration-token' ||
             error.code === 'messaging/registration-token-not-registered') {
             await event.data.ref.remove();
