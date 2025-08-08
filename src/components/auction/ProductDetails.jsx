@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useContext } from "react";
+import { UserContext } from "../../context/UserContext";
 
 function ProductDetails({
   name,
@@ -9,7 +10,9 @@ function ProductDetails({
   condition,
   startDate,
   hasPaidTerms,
+  auction,
 }) {
+  const { user, userData } = useContext(UserContext);
   return (
     <div className="detailsSide bg-white w-full md:w-[50%] rounded-md py-9 px-6 shadow-md flex flex-col justify-between">
       <div>
@@ -42,19 +45,24 @@ function ProductDetails({
         <p className="mb-3 text-lg text-[#2D3142]">
           حالة المنتج: {condition || "غير محدد"}
         </p>
-        {!hasPaidTerms && (
-          <button className="flex items-center justify-between bg-[#FFF0E6] cursor-pointer p-2 mt-6 w-full text-right border-r-4 border-amber-600 rounded text-sm">
-            <a href="#korasetElShroot">
-              من اجل معاينة المنتج يجب عليك شراء كراسة الشروط
-            </a>
-            <a
-              href="#korasetElShroot"
-              className="text-green-500 cursor-pointer"
-            >
-              اشتري الان
-            </a>
-          </button>
-        )}
+        {!hasPaidTerms &&
+          (user && auction && user.uid === auction.createdBy ? (
+            <button className="flex items-center justify-between bg-[#FFF0E6] cursor-pointer p-2 mt-6 w-full text-right border-r-4 border-amber-600 rounded text-sm">
+              <span>هذا المزاد الخاص بك</span>
+            </button>
+          ) : (
+            <button className="flex items-center justify-between bg-[#FFF0E6] cursor-pointer p-2 mt-6 w-full text-right border-r-4 border-amber-600 rounded text-sm">
+              <a href="#korasetElShroot">
+                من اجل معاينة المنتج يجب عليك شراء كراسة الشروط
+              </a>
+              <a
+                href="#korasetElShroot"
+                className="text-green-500 cursor-pointer"
+              >
+                اشتري الان
+              </a>
+            </button>
+          ))}
       </div>
     </div>
   );

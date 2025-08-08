@@ -153,6 +153,7 @@ function TheauctionPage() {
           condition={displayCondition}
           startDate={auction.startDate}
           hasPaidTerms={hasPaidTerms}
+          auction={auction}
         />
       </div>
       <ProductDescription description={auction.description} />
