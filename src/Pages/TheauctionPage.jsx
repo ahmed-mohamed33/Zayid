@@ -138,27 +138,6 @@ function TheauctionPage() {
     );
   }
 
-  const isUserActive = userData?.isActive === true;
-  if (
-    !isUserActive ||
-    auctionStatus === "rejected" ||
-    (isAuctionLive && !isParticipant)
-  ) {
-    return !isUserActive ? (
-      <ErrorPage
-        message="عذرًا، حسابك غير مفعل بعد. يرجى التواصل مع الدع لتفعيله."
-        redirectTo="/"
-      />
-    ) : auctionStatus === "rejected" ? (
-      <ErrorPage message="هذا المزاد لم يتم الموافقه عليه" redirectTo="/" />
-    ) : (
-      <ErrorPage
-        message="عذرًا، ليس لديك إذن بالدخول إلى هذا المزاد. يرجى التأكد من أنك مسجل كمشارك وأنك دفعته كراسة الشروط والتأمين قبل بدء المزاد."
-        redirectTo="/"
-      />
-    );
-  }
-
   return (
     <div className="flex flex-col w-full min-h-screen px-4 md:px-6 lg:px-14 py-6 bg-[#F1F1F1]">
       <div className="flex flex-col md:flex-row mb-6">
@@ -180,7 +159,21 @@ function TheauctionPage() {
 
       {/* Dynamic section */}
       {/**لو دفع الشروط  هيظهر ده */}
-      {user && auction.createdBy && user.uid === auction.createdBy ? (
+      {isAuctionLive ? (
+        <BiddingChat
+          auctionId={auctionId}
+          isAuctionLive={isAuctionLive}
+          endDate={auction.endDate}
+          startDate={auction.startDate}
+          hasPaidTerms={hasPaidTerms}
+          hasPaidInsurance={hasPaidInsurance}
+          setAuctionWinner={setAuctionWinner}
+          auctionWinner={auctionWinner}
+          setIsAuctionLive={setIsAuctionLive}
+          auction={auction}
+        >
+        </BiddingChat>
+      ) : user && auction.createdBy && user.uid === auction.createdBy ? (
         <BiddingChat
           auctionId={auctionId}
           isAuctionLive={isAuctionLive}
@@ -193,7 +186,6 @@ function TheauctionPage() {
           setIsAuctionLive={setIsAuctionLive}
           auction={auction}
         >
-          {/*  لو المزاد لسه ما بدأش هعرض كانه مش شغال */}
           {!isAuctionLive && (
             <div className="w-full h-full absolute top-0 left-0 bg-[#8e5135b8] z-10 flex justify-center items-center text-white">
               تبقى على بدء المزاد ...
@@ -211,8 +203,6 @@ function TheauctionPage() {
             auctionId={auctionId}
           />
           {auction.status === "approved" && <PreviewOptions />}
-
-          {/* لو دفع التأمين هيظهر ده */}
           {hasPaidInsurance ? (
             <BiddingChat
               auctionId={auctionId}
@@ -226,7 +216,6 @@ function TheauctionPage() {
               setIsAuctionLive={setIsAuctionLive}
               auction={auction}
             >
-              {/*  لو المزاد لسه ما بدأش هعرض كانه مش شغال */}
               {!isAuctionLive && (
                 <div className="w-full h-full absolute top-0 left-0 bg-[#8e5135b8] z-10 flex justify-center items-center text-white">
                   تبقى على بدء المزاد ...

@@ -449,38 +449,38 @@ const BiddingChat = ({
       </div>
 
       {/* هشيل الإنبوت والزر لو المزاد انتهي & ونظهر زرار إنهاء لو صاحب المزاد     */}
-      {user &&
-      user.uid &&
-      createdBy !== null &&
-      user.uid === createdBy &&
-      status !== "ended" ? (
-        <div className="flex justify-center items-center mt-4 w-full">
-          <button
-            onClick={handleEndAuction}
-            className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-6 py-3 rounded-lg transition-colors duration-200 w-full"
-          >
-            أنهاء المزاد
-          </button>
-        </div>
-      ) : status !== "ended" ? (
-        <div className="flex h-12 ">
-          <input
-            type="text"
-            value={bidAmount}
-            onChange={(e) => setBidAmount(e.target.value)}
-            placeholder="00.00 ج.م"
-            className="flex-1 bg-[#F1F1F1] text-[#5F626F] px-4 py-3 rounded-r-lg text-right outline-none border-none"
-            disabled={!isAuctionLive || status === "ended"}
-          />
-          <button
-            onClick={handleBidSubmit}
-            className="bg-[#FA6300] hover:bg-[#e55a00] text-white font-bold px-2 py-3 rounded-l-lg transition-colors duration-200"
-            disabled={!isAuctionLive || status === "ended"}
-          >
-            أضف سعرك
-          </button>
-        </div>
-      ) : null}
+{user &&
+user.uid &&
+createdBy !== null &&
+user.uid === createdBy &&
+status !== "ended" ? (
+  <div className="flex justify-center items-center mt-4 w-full">
+    <button
+      onClick={handleEndAuction}
+      className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-6 py-3 rounded-lg transition-colors duration-200 w-full"
+    >
+      أنهاء المزاد
+    </button>
+  </div>
+) : status !== "ended" && hasPaidTerms && hasPaidInsurance && isAuctionLive ? (
+  <div className="flex h-12 ">
+    <input
+      type="text"
+      value={bidAmount}
+      onChange={(e) => setBidAmount(e.target.value)}
+      placeholder="00.00 ج.م"
+      className="flex-1 bg-[#F1F1F1] text-[#5F626F] px-4 py-3 rounded-r-lg text-right outline-none border-none"
+      disabled={!isAuctionLive || status === "ended"}
+    />
+    <button
+      onClick={handleBidSubmit}
+      className="bg-[#FA6300] hover:bg-[#e55a00] text-white font-bold px-2 py-3 rounded-l-lg transition-colors duration-200"
+      disabled={!isAuctionLive || status === "ended"}
+    >
+      أضف سعرك
+    </button>
+  </div>
+) : null}
 
       {!isAuctionLive && status !== "ended" && (
         <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-2xl flex flex-col items-center justify-center text-center p-6 shadow-xl">
