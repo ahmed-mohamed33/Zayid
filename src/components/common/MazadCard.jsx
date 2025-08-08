@@ -114,8 +114,8 @@ function MazadCard({ auctionId }) {
               auction.status === "approved" ? "" : "hidden"
             }`}
           >
-            <img className="w-[15px] h-[15px]" src={timer} />
-            <p className="text-[#FA6300] mx-1 overflow-hidden max-w-[100px] text-ellipsis whitespace-nowrap ">
+            <img className="w-[11px] h-[11px]" src={timer} />
+            <p className="text-[#FA6300] mx-1 overflow-hidden max-w-[100px] text-ellipsis text-[12px] whitespace-nowrap ">
               متبقي:{" "}
               {auction.status === "approved" ? auction.remainingTime : "انتهي"}
             </p>
