@@ -6,3 +6,13 @@
 * {
   font-family: Almarai;
 }
+
+/* Hide the native WebKit date picker icon but keep it clickable */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  width: 10%;
+  height: 100%;
+  cursor: pointer;
+}

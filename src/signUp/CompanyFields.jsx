@@ -42,11 +42,7 @@ export default function CompanyFields({
             className={styles.inputBase}
           />
           <div className={styles.inputIcon}>
-            <img
-              src={buildings}
-              alt="buildings"
-              className="input-icon"
-            />
+            <img src={buildings} alt="buildings" className="w-5 h-5" />
           </div>
         </div>
       </div>

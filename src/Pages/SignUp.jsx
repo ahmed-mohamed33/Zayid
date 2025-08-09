@@ -118,10 +118,10 @@ export default function SignUp() {
   return (
     <>
       {isAuthenticated && navigate("/")}
-      <div className="flex min-h-full flex-1 flex-col justify-center px-4 md:px-6 py-12  lg:px-8 bg-auth">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-4 md:px-6 py-12  lg:px-8 bg-[#f1f1f1]">
         <div className="w-full max-w-[794px] px-[16px] md:px-6 py-[24px] mx-auto bg-white rounded-3xl flex flex-col items-start">
           {/* Header */}
-          <img alt="logo-zayid" src={logo} className="size-logo" />
+          <img alt="logo-zayid" src={logo} className="w-[205.913px] h-[96px]" />
           <h3 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
             إنشاء حساب جديد
           </h3>
@@ -131,11 +131,7 @@ export default function SignUp() {
 
           {/* Info Notice */}
           <div className="flex items-center mt-6">
-            <img
-              src={information}
-              alt="information icon"
-              className="size-icon-info"
-            />
+            <img src={information} alt="information icon" className="w-6 h-6" />
             <p className="text-[#FA6300]">
               كل البيانات المطلوبة يجب أن تطابق بطاقة الرقم القومي
             </p>
@@ -258,7 +254,7 @@ export default function SignUp() {
                   className={`flex w-full justify-center items-center h-[48px] rounded-md  text-sm/6 font-semibold shadow-xs ${
                     isLoading
                       ? "bg-slate-500 cursor-not-allowed text-white"
-                      : "bg-col-btn-prim hover:bg-[#cc5200]"
+                      : "bg-[#fa6300] text-white transition-colors hover:bg-[#cc5200] active:bg-[#cc5200] focus-visible:outline-2 focus-visible:outline-[#fa6300] focus-visible:outline-offset-2"
                   }`}
                 >
                   {isLoading ? "جاري التسجيل..." : "إنشاء حساب"}

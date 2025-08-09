@@ -466,7 +466,7 @@ export default function ChatbotWidget() {
       )}
 
       {/* typewriter msgs */}
-      {!isOpen && showTypewriter && (
+      {!isOpen && showTypewriter && !hidden && (
         <div className="fixed right-6 bottom-24 z-[9999] pointer-events-none bg-white text-grey-700 text-xs md:text-sm px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
           <span dir="rtl">
             {(typewriterMessages[twIndex] || "").slice(0, twChars)}
@@ -477,7 +477,7 @@ export default function ChatbotWidget() {
 
       {!hidden && (
         <button
-          className="h-14 w-14 rounded-full  text-white shadow-lg flex items-center justify-center text-2xl"
+          className="h-14 w-14 rounded-full text-white shadow-lg flex items-center justify-center text-2xl animate-pulse"
           onClick={() => setIsOpen((v) => !v)}
           aria-label="toggle chatbot"
         >
