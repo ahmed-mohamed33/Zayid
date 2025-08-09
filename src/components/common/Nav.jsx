@@ -154,7 +154,7 @@ function Nav() {
                 </div>
                 <ul
                   tabIndex={0}
-                  className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 w-48 shadow-sm"
+                  className="dropdown-content menu bg-base-100 rounded-box z-1 p-2 w-46 shadow-sm"
                 >
                   <li className="flex-row justify-content-between items-center gap-2">
                     <a href="/profile">

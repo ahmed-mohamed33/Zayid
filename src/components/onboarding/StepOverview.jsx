@@ -1,29 +1,33 @@
 import React from "react";
-
+import Document from "../../assets/categry/وثيقه.svg";
+import Eye from "../../assets/categry/eye.svg";
+import Credit from "../../assets/categry/credit.svg";
+import Hammer from "../../assets/categry/مطرقه.svg";
+import Cup from "../../assets/categry/كأس.svg";
 export default function StepOverview({ onNext }) {
   const overviewItems = [
     {
-      icon: "/src/assets/categry/وثيقه.svg",
+      icon: Document,
       title: "شراء كراسة الشروط",
       desc: "للحصول على التفاصيل الكاملة للمنتج والمزاد.",
     },
     {
-      icon: "/src/assets/categry/eye.svg",
+      icon: Eye,
       title: "تحديد المعاينة",
       desc: "احجز موعد لمعاينة المنتج مباشرة أو بالفيديو.",
     },
     {
-      icon: "/src/assets/categry/credit.svg",
+      icon: Credit,
       title: "دفع التأمين",
       desc: "أكمل الدفع التأميني لتفعيل المشاركة.",
     },
     {
-      icon: "/src/assets/categry/مطرقه.svg",
+      icon: Hammer,
       title: "المزايدة",
       desc: "ابدأ تقديم عروض الأسعار قبل انتهاء الوقت.",
     },
     {
-      icon: "/src/assets/categry/كأس.svg",
+      icon: Cup,
       title: "فوز بالمزاد",
       desc: "إذا كان عرضك هو الأعلى ستتمكن من المنتج.",
     },

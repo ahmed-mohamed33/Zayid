@@ -58,6 +58,14 @@ function Footer() {
                   اتصل بنا
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/terms-and-conditions"
+                  className="text-gray-300 hover:text-[#FA6300] transition-colors duration-200"
+                >
+                  الشروط والأحكام
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -176,14 +184,6 @@ function Footer() {
             <p className="text-sm text-gray-400 text-center md:text-right">
               &copy; 2025 ZAYID. جميع الحقوق محفوظة
             </p>
-            <div className="flex gap-6 text-sm text-gray-400">
-              <Link
-                to="/terms"
-                className="hover:text-[#FA6300] transition-colors duration-200"
-              >
-                الشروط والأحكام
-              </Link>
-            </div>
           </div>
         </div>
       </div>

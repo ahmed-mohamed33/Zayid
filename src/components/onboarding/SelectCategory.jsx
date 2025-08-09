@@ -1,5 +1,10 @@
 import React from "react";
-
+import Diamond from "../../assets/categry/الماس.svg";
+import ArtGallery from "../../assets/categry/ArtGallery.svg";
+import Building from "../../assets/categry/مبنى.svg";
+import Clippathgroup from "../../assets/categry/Clippathgroup.svg";
+import Furniture from "../../assets/categry/اثاث.svg";
+import Laptop from "../../assets/categry/لاب.svg";
 export default function SelectCategory({
   onNext,
   selectedCategories,
@@ -10,28 +15,28 @@ export default function SelectCategory({
     {
       id: "مجوهرات",
       name: "مجوهرات",
-      icon: "/src/assets/categry/الماس.svg",
+      icon: Diamond,
     },
     {
       id: "تحف وأعمال فنية",
       name: "تحف وأعمال فنية",
-      icon: "/src/assets/categry/ArtGallery.svg",
+      icon: ArtGallery,
     },
     {
       id: "عقارات وأراضي",
       name: "عقارات وأراضي",
-      icon: "/src/assets/categry/مبنى.svg",
+      icon: Building,
     },
     {
       id: "خردة وبواقي معادن",
       name: "خردة وبواقي معادن",
-      icon: "/src/assets/categry/Clippathgroup.svg",
+      icon: Clippathgroup,
     },
-    { id: "أثاث", name: "أثاث", icon: "/src/assets/categry/اثاث.svg" },
+    { id: "أثاث", name: "أثاث", icon: Furniture },
     {
       id: "إلكترونيات",
       name: "إلكترونيات",
-      icon: "/src/assets/categry/لاب.svg",
+      icon: Laptop,
     },
   ];
 

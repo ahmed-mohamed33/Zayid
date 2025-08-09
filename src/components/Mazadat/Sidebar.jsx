@@ -216,7 +216,7 @@ const Sidebar = ({ onFilterChange, filters }) => {
         حالة المزاد
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
-        {["approved", "ended"].map((status) => (
+        {["approved", "active", "ended"].map((status) => (
           <label
             key={status}
             className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50"
@@ -230,7 +230,11 @@ const Sidebar = ({ onFilterChange, filters }) => {
               className="w-4 h-4 accent-[#FA6300]"
             />
             <span className="text-sm text-[#2D3142]">
-              {status === "approved" ? "متاح للمعاينة" : "منتهي"}
+              {status === "approved"
+                ? "متاح للمعاينة"
+                : status === "ended"
+                ? "منتهي"
+                : "نشط"}
             </span>
           </label>
         ))}

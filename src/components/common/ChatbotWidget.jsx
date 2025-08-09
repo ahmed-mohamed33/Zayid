@@ -14,6 +14,7 @@ import {
 import { UserContext } from "../../context/UserContext";
 import { useLocation } from "react-router-dom";
 import Zayidbot from "../../assets/icons/chatbot.svg";
+import Swal from "sweetalert2";
 
 export default function ChatbotWidget() {
   const { user } = useContext(UserContext);
@@ -23,18 +24,16 @@ export default function ChatbotWidget() {
   const [submitting, setSubmitting] = useState(false);
   const [threads, setThreads] = useState([]);
   const [activeThreadId, setActiveThreadId] = useState(null);
-  const [messages, setMessages] = useState([]); 
+  const [messages, setMessages] = useState([]);
   const scrollRef = useRef(null);
   const [panelSize, setPanelSize] = useState({ width: 360, height: 520 });
   const [deleting, setDeleting] = useState(false);
-  const [showTeaser, setShowTeaser] = useState(false);
-  const [teaserText, setTeaserText] = useState("");
   const initialTeaserShownRef = useRef(false);
   const teaserHideRef = useRef(null);
   const [showTypewriter, setShowTypewriter] = useState(false);
   // typewriter msgs
   const typewriterMessages = [
-    "مساعد زايد الذكي",
+    "انا زايد المساعد الذكي",
     "هل تحتاج لمساعدة؟",
     "اسألني عن الدفع والمزايدات والشروط",
   ];
@@ -140,7 +139,7 @@ export default function ChatbotWidget() {
     };
   }, [isOpen]);
 
-  // typewriter effect 
+  // typewriter effect
   useEffect(() => {
     if (isOpen || !showTypewriter) return; // only when closed and visible
     const text = typewriterMessages[twIndex % typewriterMessages.length] || "";
@@ -186,7 +185,7 @@ export default function ChatbotWidget() {
         return;
       }
       const items = await loadChatMessages(user.uid, activeThreadId);
-      
+
       const normalized = [];
       for (let i = 0; i < items.length; i += 2) {
         const userMsg = items[i];
@@ -294,7 +293,19 @@ export default function ChatbotWidget() {
 
   const handleDeleteThread = async (threadId) => {
     if (!user || !threadId) return;
-    const ok = window.confirm("هل تريد حذف هذه المحادثة نهائيًا؟");
+
+    const result = await Swal.fire({
+      title: "تأكيد الحذف",
+      text: "هل تريد حذف هذه المحادثة نهائيًا؟",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "نعم، احذف",
+      cancelButtonText: "إلغاء",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      reverseButtons: true,
+    });
+    const ok = result.isConfirmed;
     if (!ok) return;
     try {
       setDeleting(true);
