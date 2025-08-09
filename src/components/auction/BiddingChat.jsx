@@ -102,7 +102,6 @@ const BiddingChat = ({
         } else {
           setRemainingTime("0:00:00");
           setIsAuctionLive(true);
-          updateAuctionStatus(auctionId, "active");
         }
       };
 
