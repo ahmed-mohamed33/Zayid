@@ -101,21 +101,40 @@ function TheauctionPage() {
     };
     getParticipantData();
 
+    //<<<<<<<< انا عملت تعديل هنا علشان الحاله كانت بتتغير علي حسب الوقت مش علي حسب ال الحاله اللث جايه من الفاير بيز <<<<<
     if (auction?.startDate && auction?.endDate) {
       const checkAuctionTime = () => {
-        const now = new Date();
-        const startDate = new Date(auction.startDate);
-        const endDate = new Date(auction.endDate);
-        setIsAuctionLive(now >= startDate && now <= endDate);
-        setAuctionStatus(
-          now >= startDate && now <= endDate ? "active" : "ended"
-        );
         const db = getDatabase();
+        const now = new Date();
+        const startDateObj = new Date(auction.startDate);
+        const endDateObj = new Date(auction.endDate);
+
+        if (auctionStatus === "ended") {
+          setIsAuctionLive(false);
+          return;
+        }
+
+        
+        if (now >= startDateObj && now <= endDateObj) {
+          setIsAuctionLive(true);
+          if (auctionStatus !== "active") {
+            update(ref(db, `auctions/${auctionId}`), { status: "active" });
+          }
+        } else if (now > endDateObj) {
+          setIsAuctionLive(false);
+          if (auctionStatus !== "ended") {
+            update(ref(db, `auctions/${auctionId}`), { status: "ended" });
+          }
+        } else {
+          setIsAuctionLive(false);
+        }
       };
+
       checkAuctionTime();
       const interval = setInterval(checkAuctionTime, 60000);
       return () => clearInterval(interval);
     }
+
     if (auctionId) {
       const db = getDatabase();
       const auctionRef = ref(db, `auctions/${auctionId}`);
@@ -127,7 +146,7 @@ function TheauctionPage() {
       });
       return () => unsubscribeStatus();
     }
-  }, [user, auctionId, auction?.startDate, auction?.endDate]);
+  }, [user, auctionId, auction?.startDate, auction?.endDate ,auctionStatus,auction,]);
 
   // هنا بعمل سبينر
   if (!auction) {
@@ -135,27 +154,6 @@ function TheauctionPage() {
       <div className="flex justify-center items-center h-screen">
         <Loading />
       </div>
-    );
-  }
-
-  const isUserActive = userData?.isActive === true;
-  if (
-    !isUserActive ||
-    auctionStatus === "rejected" ||
-    (isAuctionLive && !isParticipant)
-  ) {
-    return !isUserActive ? (
-      <ErrorPage
-        message="عذرًا، حسابك غير مفعل بعد. يرجى التواصل مع الدع لتفعيله."
-        redirectTo="/"
-      />
-    ) : auctionStatus === "rejected" ? (
-      <ErrorPage message="هذا المزاد لم يتم الموافقه عليه" redirectTo="/" />
-    ) : (
-      <ErrorPage
-        message="عذرًا، ليس لديك إذن بالدخول إلى هذا المزاد. يرجى التأكد من أنك مسجل كمشارك وأنك دفعته كراسة الشروط والتأمين قبل بدء المزاد."
-        redirectTo="/"
-      />
     );
   }
 
@@ -174,13 +172,27 @@ function TheauctionPage() {
           condition={displayCondition}
           startDate={auction.startDate}
           hasPaidTerms={hasPaidTerms}
+          auction={auction}
         />
       </div>
       <ProductDescription description={auction.description} />
 
       {/* Dynamic section */}
       {/**لو دفع الشروط  هيظهر ده */}
-      {user && auction.createdBy && user.uid === auction.createdBy ? (
+      {isAuctionLive ? (
+        <BiddingChat
+          auctionId={auctionId}
+          isAuctionLive={isAuctionLive}
+          endDate={auction.endDate}
+          startDate={auction.startDate}
+          hasPaidTerms={hasPaidTerms}
+          hasPaidInsurance={hasPaidInsurance}
+          setAuctionWinner={setAuctionWinner}
+          auctionWinner={auctionWinner}
+          setIsAuctionLive={setIsAuctionLive}
+          auction={auction}
+        ></BiddingChat>
+      ) : user && auction.createdBy && user.uid === auction.createdBy ? (
         <BiddingChat
           auctionId={auctionId}
           isAuctionLive={isAuctionLive}
@@ -193,7 +205,6 @@ function TheauctionPage() {
           setIsAuctionLive={setIsAuctionLive}
           auction={auction}
         >
-          {/*  لو المزاد لسه ما بدأش هعرض كانه مش شغال */}
           {!isAuctionLive && (
             <div className="w-full h-full absolute top-0 left-0 bg-[#8e5135b8] z-10 flex justify-center items-center text-white">
               تبقى على بدء المزاد ...
@@ -211,8 +222,6 @@ function TheauctionPage() {
             auctionId={auctionId}
           />
           {auction.status === "approved" && <PreviewOptions />}
-
-          {/* لو دفع التأمين هيظهر ده */}
           {hasPaidInsurance ? (
             <BiddingChat
               auctionId={auctionId}
@@ -226,7 +235,6 @@ function TheauctionPage() {
               setIsAuctionLive={setIsAuctionLive}
               auction={auction}
             >
-              {/*  لو المزاد لسه ما بدأش هعرض كانه مش شغال */}
               {!isAuctionLive && (
                 <div className="w-full h-full absolute top-0 left-0 bg-[#8e5135b8] z-10 flex justify-center items-center text-white">
                   تبقى على بدء المزاد ...

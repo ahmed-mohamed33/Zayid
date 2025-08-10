@@ -90,7 +90,7 @@ function MazadCard({ auctionId }) {
         <p className="text-[#44A46F] font-semibold my-1 ">
           {auction.status === "approved" ? "السعر الابتدائي:" : "السعر الأعلى:"}{" "}
           {auction.status === "approved"
-            ? auction.startPrice || "غير محدد"
+            ? (auction.startPrice || "غير محدد") + " ج.م"
             : auction.highestBid || "لم يتم المزايدة"}
         </p>
         <div className="flex justify-between items-center">
@@ -114,8 +114,8 @@ function MazadCard({ auctionId }) {
               auction.status === "approved" ? "" : "hidden"
             }`}
           >
-            <img className="w-[15px] h-[15px]" src={timer} />
-            <p className="text-[#FA6300] mx-1 overflow-hidden max-w-[100px] text-ellipsis whitespace-nowrap ">
+            <img className="w-[11px] h-[11px]" src={timer} />
+            <p className="text-[#FA6300] mx-1 overflow-hidden max-w-[100px] text-ellipsis text-[12px] whitespace-nowrap ">
               متبقي:{" "}
               {auction.status === "approved" ? auction.remainingTime : "انتهي"}
             </p>

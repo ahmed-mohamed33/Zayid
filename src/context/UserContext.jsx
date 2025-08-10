@@ -149,11 +149,11 @@ export const UserProvider = ({ children }) => {
                 const diffMinutes = totalMinutes % 60;
 
                 if (diffDays > 0) {
-                  remainingTime = `${diffDays} يوم و ${diffHours} ساعة`;
+                  remainingTime = `${diffDays} ي  ${diffHours} س`;
                 } else if (diffHours > 0) {
-                  remainingTime = `${diffHours} ساعة و ${diffMinutes} دقيقة`;
+                  remainingTime = `${diffHours} س ${diffMinutes} د`;
                 } else {
-                  remainingTime = `${diffMinutes} دقيقة`;
+                  remainingTime = `${diffMinutes} د`;
                 }
               } else {
                 remainingTime = "انتهي ";
@@ -253,11 +253,11 @@ export const UserProvider = ({ children }) => {
                   const diffMinutes = totalMinutes % 60;
 
                   if (diffDays > 0) {
-                    remainingTime = `${diffDays} يوم و ${diffHours} ساعة`;
+                    remainingTime = `${diffDays}  ي ${diffHours} س`;
                   } else if (diffHours > 0) {
-                    remainingTime = `${diffHours} ساعة و ${diffMinutes} دقيقة`;
+                    remainingTime = `${diffHours}  س ${diffMinutes} د`;
                   } else {
-                    remainingTime = `${diffMinutes} دقيقة`;
+                    remainingTime = `${diffMinutes} د`;
                   }
                 } else {
                   remainingTime = "بدأ بالفعل";
@@ -509,11 +509,11 @@ export const UserProvider = ({ children }) => {
         const diffMinutes = totalMinutes % 60;
 
         if (diffDays > 0) {
-          remainingTime = `${diffDays} يوم و ${diffHours} ساعة`;
+          remainingTime = `${diffDays}  ي${diffHours} س`;
         } else if (diffHours > 0) {
-          remainingTime = `${diffHours} ساعة و ${diffMinutes} دقيقة`;
+          remainingTime = `${diffHours}  س ${diffMinutes} د`;
         } else {
-          remainingTime = `${diffMinutes} دقيقة`;
+          remainingTime = `${diffMinutes} د`;
         }
       } else {
         remainingTime = "بدأ بالفعل";
