@@ -21,7 +21,7 @@ const BiddingChat = ({
   auction,
 }) => {
   const { user, userData } = useContext(UserContext);
-  console.log("User from Context in BiddingChat:", user, "UserData:", userData);
+  // console.log("User from Context in BiddingChat:", user, "UserData:", userData);
   const [auctionTime, setAuctionTime] = useState(" ...");
   const [highestBid, setHighestBid] = useState("0 ج.م");
   const [noOfBids, setNoOfBids] = useState(0);
@@ -42,17 +42,20 @@ const BiddingChat = ({
 
   //هنا بحدث الوقت للانتهاء  و بدء المزاد
   useEffect(() => {
-    if (startDate && endDate) {
+    if ((startDate && endDate) || isAuctionLive) {
       const updateTime = () => {
         const now = new Date();
         const startDateObj = new Date(startDate);
         const endDateObj = new Date(endDate);
 
+        if (status === "ended") {
+          setAuctionTime("انتهى");
+          return;
+        }
+
         if (now < startDateObj) {
-          // لسه المزاد مبدأش
           setAuctionTime("لم يبدأ بعد");
         } else if (now >= startDateObj && now <= endDateObj) {
-          // المزاد شغال
           const diffMs = endDateObj - now;
           const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
           const hours = Math.floor(
@@ -60,15 +63,18 @@ const BiddingChat = ({
           );
           const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
           const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-          setAuctionTime(
-            ` ${days} يوم و ${hours} ساعة و ${minutes} دقيقة و ${seconds} ثانية`
-          );
+          setAuctionTime(` ${days} ي ${hours} س ${minutes} د ${seconds} ث`);
         } else {
-          // المزاد خلص
           setAuctionTime("انتهى");
           if (status !== "ended") {
-            updateAuctionStatus(auctionId, "ended");
+            const auctionRef = ref(db, `auctions/${auctionId}`);
+            update(auctionRef, { status: "ended" })
+              .then(() => {
+                console.log("Status updated to ended in useEffect");
+              })
+              .catch((error) => {
+                console.error("Error updating to ended:", error);
+              });
           }
         }
       };
@@ -102,6 +108,9 @@ const BiddingChat = ({
         } else {
           setRemainingTime("0:00:00");
           setIsAuctionLive(true);
+          const auctionRef = ref(db, `auctions/${auctionId}`);
+          update(auctionRef, { status: "active" });
+          setStatus("active");
         }
       };
 
@@ -111,7 +120,7 @@ const BiddingChat = ({
     } else {
       setRemainingTime("");
     }
-  }, [startDate, isAuctionLive, status]);
+  }, [startDate, isAuctionLive, status, auctionId]);
 
   // هنا بجيب الداتا من الفايربيز
   useEffect(() => {
@@ -120,6 +129,7 @@ const BiddingChat = ({
       const data = snapshot.val();
       if (data) {
         // بجيب عدد المشاركين
+        console.log("Fetched status from Firebase:", data.status);
         const participants = data.participants || {};
         setParticipantsCount(Object.keys(participants).length);
 
@@ -163,7 +173,6 @@ const BiddingChat = ({
     }
   }, [status, bids]);
 
-  //==================================================================
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
     if (!isAuctionLive || status === "ended") {
@@ -288,80 +297,113 @@ const BiddingChat = ({
       });
     }
   };
-  // =========================================================================================
 
   // ف حاله صاحب المزاد
   const handleEndAuction = () => {
     if (user.uid === createdBy) {
-      if (bids.length === 0) {
-        Swal.fire({
-          title: "لا يوجد مزايدات!",
-          text: "لا يوجد مزايدات لتحديد فائز!",
-          icon: "warning",
-          confirmButtonText: "حسنًا",
-          confirmButtonColor: "#FA6300",
-        });
-        return;
-      }
-      // جديد
       setAuctionTime("انتهى");
       const auctionRef = ref(db, `auctions/${auctionId}`);
-      update(auctionRef, { status: "ended" });
-      setStatus("ended");
-      setIsAuctionLive(false);
+      const now = new Date().toISOString();
+      update(auctionRef, {status: "ended", endDate: now})
+              .then(() => {
+          console.log(
+            "Status updated to ended successfully for auction:",
+            auctionId
+          );
+          setStatus("ended");
+          setIsAuctionLive(false);
 
-      const winnerBid = bids.reduce((max, current) =>
-        Number(current.bidAmount) > Number(max.bidAmount) ? current : max
-      );
-      setWinner(winnerBid);
-      setAuctionWinner(winnerBid);
+          let winnerBid = null;
+          if (bids.length > 0) {
+            winnerBid = bids.reduce(
+              (max, current) =>
+                Number(current.bidAmount) > Number(max.bidAmount)
+                  ? current
+                  : max,
+              {}
+            );
+          } else {
+            console.log("No bids available, setting winner to null");
+          }
+          if (winnerBid) {
+            setWinner(winnerBid);
+            setAuctionWinner(winnerBid);
 
-      console.log("تفاصيل الفايز:", {
-        winnerId: winnerBid.userId,
-        winnerName: winnerBid.userName,
-        winnerBid: winnerBid.bidAmount,
-        winnerTime: winnerBid.bidTime,
-      });
+            console.log("تفاصيل الفائز:", {
+              winnerId: winnerBid.userId,
+              winnerName: winnerBid.userName,
+              winnerBid: winnerBid.bidAmount,
+              winnerTime: winnerBid.bidTime,
+            });
 
-      update(auctionRef, {
-        winnerId: winnerBid.userId,
-        winnerName: winnerBid.userName,
-        winnerBid: winnerBid.bidAmount,
-        winnerTime: winnerBid.bidTime,
-      });
-      set(ref(db, `users/${winnerBid.userId}/auctions/${auctionId}`), {
-        isWinner: true,
-        winnerBid: winnerBid.bidAmount,
-        winnerTime: winnerBid.bidTime,
-        auctionId: auctionId,
-        auctionTitle: auction.title || "مزاد",
-        auctionImage: auction.image || "",
-        isPaid: false,
-      });
-      update(ref(db, `winners/${auctionId}`), {
-        winnerId: winnerBid.userId,
-        winnerName: winnerBid.userName,
-        winnerBid: winnerBid.bidAmount,
-        winnerTime: winnerBid.bidTime,
-        isPaid: false,
-        auctionId: auctionId,
-        auctionTitle: auction.title || "مزاد",
-        auctionImage: auction.imageUrls?.[0] || "",
-      });
+            update(auctionRef, {
+              winnerId: winnerBid.userId,
+              winnerName: winnerBid.userName,
+              winnerBid: winnerBid.bidAmount,
+              winnerTime: winnerBid.bidTime,
+            })
+              .then(() => console.log("Winner data updated successfully"))
+              .catch((error) =>
+                console.error("Error updating winner data:", error)
+              );
 
-      setRemainingTime("");
+            set(ref(db, `users/${winnerBid.userId}/auctions/${auctionId}`), {
+              isWinner: true,
+              winnerBid: winnerBid.bidAmount,
+              winnerTime: winnerBid.bidTime,
+              auctionId: auctionId,
+              auctionTitle: auction.title || "مزاد",
+              auctionImage: auction.image || "",
+              isPaid: false,
+            })
+              .then(() => console.log("User winner data updated successfully"))
+              .catch((error) =>
+                console.error("Error updating user winner data:", error)
+              );
+
+            update(ref(db, `winners/${auctionId}`), {
+              winnerId: winnerBid.userId,
+              winnerName: winnerBid.userName,
+              winnerBid: winnerBid.bidAmount,
+              winnerTime: winnerBid.bidTime,
+              isPaid: false,
+              auctionId: auctionId,
+              auctionTitle: auction.title || "مزاد",
+              auctionImage: auction.imageUrls?.[0] || "",
+            })
+              .then(() => console.log("Winners data updated successfully"))
+              .catch((error) =>
+                console.error("Error updating winners data:", error)
+              );
+          } else {
+            console.log("No winner set due to no bids");
+          }
+
+          setRemainingTime("");
+        })
+        .catch((error) => {
+          console.error("Error updating status to ended:", error);
+          Swal.fire({
+            title: "خطأ!",
+            text: `حدث خطأ أثناء إنهاء المزاد: ${error.message}. حاول مرة أخرى!`,
+            icon: "error",
+            confirmButtonText: "حسنًا",
+            confirmButtonColor: "#FA6300",
+          });
+        });
+    } else {
+      console.log("User is not the auction creator:", user.uid, createdBy);
     }
   };
-
   // هنا بقي الداتا بقت دينامك
   // useMemo
   const stats = useMemo(
     () => [
       {
         label: (
-          <div className=" w-full flex flex-col md:flex-row"> 
-          <p>ينتهي خلال:</p>
-          <span>{auctionTime}</span>  
+          <div className=" w-full flex flex-col md:flex-row">
+            <p>ينتهي خلال:</p>
+            <span>{auctionTime}</span>
           </div>
         ),
         icon: <img src={calendarIcon} alt="calendar" className="w-5 h-5" />,
@@ -448,38 +490,41 @@ const BiddingChat = ({
       </div>
 
       {/* هشيل الإنبوت والزر لو المزاد انتهي & ونظهر زرار إنهاء لو صاحب المزاد     */}
-{user &&
-user.uid &&
-createdBy !== null &&
-user.uid === createdBy &&
-status !== "ended" ? (
-  <div className="flex justify-center items-center mt-4 w-full">
-    <button
-      onClick={handleEndAuction}
-      className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-6 py-3 rounded-lg transition-colors duration-200 w-full"
-    >
-      أنهاء المزاد
-    </button>
-  </div>
-) : status !== "ended" && hasPaidTerms && hasPaidInsurance && isAuctionLive ? (
-  <div className="flex h-12 ">
-    <input
-      type="text"
-      value={bidAmount}
-      onChange={(e) => setBidAmount(e.target.value)}
-      placeholder="00.00 ج.م"
-      className="flex-1 bg-[#F1F1F1] text-[#5F626F] px-4 py-3 rounded-r-lg text-right outline-none border-none"
-      disabled={!isAuctionLive || status === "ended"}
-    />
-    <button
-      onClick={handleBidSubmit}
-      className="bg-[#FA6300] hover:bg-[#e55a00] text-white font-bold px-2 py-3 rounded-l-lg transition-colors duration-200"
-      disabled={!isAuctionLive || status === "ended"}
-    >
-      أضف سعرك
-    </button>
-  </div>
-) : null}
+      {user &&
+      user.uid &&
+      createdBy !== null &&
+      user.uid === createdBy &&
+      status !== "ended" ? (
+        <div className="flex justify-center items-center mt-4 w-full">
+          <button
+            onClick={handleEndAuction}
+            className="bg-[#44A46F] hover:bg-[#4f8c6b] text-white font-bold px-6 py-3 rounded-lg transition-colors duration-200 w-full"
+          >
+            أنهاء المزاد
+          </button>
+        </div>
+      ) : status !== "ended" &&
+        hasPaidTerms &&
+        hasPaidInsurance &&
+        isAuctionLive ? (
+        <div className="flex h-12 ">
+          <input
+            type="text"
+            value={bidAmount}
+            onChange={(e) => setBidAmount(e.target.value)}
+            placeholder="00.00 ج.م"
+            className="flex-1 bg-[#F1F1F1] text-[#5F626F] px-4 py-3 rounded-r-lg text-right outline-none border-none"
+            disabled={!isAuctionLive || status === "ended"}
+          />
+          <button
+            onClick={handleBidSubmit}
+            className="bg-[#FA6300] hover:bg-[#e55a00] text-white font-bold px-2 py-3 rounded-l-lg transition-colors duration-200"
+            disabled={!isAuctionLive || status === "ended"}
+          >
+            أضف سعرك
+          </button>
+        </div>
+      ) : null}
 
       {!isAuctionLive && status !== "ended" && (
         <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10 rounded-2xl flex flex-col items-center justify-center text-center p-6 shadow-xl">
@@ -507,11 +552,17 @@ status !== "ended" ? (
             </h1>
             <div className="text-lg text-[#2D3142] flex ">
               الفائز:{" "}
-              <p className="font-bold text-[#44A46F] animate-bounce mx-2">
-                {winner?.userName || "لا يوجد فائز"}
-              </p>
+              {winner?.userName ? (
+                <>
+                  <p className="font-bold text-[#44A46F] animate-bounce mx-2">
+                    {winner.userName}
+                  </p>
+                  <span>🎉</span>
+                </>
+              ) : (
+                <p className="font-bold text-[#cb1c1c] mx-2">لا يوجد فائز</p>
+              )}
             </div>
-            🎉
           </div>
         </div>
       )}
