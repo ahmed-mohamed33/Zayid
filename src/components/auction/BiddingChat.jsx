@@ -4,7 +4,7 @@ import highestBidIcon from "../../assets/icons/highestBid.svg";
 import calendarIcon from "../../assets/icons/calendar.svg";
 import participantsIcon from "../../assets/icons/participants.svg";
 import noOfBidsIcon from "../../assets/icons/noOfBids.svg";
-import { getDatabase, ref, onValue, update } from "firebase/database";
+import { getDatabase, ref, onValue, update , set } from "firebase/database";
 import { UserContext } from "../../context/UserContext";
 import { updateAuctionStatus } from "../../utils/firebaseUtils";
 import { sendOutbidNotification } from "../../utils/notificationService";
@@ -299,102 +299,83 @@ const BiddingChat = ({
   };
 
   // ف حاله صاحب المزاد
-  const handleEndAuction = () => {
-    if (user.uid === createdBy) {
-      setAuctionTime("انتهى");
-      const auctionRef = ref(db, `auctions/${auctionId}`);
-      const now = new Date().toISOString();
-      update(auctionRef, {status: "ended", endDate: now})
-              .then(() => {
-          console.log(
-            "Status updated to ended successfully for auction:",
-            auctionId
+const handleEndAuction = () => {
+  if (user.uid === createdBy) {
+    setAuctionTime("انتهى");
+    const auctionRef = ref(db, `auctions/${auctionId}`);
+    const now = new Date().toISOString();
+    update(auctionRef, { status: "ended", endDate: now })
+      .then(() => {
+        console.log("Status updated to ended successfully for auction:", auctionId);
+        setStatus("ended");
+        setIsAuctionLive(false);
+
+        let winnerBid = null;
+        if (bids.length > 0) {
+          winnerBid = bids.reduce(
+            (max, current) =>
+              Number(current.bidAmount) > Number(max.bidAmount) ? current : max,
+            bids[0]
           );
-          setStatus("ended");
-          setIsAuctionLive(false);
+        } else {
+          console.log("No bids available, setting winner to null");
+        }
+        if (winnerBid && winnerBid.userId) {
+          setWinner(winnerBid);
+          setAuctionWinner(winnerBid);
 
-          let winnerBid = null;
-          if (bids.length > 0) {
-            winnerBid = bids.reduce(
-              (max, current) =>
-                Number(current.bidAmount) > Number(max.bidAmount)
-                  ? current
-                  : max,
-              {}
-            );
-          } else {
-            console.log("No bids available, setting winner to null");
-          }
-          if (winnerBid) {
-            setWinner(winnerBid);
-            setAuctionWinner(winnerBid);
-
-            console.log("تفاصيل الفائز:", {
-              winnerId: winnerBid.userId,
-              winnerName: winnerBid.userName,
-              winnerBid: winnerBid.bidAmount,
-              winnerTime: winnerBid.bidTime,
-            });
-
-            update(auctionRef, {
-              winnerId: winnerBid.userId,
-              winnerName: winnerBid.userName,
-              winnerBid: winnerBid.bidAmount,
-              winnerTime: winnerBid.bidTime,
-            })
-              .then(() => console.log("Winner data updated successfully"))
-              .catch((error) =>
-                console.error("Error updating winner data:", error)
-              );
-
-            set(ref(db, `users/${winnerBid.userId}/auctions/${auctionId}`), {
-              isWinner: true,
-              winnerBid: winnerBid.bidAmount,
-              winnerTime: winnerBid.bidTime,
-              auctionId: auctionId,
-              auctionTitle: auction.title || "مزاد",
-              auctionImage: auction.image || "",
-              isPaid: false,
-            })
-              .then(() => console.log("User winner data updated successfully"))
-              .catch((error) =>
-                console.error("Error updating user winner data:", error)
-              );
-
-            update(ref(db, `winners/${auctionId}`), {
-              winnerId: winnerBid.userId,
-              winnerName: winnerBid.userName,
-              winnerBid: winnerBid.bidAmount,
-              winnerTime: winnerBid.bidTime,
-              isPaid: false,
-              auctionId: auctionId,
-              auctionTitle: auction.title || "مزاد",
-              auctionImage: auction.imageUrls?.[0] || "",
-            })
-              .then(() => console.log("Winners data updated successfully"))
-              .catch((error) =>
-                console.error("Error updating winners data:", error)
-              );
-          } else {
-            console.log("No winner set due to no bids");
-          }
-
-          setRemainingTime("");
-        })
-        .catch((error) => {
-          console.error("Error updating status to ended:", error);
-          Swal.fire({
-            title: "خطأ!",
-            text: `حدث خطأ أثناء إنهاء المزاد: ${error.message}. حاول مرة أخرى!`,
-            icon: "error",
-            confirmButtonText: "حسنًا",
-            confirmButtonColor: "#FA6300",
+          console.log("تفاصيل الفائز:", {
+            winnerId: winnerBid.userId,
+            winnerName: winnerBid.userName,
+            winnerBid: winnerBid.bidAmount,
+            winnerTime: winnerBid.bidTime,
           });
+
+          // تحديث auctions/${auctionId}
+          update(auctionRef, {
+            winnerId: winnerBid.userId,
+            winnerName: winnerBid.userName,
+            winnerBid: winnerBid.bidAmount,
+            winnerTime: winnerBid.bidTime,
+          })
+            .then(() => console.log("Winner data updated successfully in auctions"))
+            .catch((error) => console.error("Error updating winner data in auctions:", error));
+
+          // تحديث winners
+          const winnersRef = ref(db, `winners/${auctionId}`);
+          set(winnersRef, {
+            auctionId: auctionId,
+            winnerId: winnerBid.userId,
+            winnerName: winnerBid.userName,
+            winnerBid: winnerBid.bidAmount,
+            winnerTime: winnerBid.bidTime,
+            isPaid: false,
+            auctionImage: auction.imageUrls?.[0] || 'https://via.placeholder.com/80',
+            auctionTitle: auction.title || 'بدون عنوان', 
+          })
+            .then(() => console.log("Winner data updated successfully in winners"))
+            .catch((error) => console.error("Error updating winner data in winners:", error));
+
+        } else {
+          console.log("No winner set due to no bids or invalid data");
+        }
+
+        setRemainingTime("");
+      })
+      .catch((error) => {
+        console.error("Error updating status to ended:", error);
+        Swal.fire({
+          title: "خطأ!",
+          text: `حدث خطأ أثناء إنهاء المزاد: ${error.message}. حاول مرة أخرى!`,
+          icon: "error",
+          confirmButtonText: "حسنًا",
+          confirmButtonColor: "#FA6300",
         });
-    } else {
-      console.log("User is not the auction creator:", user.uid, createdBy);
-    }
-  };
+      });
+  } else {
+    console.log("User is not the auction creator:", user.uid, createdBy);
+  }
+};
   // هنا بقي الداتا بقت دينامك
   // useMemo
   const stats = useMemo(
