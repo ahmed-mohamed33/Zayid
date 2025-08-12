@@ -26,6 +26,7 @@ import Profile from "./Pages/Profile.jsx";
 import Dashboard from "./Pages/Dashboard.jsx";
 import FAq from "./Pages/FAq.jsx";
 import ErrorPage from "./components/common/errorPage.jsx";
+import TitleUpdater from "./components/common/TitleUpdater.jsx";
 
 function App() {
   // Initialize service worker for notifications
@@ -51,6 +52,7 @@ function App() {
         <Router>
           <Navbar />
           <AllDataComponent />
+          <TitleUpdater/>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
