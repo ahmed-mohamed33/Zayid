@@ -24,9 +24,20 @@ const NotificationDropdown = () => {
       markAsRead(notification.id);
     }
 
-    // Navigate to auction if it's an auction-related notification
+
     if (notification.data?.auctionId) {
       window.location.href = `/auction/${notification.data.auctionId}`;
+      return;
+    }
+
+
+    if (
+      notification.type === "payment" &&
+      notification.data?.auctionId &&
+      notification.data?.action === "pay_winner"
+    ) {
+      window.location.href = `/payment/${notification.data.auctionId}/winner`;
+      return;
     }
 
     setIsOpen(false);
@@ -58,6 +69,16 @@ const NotificationDropdown = () => {
         return "🏁";
       case "new_auction_approved":
         return "🎯";
+      case "auction_participant_auction_started":
+        return "🚀";
+      case "auction_participant_auction_ending_soon":
+        return "⏰";
+      case "auction_participant_new_bid":
+        return "💰";
+      case "auction_participant_auction_reminder":
+        return "🔔";
+      case "auction_participant_auction_ended":
+        return "🏁";
       case "payment":
         return "💳";
       default:
@@ -75,6 +96,16 @@ const NotificationDropdown = () => {
         return "text-blue-600";
       case "new_auction_approved":
         return "text-orange-600";
+      case "auction_participant_auction_started":
+        return "text-green-600";
+      case "auction_participant_auction_ending_soon":
+        return "text-yellow-600";
+      case "auction_participant_new_bid":
+        return "text-emerald-600";
+      case "auction_participant_auction_reminder":
+        return "text-orange-600";
+      case "auction_participant_auction_ended":
+        return "text-blue-600";
       case "payment":
         return "text-purple-600";
       default:

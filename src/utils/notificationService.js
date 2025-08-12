@@ -1,9 +1,9 @@
 import { messaging } from '../config/Firebase';
 import { getToken, onMessage } from 'firebase/messaging';
-import { ref, set, get, push } from 'firebase/database';
+import { ref, set, get, push, update } from 'firebase/database';
 import { database } from '../config/Firebase';
 
-// FCM config - grab this from Firebase Console
+
 const FCM_CONFIG = {
     vapidKey: 'BFxskOBTpKt7ahmR0c_dSqkrCzs-Wz9zzjfVZgkWo4ox44_nIvU2dyl4Vds3byN1KNLa-unmUeB_WJZD7RSMESk', // get from Firebase Console
     fcmOptions: {
@@ -14,7 +14,7 @@ const FCM_CONFIG = {
     }
 };
 
-// Check if user can get notifications
+
 export const getPermissionStatus = () => {
     if (!('Notification' in window)) {
         return {
@@ -35,15 +35,15 @@ export const getPermissionStatus = () => {
     };
 };
 
-// Quick check if blocked
+
 export const isPermissionBlocked = () => {
     return getPermissionStatus().status === 'denied';
 };
 
-// Set up notifications - handles all the messy stuff
+
 export const initializeNotifications = async () => {
     try {
-        // Check if browser supports notifications
+
         if (!('Notification' in window)) {
             return {
                 success: false,
@@ -52,7 +52,7 @@ export const initializeNotifications = async () => {
             };
         }
 
-        // Check if service worker works
+
         if (!('serviceWorker' in navigator)) {
             return {
                 success: false,
@@ -61,10 +61,10 @@ export const initializeNotifications = async () => {
             };
         }
 
-        // Get current permission status
+
         const permissionStatus = getPermissionStatus();
 
-        // If already got permission, grab token
+
         if (permissionStatus.status === 'granted') {
             const token = await getFCMToken();
             return {
@@ -74,7 +74,7 @@ export const initializeNotifications = async () => {
             };
         }
 
-        // If blocked, return error
+
         if (permissionStatus.status === 'denied') {
             return {
                 success: false,
@@ -83,7 +83,7 @@ export const initializeNotifications = async () => {
             };
         }
 
-        // Ask for permission
+
         const permission = await Notification.requestPermission();
 
         if (permission === 'granted') {
@@ -111,7 +111,7 @@ export const initializeNotifications = async () => {
     }
 };
 
-// Ask for permission and get token
+
 export const requestNotificationPermission = async () => {
     try {
         const permission = await Notification.requestPermission();
@@ -128,7 +128,7 @@ export const requestNotificationPermission = async () => {
     }
 };
 
-// Grab FCM token
+
 export const getFCMToken = async () => {
     try {
         const token = await getToken(messaging, {
@@ -148,7 +148,7 @@ export const getFCMToken = async () => {
     }
 };
 
-// Save token to user profile
+
 export const saveFCMToken = async (userId, token) => {
     try {
         const tokenRef = ref(database, `users/${userId}/fcmToken`);
@@ -163,7 +163,7 @@ export const saveFCMToken = async (userId, token) => {
     }
 };
 
-// Get user's FCM token
+
 export const getUserFCMToken = async (userId) => {
     try {
         const tokenRef = ref(database, `users/${userId}/fcmToken`);
@@ -178,7 +178,7 @@ export const getUserFCMToken = async (userId) => {
     }
 };
 
-// Tell user they got outbid
+
 export const sendOutbidNotification = async (userId, auctionData, newBidAmount) => {
     try {
         const userToken = await getUserFCMToken(userId);
@@ -187,7 +187,7 @@ export const sendOutbidNotification = async (userId, auctionData, newBidAmount) 
             return;
         }
 
-        // Save to database
+
         const notificationRef = ref(database, `notifications/${userId}`);
         const newNotificationRef = push(notificationRef);
 
@@ -207,10 +207,10 @@ export const sendOutbidNotification = async (userId, auctionData, newBidAmount) 
             }
         };
 
-        // Save first, then send
+
         await set(newNotificationRef, notificationData);
 
-        // Fire off the notification
+
         await sendFCMNotification(userToken, notificationData);
 
         console.log('Outbid notification sent to user:', userId);
@@ -221,7 +221,7 @@ export const sendOutbidNotification = async (userId, auctionData, newBidAmount) 
     }
 };
 
-// Tell user auction is live
+
 export const sendAuctionStartedNotification = async (userId, auctionData) => {
     try {
         const userToken = await getUserFCMToken(userId);
@@ -230,7 +230,7 @@ export const sendAuctionStartedNotification = async (userId, auctionData) => {
             return;
         }
 
-        // Save to database
+
         const notificationRef = ref(database, `notifications/${userId}`);
         const newNotificationRef = push(notificationRef);
 
@@ -249,10 +249,10 @@ export const sendAuctionStartedNotification = async (userId, auctionData) => {
             }
         };
 
-        // Save first, then send
+
         await set(newNotificationRef, notificationData);
 
-        // Fire it off
+
         await sendFCMNotification(userToken, notificationData);
 
         console.log('Auction started notification sent to user:', userId);
@@ -263,7 +263,7 @@ export const sendAuctionStartedNotification = async (userId, auctionData) => {
     }
 };
 
-// Tell user auction is done
+
 export const sendAuctionEndedNotification = async (userId, auctionData, winnerInfo = null) => {
     try {
         const userToken = await getUserFCMToken(userId);
@@ -272,7 +272,7 @@ export const sendAuctionEndedNotification = async (userId, auctionData, winnerIn
             return;
         }
 
-        // Save to database
+
         const notificationRef = ref(database, `notifications/${userId}`);
         const newNotificationRef = push(notificationRef);
 
@@ -302,10 +302,10 @@ export const sendAuctionEndedNotification = async (userId, auctionData, winnerIn
             }
         };
 
-        // Save first, then send
+
         await set(newNotificationRef, notificationData);
 
-        // Fire it off
+
         await sendFCMNotification(userToken, notificationData);
 
         console.log('Auction ended notification sent to user:', userId);
@@ -316,7 +316,7 @@ export const sendAuctionEndedNotification = async (userId, auctionData, winnerIn
     }
 };
 
-// Tell user about new auction they might like
+
 export const sendNewAuctionApprovedNotification = async (userId, auctionData) => {
     try {
         const userToken = await getUserFCMToken(userId);
@@ -325,7 +325,7 @@ export const sendNewAuctionApprovedNotification = async (userId, auctionData) =>
             return;
         }
 
-        // Save to database
+
         const notificationRef = ref(database, `notifications/${userId}`);
         const newNotificationRef = push(notificationRef);
 
@@ -345,10 +345,10 @@ export const sendNewAuctionApprovedNotification = async (userId, auctionData) =>
             }
         };
 
-        // Save first, then send
+
         await set(newNotificationRef, notificationData);
 
-        // Fire it off
+
         await sendFCMNotification(userToken, notificationData);
 
         console.log('New auction approved notification sent to user:', userId);
@@ -359,7 +359,7 @@ export const sendNewAuctionApprovedNotification = async (userId, auctionData) =>
     }
 };
 
-// Spam all interested users about new auction
+
 export const sendNewAuctionApprovedToInterestedUsers = async (auctionData, interestedUserIds) => {
     try {
         const notifications = [];
@@ -370,7 +370,6 @@ export const sendNewAuctionApprovedToInterestedUsers = async (auctionData, inter
                 notifications.push(notification);
             } catch (error) {
                 console.error(`Error sending notification to user ${userId}:`, error);
-                // Keep going even if one fails
             }
         }
 
@@ -382,7 +381,6 @@ export const sendNewAuctionApprovedToInterestedUsers = async (auctionData, inter
     }
 };
 
-// Spam all interested users that auction is live
 export const sendAuctionStartedToInterestedUsers = async (auctionData, interestedUserIds) => {
     try {
         const notifications = [];
@@ -393,7 +391,6 @@ export const sendAuctionStartedToInterestedUsers = async (auctionData, intereste
                 notifications.push(notification);
             } catch (error) {
                 console.error(`Error sending auction started notification to user ${userId}:`, error);
-                // Keep going even if one fails
             }
         }
 
@@ -405,9 +402,9 @@ export const sendAuctionStartedToInterestedUsers = async (auctionData, intereste
     }
 };
 
-// Find users who dig this category
 export const getUsersInterestedInCategory = async (category) => {
     try {
+        if (!category) return [];
         const usersRef = ref(database, 'users');
         const snapshot = await get(usersRef);
 
@@ -417,24 +414,29 @@ export const getUsersInterestedInCategory = async (category) => {
 
         const interestedUsers = [];
         snapshot.forEach((childSnapshot) => {
-            const userData = childSnapshot.val();
-            const userId = childSnapshot.key;
-
-            // Check if user likes this stuff
-            if (userData.interests && Array.isArray(userData.interests)) {
-                if (userData.interests.includes(category)) {
-                    interestedUsers.push(userId);
-                }
+            const userData = childSnapshot.val() || {};
+            const uid = userData.userId;
+            if (!uid) {
+                return;
             }
 
-            // Also check if they bid on similar stuff before
-            if (userData.biddingHistory && Array.isArray(userData.biddingHistory)) {
-                const hasBidOnCategory = userData.biddingHistory.some(bid =>
-                    bid.category === category || bid.auctionCategory === category
-                );
-                if (hasBidOnCategory && !interestedUsers.includes(userId)) {
-                    interestedUsers.push(userId);
-                }
+            const interestList = Array.isArray(userData.userInterests)
+                ? userData.userInterests
+                : Array.isArray(userData.interests)
+                    ? userData.interests
+                    : [];
+
+            const matchesInterest = interestList.includes(category);
+
+            const history = Array.isArray(userData.biddingHistory) ? userData.biddingHistory : [];
+            const hasBidOnCategory = history.some((bid) =>
+                bid?.category === category ||
+                bid?.auctionCategory === category ||
+                bid?.categoryId === category
+            );
+
+            if ((matchesInterest || hasBidOnCategory) && !interestedUsers.includes(uid)) {
+                interestedUsers.push(uid);
             }
         });
 
@@ -445,7 +447,6 @@ export const getUsersInterestedInCategory = async (category) => {
     }
 };
 
-// Find users who bid on this auction
 export const getUsersWhoBidOnAuction = async (auctionId) => {
     try {
         const bidsRef = ref(database, `auctions/${auctionId}/bids`);
@@ -484,7 +485,6 @@ const sendFCMNotification = async (token, notificationData) => {
     }
 };
 
-// Generic notification sender
 export const sendNotification = async (userId, notificationData) => {
     try {
         const userToken = await getUserFCMToken(userId);
@@ -493,7 +493,6 @@ export const sendNotification = async (userId, notificationData) => {
             return;
         }
 
-        // Save to database
         const notificationRef = ref(database, `notifications/${userId}`);
         const newNotificationRef = push(notificationRef);
 
@@ -504,10 +503,8 @@ export const sendNotification = async (userId, notificationData) => {
             read: false
         };
 
-        // Save first, then send
         await set(newNotificationRef, fullNotificationData);
 
-        // Fire it off
         await sendFCMNotification(userToken, fullNotificationData);
 
         console.log('Notification sent to user:', userId);
@@ -518,7 +515,25 @@ export const sendNotification = async (userId, notificationData) => {
     }
 };
 
-// Find users who bought insurance/terms for this auction
+export const sendWinnerPaymentNotification = async (userId, auctionData, finalBidAmount) => {
+    try {
+        const notificationData = {
+            type: 'payment',
+            title: 'الرجاء إتمام الدفع للفوز بالمزاد 💳',
+            body: `لقد فزت بمزاد "${auctionData.title || 'المزاد'}" بسعر ${finalBidAmount ?? ''} ج.م. أكمل الدفع الآن لإتمام العملية.`,
+            auctionId: auctionData.id,
+            data: {
+                auctionId: auctionData.id,
+                action: 'pay_winner'
+            }
+        };
+        return await sendNotification(userId, notificationData);
+    } catch (error) {
+        console.error('Error sending winner payment notification:', error);
+        throw error;
+    }
+};
+
 export const getUsersWhoParticipatedInAuction = async (auctionId) => {
     try {
         const paymentsRef = ref(database, 'payments');
@@ -531,7 +546,6 @@ export const getUsersWhoParticipatedInAuction = async (auctionId) => {
         const userIds = new Set();
         snapshot.forEach((childSnapshot) => {
             const paymentData = childSnapshot.val();
-            // Check if payment is for this auction and is either insurance or shroot (terms)
             if (paymentData.auctionId === auctionId &&
                 ['insurance', 'shroot'].includes(paymentData.type) &&
                 paymentData.userId) {
@@ -546,7 +560,6 @@ export const getUsersWhoParticipatedInAuction = async (auctionId) => {
     }
 };
 
-// Tell participant about auction stuff
 export const sendAuctionParticipantNotification = async (userId, auctionData, notificationType) => {
     try {
         const userToken = await getUserFCMToken(userId);
@@ -555,7 +568,6 @@ export const sendAuctionParticipantNotification = async (userId, auctionData, no
             return;
         }
 
-        // Save to database
         const notificationRef = ref(database, `notifications/${userId}`);
         const newNotificationRef = push(notificationRef);
 
@@ -604,10 +616,8 @@ export const sendAuctionParticipantNotification = async (userId, auctionData, no
             }
         };
 
-        // Save first, then send
         await set(newNotificationRef, notificationData);
 
-        // Fire it off
         await sendFCMNotification(userToken, notificationData);
 
         console.log(`Auction participant notification (${notificationType}) sent to user:`, userId);
@@ -618,10 +628,8 @@ export const sendAuctionParticipantNotification = async (userId, auctionData, no
     }
 };
 
-// Spam all participants
 export const sendAuctionParticipantNotificationToAll = async (auctionData, notificationType) => {
     try {
-        // Get all users who participated in this auction
         const participants = await getUsersWhoParticipatedInAuction(auctionData.id);
 
         if (participants.length > 0) {
@@ -633,7 +641,6 @@ export const sendAuctionParticipantNotificationToAll = async (auctionData, notif
                     notifications.push(notification);
                 } catch (error) {
                     console.error(`Error sending participant notification to user ${userId}:`, error);
-                    // Keep going even if one fails
                 }
             }
 
@@ -650,12 +657,10 @@ export const sendAuctionParticipantNotificationToAll = async (auctionData, notif
 };
 
 
-// Listen for messages when app is open
 export const setupForegroundMessageListener = (callback) => {
     return onMessage(messaging, (payload) => {
         console.log('Message received in foreground:', payload);
 
-        // Show notification
         if (Notification.permission === 'granted') {
             const notification = new Notification(payload.notification.title, {
                 body: payload.notification.body,
@@ -674,20 +679,17 @@ export const setupForegroundMessageListener = (callback) => {
                 notification.close();
             };
 
-            // Auto-close after 10 seconds
             setTimeout(() => {
                 notification.close();
             }, 10000);
         }
 
-        // Call the callback if provided
         if (callback) {
             callback(payload);
         }
     });
 };
 
-// Grab user's notifications
 export const getUserNotifications = async (userId) => {
     try {
         const notificationsRef = ref(database, `notifications/${userId}`);
@@ -702,7 +704,6 @@ export const getUserNotifications = async (userId) => {
                 });
             });
 
-            // Sort by timestamp (newest first)
             return notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         }
 
@@ -713,17 +714,15 @@ export const getUserNotifications = async (userId) => {
     }
 };
 
-// Mark as read
 export const markNotificationAsRead = async (userId, notificationId) => {
     try {
         const notificationRef = ref(database, `notifications/${userId}/${notificationId}`);
-        await set(notificationRef, { read: true });
+        await update(notificationRef, { read: true });
     } catch (error) {
         console.error('Error marking notification as read:', error);
     }
 };
 
-// Delete notification
 export const deleteNotification = async (userId, notificationId) => {
     try {
         const notificationRef = ref(database, `notifications/${userId}/${notificationId}`);
@@ -733,13 +732,11 @@ export const deleteNotification = async (userId, notificationId) => {
     }
 };
 
-// Get browser-specific instructions for enabling notifications
 export const getNotificationInstructions = () => {
     const userAgent = navigator.userAgent.toLowerCase();
     let browser = 'unknown';
     let steps = [];
 
-    // Figure out what browser they're using
     if (userAgent.includes('chrome')) {
         browser = 'Chrome';
         steps = [

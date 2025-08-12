@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getDatabase, ref, push, set, get } from "firebase/database";
+import { sendNotification } from "../utils/notificationService";
 import { UserContext } from "../context/UserContext";
 import { useForm } from "react-hook-form";
 import { getFormConfig } from "../utils/formUtils";
@@ -80,7 +81,7 @@ function Payment() {
     );
     const winnerSnapshot = await get(
       ref(db, `users/${user.uid}/auctions/${auctionId}`)
-    );  
+    );
     const winnerData = winnerSnapshot.val();
 
     if (participantSnapshot.exists()) {
@@ -95,20 +96,17 @@ function Payment() {
     return false;
   };
 
-  // Helper function to get payment amount
   const getPaymentAmount = () => {
     if (type === "shroot") {
       return auction?.terms?.price || 100;
     } else if (type === "insurance") {
       return auction?.insurance?.amount || 200;
     } else if (type === "winner") {
-      // For auction winners, they pay their winning bid amount
       return auction?.winnerBid || auction?.startPrice || 0;
     }
     return 0;
   };
 
-  // Helper function to generate transaction ID
   const generateTransactionId = () => {
     return (
       "TXN" +
@@ -135,10 +133,7 @@ function Payment() {
   };
   const updateWinnerData = async (updates) => {
     const db = getDatabase();
-    const winnerRef = ref(
-      db,
-      `users/${user.uid}/auctions/${auctionId}`
-    );
+    const winnerRef = ref(db, `users/${user.uid}/auctions/${auctionId}`);
     const snapshot = await get(winnerRef);
 
     let currentData = {};
@@ -149,14 +144,14 @@ function Payment() {
     await set(winnerRef, { ...currentData, ...updates });
   };
 
-  // Helper function to create payment record
+
   const createPaymentRecord = async (amount) => {
     const db = getDatabase();
     const paymentRef = ref(db, "payments");
     const newPaymentRef = push(paymentRef);
 
     await set(newPaymentRef, {
-      amount: type === "winner" ? amount-auction?.insurance?.amount : amount,
+      amount: type === "winner" ? amount - auction?.insurance?.amount : amount,
       auctionId: auction.id,
       method: selectedPayment,
       status: "paid",
@@ -166,7 +161,7 @@ function Payment() {
     });
   };
 
-  // Check payment status on component mount
+
   useEffect(() => {
     const checkStatus = async () => {
       try {
@@ -193,7 +188,10 @@ function Payment() {
         throw new Error("المزاد غير موجود. تأكد من أن الرابط صحيح.");
       }
 
-      if (!type || (type !== "shroot" && type !== "insurance" && type !== "winner")) {
+      if (
+        !type ||
+        (type !== "shroot" && type !== "insurance" && type !== "winner")
+      ) {
         throw new Error("نوع الدفع غير صحيح أو غير محدد في الرابط.");
       }
 
@@ -221,8 +219,23 @@ function Payment() {
           paidAt: new Date().toISOString(),
           paidAmount: amount,
           paymentMethod: selectedPayment,
-          
         });
+
+
+        try {
+          await sendNotification(user.uid, {
+            type: "payment",
+            title: "تم دفع مبلغ الفوز بالمزاد 💳",
+            body: `تم تأكيد دفعك لمزاد "${auction?.title || ""}" بنجاح.`,
+            auctionId: auction.id,
+            data: {
+              auctionId: auction.id,
+              action: "view_auction",
+            },
+          });
+        } catch (e) {
+          console.error("Error sending payment confirmation notification:", e);
+        }
       }
 
       setStatus({ success: true, error: null, info: null });
@@ -237,7 +250,7 @@ function Payment() {
     }
   };
 
-  // Handle OTP verification
+
   const handleOTPVerification = async () => {
     try {
       if (!otpCode || otpCode.length !== 6) {
@@ -265,14 +278,14 @@ function Payment() {
     }
   };
 
-  // Handle going back from OTP screen
+
   const handleBackFromOTP = () => {
     setShowOTP(false);
     setOtpCode("");
     setStatus({ error: null, success: false, info: null });
   };
 
-  // Handle going back from confirmation screen
+
   const handleBackFromConfirmation = () => {
     setShowConfirmation(false);
     if (selectedPayment === "vodafone") {
@@ -281,7 +294,7 @@ function Payment() {
     setStatus({ error: null, success: false, info: null });
   };
 
-  // Handle resend OTP
+
   const handleResendOTP = () => {
     setStatus({
       error: null,
@@ -290,7 +303,7 @@ function Payment() {
     });
   };
 
-  // Handle form submission
+
   const onSubmit = async (values) => {
     if (selectedPayment === "vodafone") {
       setPhoneNumber(values.phoneNumber);
@@ -310,12 +323,12 @@ function Payment() {
     }
   };
 
-  // Show loading state
+
   if (loading) {
     return <LoadingScreen />;
   }
 
-  // Show already paid message
+
   if (alreadyPaid) {
     return (
       <AlreadyPaidScreen

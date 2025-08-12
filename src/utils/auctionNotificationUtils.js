@@ -11,19 +11,12 @@ import {
     sendAuctionParticipantNotificationToAll
 } from './notificationService';
 
-// Utility functions for auction notifications
 
-/**
- * Tell users about new approved auction
- * Spams users who dig this category
- */
 export const notifyNewAuctionApproved = async (auctionData) => {
     try {
-        // Find users who dig this category
         const interestedUsers = await getUsersInterestedInCategory(auctionData.category);
 
         if (interestedUsers.length > 0) {
-            // Spam all interested users
             await sendNewAuctionApprovedToInterestedUsers(auctionData, interestedUsers);
             console.log(`Notified ${interestedUsers.length} users about new auction: ${auctionData.title}`);
         } else {
@@ -37,17 +30,12 @@ export const notifyNewAuctionApproved = async (auctionData) => {
     }
 };
 
-/**
- * Tell users auction is live
- * Spams users who dig this category
- */
+
 export const notifyAuctionStarted = async (auctionData) => {
     try {
-        // Find users who dig this category
         const interestedUsers = await getUsersInterestedInCategory(auctionData.category);
 
         if (interestedUsers.length > 0) {
-            // Spam all interested users
             await sendAuctionStartedToInterestedUsers(auctionData, interestedUsers);
             console.log(`Notified ${interestedUsers.length} users about auction start: ${auctionData.title}`);
         } else {
@@ -61,22 +49,16 @@ export const notifyAuctionStarted = async (auctionData) => {
     }
 };
 
-/**
- * Tell users auction is done
- * Spams all users who bid on this auction
- */
+
 export const notifyAuctionEnded = async (auctionData, winnerInfo = null) => {
     try {
-        // Find all users who bid on this auction
         const bidders = await getUsersWhoBidOnAuction(auctionData.id);
 
         if (bidders.length > 0) {
-            // Spam all bidders
             const notifications = [];
 
             for (const userId of bidders) {
                 try {
-                    // Check if this user is the winner
                     const isWinner = winnerInfo && winnerInfo.userId === userId;
                     const userWinnerInfo = isWinner ? winnerInfo : null;
 
@@ -99,9 +81,7 @@ export const notifyAuctionEnded = async (auctionData, winnerInfo = null) => {
     }
 };
 
-/**
- * Tell specific user auction is live
- */
+
 export const notifyUserAboutAuctionStart = async (userId, auctionData) => {
     try {
         await sendAuctionStartedNotification(userId, auctionData);
@@ -113,9 +93,7 @@ export const notifyUserAboutAuctionStart = async (userId, auctionData) => {
     }
 };
 
-/**
- * Tell specific user about new auction
- */
+
 export const notifyUserAboutNewAuction = async (userId, auctionData) => {
     try {
         await sendNewAuctionApprovedNotification(userId, auctionData);
@@ -127,9 +105,7 @@ export const notifyUserAboutNewAuction = async (userId, auctionData) => {
     }
 };
 
-/**
- * Tell specific user auction is done
- */
+
 export const notifyUserAboutAuctionEnd = async (userId, auctionData, winnerInfo = null) => {
     try {
         await sendAuctionEndedNotification(userId, auctionData, winnerInfo);
@@ -141,17 +117,12 @@ export const notifyUserAboutAuctionEnd = async (userId, auctionData, winnerInfo 
     }
 };
 
-/**
- * Tell participants auction is live
- * Spams users who bought insurance/terms for this auction
- */
+
 export const notifyAuctionParticipantsAboutStart = async (auctionData) => {
     try {
-        // Find users who participated in this auction (bought insurance/terms)
         const participants = await getUsersWhoParticipatedInAuction(auctionData.id);
 
         if (participants.length > 0) {
-            // Spam all participants
             await sendAuctionParticipantNotificationToAll(auctionData, 'auction_started');
             console.log(`Notified ${participants.length} participants about auction start: ${auctionData.title}`);
         } else {
@@ -165,17 +136,12 @@ export const notifyAuctionParticipantsAboutStart = async (auctionData) => {
     }
 };
 
-/**
- * Send notification to auction participants when auction is ending soon
- * This will notify users who bought insurance or terms for this auction
- */
+
 export const notifyAuctionParticipantsAboutEndingSoon = async (auctionData) => {
     try {
-        // Get users who participated in this auction (bought insurance/terms)
         const participants = await getUsersWhoParticipatedInAuction(auctionData.id);
 
         if (participants.length > 0) {
-            // Send notifications to all participants
             await sendAuctionParticipantNotificationToAll(auctionData, 'auction_ending_soon');
             console.log(`Notified ${participants.length} participants about auction ending soon: ${auctionData.title}`);
         } else {
@@ -189,17 +155,12 @@ export const notifyAuctionParticipantsAboutEndingSoon = async (auctionData) => {
     }
 };
 
-/**
- * Send notification to auction participants when auction ends
- * This will notify users who bought insurance or terms for this auction
- */
+
 export const notifyAuctionParticipantsAboutEnd = async (auctionData, winnerInfo = null) => {
     try {
-        // Get users who participated in this auction (bought insurance/terms)
         const participants = await getUsersWhoParticipatedInAuction(auctionData.id);
 
         if (participants.length > 0) {
-            // Send notifications to all participants
             await sendAuctionParticipantNotificationToAll(auctionData, 'auction_ended');
             console.log(`Notified ${participants.length} participants about auction end: ${auctionData.title}`);
         } else {
@@ -213,17 +174,12 @@ export const notifyAuctionParticipantsAboutEnd = async (auctionData, winnerInfo 
     }
 };
 
-/**
- * Send notification to auction participants about new bids
- * This will notify users who bought insurance or terms for this auction
- */
+
 export const notifyAuctionParticipantsAboutNewBid = async (auctionData) => {
     try {
-        // Get users who participated in this auction (bought insurance/terms)
         const participants = await getUsersWhoParticipatedInAuction(auctionData.id);
 
         if (participants.length > 0) {
-            // Send notifications to all participants
             await sendAuctionParticipantNotificationToAll(auctionData, 'new_bid');
             console.log(`Notified ${participants.length} participants about new bid: ${auctionData.title}`);
         } else {
@@ -237,17 +193,12 @@ export const notifyAuctionParticipantsAboutNewBid = async (auctionData) => {
     }
 };
 
-/**
- * Send reminder notification to auction participants
- * This will notify users who bought insurance or terms for this auction
- */
+
 export const sendAuctionParticipantReminder = async (auctionData) => {
     try {
-        // Get users who participated in this auction (bought insurance/terms)
         const participants = await getUsersWhoParticipatedInAuction(auctionData.id);
 
         if (participants.length > 0) {
-            // Send notifications to all participants
             await sendAuctionParticipantNotificationToAll(auctionData, 'auction_reminder');
             console.log(`Sent reminder to ${participants.length} participants: ${auctionData.title}`);
         } else {
@@ -261,9 +212,7 @@ export const sendAuctionParticipantReminder = async (auctionData) => {
     }
 };
 
-/**
- * Send notification to a specific auction participant
- */
+
 export const notifySpecificAuctionParticipant = async (userId, auctionData, notificationType) => {
     try {
         await sendAuctionParticipantNotification(userId, auctionData, notificationType);
@@ -275,75 +224,58 @@ export const notifySpecificAuctionParticipant = async (userId, auctionData, noti
     }
 };
 
-/**
- * Example usage functions for different auction scenarios
- */
 
-// Example: When admin approves a new auction
 export const handleNewAuctionApproval = async (auctionData) => {
     console.log('New auction approved:', auctionData.title);
     await notifyNewAuctionApproved(auctionData);
 };
 
-// Example: When auction start time is reached
 export const handleAuctionStart = async (auctionData) => {
     console.log('Auction started:', auctionData.title);
     await notifyAuctionStarted(auctionData);
 };
 
-// Example: When auction end time is reached
 export const handleAuctionEnd = async (auctionData, winnerInfo) => {
     console.log('Auction ended:', auctionData.title);
     await notifyAuctionEnded(auctionData, winnerInfo);
 };
 
-// Example: When user manually starts an auction
 export const handleManualAuctionStart = async (auctionData) => {
     console.log('Manual auction start:', auctionData.title);
     await notifyAuctionStarted(auctionData);
 };
 
-// Example: When auction starts - notify both interested users and participants
 export const handleAuctionStartWithParticipants = async (auctionData) => {
     console.log('Auction started with participant notifications:', auctionData.title);
 
-    // Notify interested users (existing functionality)
     await notifyAuctionStarted(auctionData);
 
-    // Notify participants who bought insurance/terms
     await notifyAuctionParticipantsAboutStart(auctionData);
 };
 
-// Example: When auction is ending soon (e.g., 1 hour before end)
 export const handleAuctionEndingSoon = async (auctionData) => {
     console.log('Auction ending soon:', auctionData.title);
     await notifyAuctionParticipantsAboutEndingSoon(auctionData);
 };
 
-// Example: When auction ends - notify both bidders and participants
 export const handleAuctionEndWithParticipants = async (auctionData, winnerInfo) => {
     console.log('Auction ended with participant notifications:', auctionData.title);
 
-    // Notify bidders (existing functionality)
     await notifyAuctionEnded(auctionData, winnerInfo);
 
-    // Notify participants who bought insurance/terms
     await notifyAuctionParticipantsAboutEnd(auctionData, winnerInfo);
 };
 
-// Example: When a new bid is placed
 export const handleNewBidWithParticipantNotification = async (auctionData) => {
     console.log('New bid placed:', auctionData.title);
     await notifyAuctionParticipantsAboutNewBid(auctionData);
 };
 
-// Example: Send reminder to participants (e.g., 30 minutes before end)
 export const handleParticipantReminder = async (auctionData) => {
     console.log('Sending participant reminder:', auctionData.title);
     await sendAuctionParticipantReminder(auctionData);
 };
 
-// Example: Comprehensive auction lifecycle notifications
 export const handleCompleteAuctionLifecycle = async (auctionData, event, winnerInfo = null) => {
     console.log(`Auction lifecycle event: ${event}`, auctionData.title);
 

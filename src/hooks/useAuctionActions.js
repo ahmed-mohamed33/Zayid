@@ -1,4 +1,9 @@
-import { getDatabase, ref, update, remove } from 'firebase/database';
+import { getDatabase, ref, update, remove, get } from 'firebase/database';
+import {
+    notifyNewAuctionApproved,
+    handleAuctionStartWithParticipants,
+    handleAuctionEndWithParticipants,
+} from '../utils/auctionNotificationUtils';
 
 export const useAuctionActions = () => {
     const db = getDatabase();
@@ -6,6 +11,40 @@ export const useAuctionActions = () => {
     const handleEndAuction = async (auctionId) => {
         try {
             await update(ref(db, `auctions/${auctionId}`), { status: 'ended' });
+
+            const auctionSnap = await get(ref(db, `auctions/${auctionId}`));
+            const raw = auctionSnap.exists() ? auctionSnap.val() : {};
+            const auctionData = { id: auctionId, ...raw, category: raw.category || raw.categoryId };
+
+            let winnerInfo = null;
+            try {
+                const bidsSnap = await get(ref(db, `auctions/${auctionId}/bids`));
+                if (bidsSnap.exists()) {
+                    let highestBid = -Infinity;
+                    let winnerUserId = null;
+                    bidsSnap.forEach((child) => {
+                        const bid = child.val();
+                        const amount = Number(bid.bidAmount);
+                        if (!Number.isNaN(amount) && amount > highestBid) {
+                            highestBid = amount;
+                            winnerUserId = bid.userId || null;
+                        }
+                    });
+                    if (winnerUserId && highestBid !== -Infinity) {
+                        winnerInfo = { userId: winnerUserId, finalBid: highestBid };
+                    }
+                }
+            } catch (err) {
+ 
+                console.error('Error computing winner info:', err);
+            }
+
+
+            try {
+                await handleAuctionEndWithParticipants(auctionData, winnerInfo);
+            } catch (err) {
+                console.error('Error sending end notifications:', err);
+            }
             alert('تم إنهاء المزاد بنجاح');
             return { success: true };
         } catch (err) {
@@ -32,6 +71,17 @@ export const useAuctionActions = () => {
     const handleApproveAuction = async (auctionId) => {
         try {
             await update(ref(db, `auctions/${auctionId}`), { status: 'approved' });
+
+            try {
+                const auctionSnap = await get(ref(db, `auctions/${auctionId}`));
+                if (auctionSnap.exists()) {
+                    const raw = auctionSnap.val();
+                    const auctionData = { id: auctionId, ...raw, category: raw.category || raw.categoryId };
+                    await notifyNewAuctionApproved(auctionData);
+                }
+            } catch (err) {
+                console.error('Error sending approval notifications:', err);
+            }
             alert('تم الموافقة على المزاد بنجاح');
             return { success: true };
         } catch (err) {
@@ -46,6 +96,17 @@ export const useAuctionActions = () => {
                 status: 'active',
                 actualStartDate: new Date().toISOString()
             });
+
+            try {
+                const auctionSnap = await get(ref(db, `auctions/${auctionId}`));
+                if (auctionSnap.exists()) {
+                    const raw = auctionSnap.val();
+                    const auctionData = { id: auctionId, ...raw, category: raw.category || raw.categoryId };
+                    await handleAuctionStartWithParticipants(auctionData);
+                }
+            } catch (err) {
+                console.error('Error sending start notifications:', err);
+            }
             alert('تم تفعيل المزاد بنجاح');
             return { success: true };
         } catch (err) {

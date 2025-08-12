@@ -4,10 +4,17 @@ import highestBidIcon from "../../assets/icons/highestBid.svg";
 import calendarIcon from "../../assets/icons/calendar.svg";
 import participantsIcon from "../../assets/icons/participants.svg";
 import noOfBidsIcon from "../../assets/icons/noOfBids.svg";
-import { getDatabase, ref, onValue, update , set } from "firebase/database";
+import { getDatabase, ref, onValue, update, set } from "firebase/database";
 import { UserContext } from "../../context/UserContext";
 import { updateAuctionStatus } from "../../utils/firebaseUtils";
-import { sendOutbidNotification } from "../../utils/notificationService";
+import {
+  sendOutbidNotification,
+  sendWinnerPaymentNotification,
+} from "../../utils/notificationService";
+import {
+  handleNewBidWithParticipantNotification,
+  handleAuctionEndWithParticipants,
+} from "../../utils/auctionNotificationUtils";
 
 const BiddingChat = ({
   auctionId,
@@ -251,7 +258,7 @@ const BiddingChat = ({
     try {
       await update(bidsRef, bidData);
 
-      // Update the highest price immediately
+
       const auctionRef = ref(db, `auctions/${auctionId}`);
       const updatedBids = [...bids, bidData];
       const newHighestBid = Math.max(
@@ -260,17 +267,17 @@ const BiddingChat = ({
       const formattedHighestBid = `${newHighestBid} ج.م`;
       await update(auctionRef, { highestBid: formattedHighestBid });
 
-      // Update local state
+
       setBids(updatedBids);
       setBidAmount("");
 
-      // Send outbid notifications to previous highest bidders
+ 
       if (bids.length > 0) {
         const previousHighestBid = bids.reduce((max, current) =>
           Number(current.bidAmount) > Number(max.bidAmount) ? current : max
         );
 
-        // Don't send notification to the current bidder
+
         if (previousHighestBid.userId !== user.uid) {
           const auctionData = {
             id: auctionId,
@@ -284,6 +291,19 @@ const BiddingChat = ({
             newBidAmount
           );
         }
+      }
+
+
+      try {
+        const auctionDataForParticipants = {
+          id: auctionId,
+          title: auction.title || "المزاد",
+        };
+        await handleNewBidWithParticipantNotification(
+          auctionDataForParticipants
+        );
+      } catch (notifyErr) {
+        console.error("Error notifying participants about new bid:", notifyErr);
       }
       setHighestBid(formattedHighestBid);
     } catch (error) {
@@ -299,14 +319,17 @@ const BiddingChat = ({
   };
 
   // ف حاله صاحب المزاد
-const handleEndAuction = () => {
-  if (user.uid === createdBy) {
-    setAuctionTime("انتهى");
-    const auctionRef = ref(db, `auctions/${auctionId}`);
-    const now = new Date().toISOString();
-    update(auctionRef, { status: "ended", endDate: now })
-      .then(() => {
-        console.log("Status updated to ended successfully for auction:", auctionId);
+  const handleEndAuction = async () => {
+    if (user.uid === createdBy) {
+      setAuctionTime("انتهى");
+      const auctionRef = ref(db, `auctions/${auctionId}`);
+      const now = new Date().toISOString();
+      try {
+        await update(auctionRef, { status: "ended", endDate: now });
+        console.log(
+          "Status updated to ended successfully for auction:",
+          auctionId
+        );
         setStatus("ended");
         setIsAuctionLive(false);
 
@@ -332,37 +355,73 @@ const handleEndAuction = () => {
           });
 
           // تحديث auctions/${auctionId}
-          update(auctionRef, {
-            winnerId: winnerBid.userId,
-            winnerName: winnerBid.userName,
-            winnerBid: winnerBid.bidAmount,
-            winnerTime: winnerBid.bidTime,
-          })
-            .then(() => console.log("Winner data updated successfully in auctions"))
-            .catch((error) => console.error("Error updating winner data in auctions:", error));
+          try {
+            await update(auctionRef, {
+              winnerId: winnerBid.userId,
+              winnerName: winnerBid.userName,
+              winnerBid: winnerBid.bidAmount,
+              winnerTime: winnerBid.bidTime,
+            });
+            console.log("Winner data updated successfully in auctions");
+          } catch (error) {
+            console.error("Error updating winner data in auctions:", error);
+          }
 
           // تحديث winners
           const winnersRef = ref(db, `winners/${auctionId}`);
-          set(winnersRef, {
+          await set(winnersRef, {
             auctionId: auctionId,
             winnerId: winnerBid.userId,
             winnerName: winnerBid.userName,
             winnerBid: winnerBid.bidAmount,
             winnerTime: winnerBid.bidTime,
             isPaid: false,
-            auctionImage: auction.imageUrls?.[0] || 'https://via.placeholder.com/80',
-            auctionTitle: auction.title || 'بدون عنوان', 
-          })
-            .then(() => console.log("Winner data updated successfully in winners"))
-            .catch((error) => console.error("Error updating winner data in winners:", error));
-
+            auctionImage:
+              auction.imageUrls?.[0] || "https://via.placeholder.com/80",
+            auctionTitle: auction.title || "بدون عنوان",
+          });
+          console.log("Winner data updated successfully in winners");
         } else {
           console.log("No winner set due to no bids or invalid data");
         }
 
         setRemainingTime("");
-      })
-      .catch((error) => {
+
+
+        try {
+          if (winnerBid?.userId) {
+            const auctionDataForWinner = {
+              id: auctionId,
+              title: auction?.title || "المزاد",
+            };
+            await sendWinnerPaymentNotification(
+              winnerBid.userId,
+              auctionDataForWinner,
+              Number(winnerBid.bidAmount)
+            );
+          }
+        } catch (e) {
+          console.error("Error sending winner payment notification:", e);
+        }
+
+
+        try {
+          const auctionDataForEnd = {
+            id: auctionId,
+            title: auction?.title || "المزاد",
+            category: auction?.category || auction?.categoryId,
+          };
+          const winnerInfo = winnerBid?.userId
+            ? {
+                userId: winnerBid.userId,
+                finalBid: Number(winnerBid.bidAmount),
+              }
+            : null;
+          await handleAuctionEndWithParticipants(auctionDataForEnd, winnerInfo);
+        } catch (notifyErr) {
+          console.error("Error notifying end-of-auction:", notifyErr);
+        }
+      } catch (error) {
         console.error("Error updating status to ended:", error);
         Swal.fire({
           title: "خطأ!",
@@ -371,11 +430,11 @@ const handleEndAuction = () => {
           confirmButtonText: "حسنًا",
           confirmButtonColor: "#FA6300",
         });
-      });
-  } else {
-    console.log("User is not the auction creator:", user.uid, createdBy);
-  }
-};
+      }
+    } else {
+      console.log("User is not the auction creator:", user.uid, createdBy);
+    }
+  };
   // هنا بقي الداتا بقت دينامك
   // useMemo
   const stats = useMemo(
