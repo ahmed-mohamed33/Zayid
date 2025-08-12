@@ -35,7 +35,7 @@ export const useAuctionActions = () => {
                     }
                 }
             } catch (err) {
- 
+
                 console.error('Error computing winner info:', err);
             }
 
