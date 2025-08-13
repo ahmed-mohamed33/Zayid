@@ -1,11 +1,13 @@
 import { useEffect, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
+import { useNotifications } from "../../hooks/useNotifications";
 import routesMeta from "../../routesMeta";
 
 export default function TitleUpdater() {
   const location = useLocation();
   const { auctions } = useContext(UserContext);
+  const { unreadCount, hasNewNotifications } = useNotifications();
 
   useEffect(() => {
     let title = "ZAYID";
@@ -30,8 +32,11 @@ export default function TitleUpdater() {
         description = "تفاصيل هذا المزاد غير متوفرة حاليًا.";
       }
     }
-    //title
-    document.title = title;
+    // title
+    const unreadPrefix =
+      unreadCount > 0 ? `(${unreadCount > 99 ? "99+" : unreadCount}) ` : "";
+    const ping = hasNewNotifications ? "• " : "";
+    document.title = `${ping}${unreadPrefix}${title}`;
     //metaTag
     let metaTag = document.querySelector('meta[name="description"]');
     if (!metaTag) {
@@ -50,9 +55,11 @@ export default function TitleUpdater() {
 
     // our keywords
     keywordsTag.content =
-    staticMeta?.keywords ||(auctions?.title ? ` مزاد, ZAYID, بيع, شراء`: "مزادات, بيع, شراء, ZAYID");
-    
-  }, [location, auctions]);
+      staticMeta?.keywords ||
+      (auctions?.title
+        ? ` مزاد, ZAYID, بيع, شراء`
+        : "مزادات, بيع, شراء, ZAYID");
+  }, [location, auctions, unreadCount, hasNewNotifications]);
 
   return null;
 }

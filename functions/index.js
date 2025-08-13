@@ -6,7 +6,7 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-exports.sendOutbidNotification = onValueCreated("/fcm_notifications/{token}", async (event) => {
+exports.sendOutbidNotification = onValueCreated("/fcm_notifications/{token}/{id}", async (event) => {
     const notificationData = event.data.val();
     const userToken = event.params.token;
 

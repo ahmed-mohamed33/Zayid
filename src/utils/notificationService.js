@@ -276,10 +276,11 @@ export const sendAuctionEndedNotification = async (userId, auctionData, winnerIn
         const notificationRef = ref(database, `notifications/${userId}`);
         const newNotificationRef = push(notificationRef);
 
-        let title, body;
+        let title, body, action = 'view_auction';
         if (winnerInfo && winnerInfo.userId === userId) {
             title = 'مبروك! فزت بالمزاد! 🏆';
-            body = `فزت بمزاد "${auctionData.title}" بسعر ${winnerInfo.finalBid} ج.م`;
+            body = `فزت بمزاد "${auctionData.title}" بسعر ${winnerInfo.finalBid} ج.م. أكمل الدفع الآن لإتمام العملية.`;
+            action = 'pay_winner';
         } else {
             title = 'انتهى المزاد! 🏁';
             body = `انتهى مزاد "${auctionData.title}" - السعر النهائي: ${auctionData.finalPrice || 'غير محدد'} ج.م`;
@@ -298,7 +299,7 @@ export const sendAuctionEndedNotification = async (userId, auctionData, winnerIn
             read: false,
             data: {
                 auctionId: auctionData.id,
-                action: 'view_auction'
+                action: action
             }
         };
 
@@ -577,6 +578,10 @@ export const sendAuctionParticipantNotification = async (userId, auctionData, no
             case 'auction_started':
                 title = 'بدأ المزاد الذي شاركت فيه! 🚀';
                 body = `بدأ المزاد "${auctionData.title}" الذي اشتريت فيه التأمين/الشروط - ابدأ المزايدة الآن!`;
+                break;
+            case 'auction_starting_soon':
+                title = 'المزاد سيبدأ خلال دقيقة ⏳';
+                body = `المزاد "${auctionData.title}" سيبدأ خلال دقيقة. استعد للمزايدة!`;
                 break;
             case 'auction_ending_soon':
                 title = 'المزاد ينتهي قريباً! ⏰';

@@ -19,6 +19,11 @@ import {
   uploadMultipleImages as cloudinaryUploadMultiple,
 } from "../utils/cloudinaryUtils";
 import { v4 as uuidv4 } from "uuid";
+import {
+  getUsersInterestedInCategory,
+  sendAuctionStartedToInterestedUsers,
+  sendAuctionParticipantNotificationToAll,
+} from "../utils/notificationService";
 
 // Create Context
 export const UserContext = createContext();
@@ -191,7 +196,7 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // Periodic auction status check
+
   useEffect(() => {
     const checkAuctionStatuses = async () => {
       if (auctions.length === 0) return;
@@ -203,19 +208,107 @@ export const UserProvider = ({ children }) => {
         const startDate = new Date(auction.startDate);
         const endDate = new Date(auction.endDate);
         const currentStatus = auction.status;
+        const notificationsSent = auction.notificationsSent || {};
 
-        // Check if auction should be active
+  
         if (now >= startDate && now <= endDate && currentStatus === "pending") {
-          await update(ref(db, `auctions/${auction.id}`), { status: "active" });
+          await update(ref(db, `auctions/${auction.id}`), {
+            status: "active",
+            actualStartDate: new Date().toISOString(),
+          });
+
+          if (!notificationsSent.started) {
+            try {
+              const auctionData = {
+                id: auction.id,
+                title: auction.title,
+                category: auction.category || auction.categoryId,
+              };
+              const interested = await getUsersInterestedInCategory(
+                auctionData.category
+              );
+              if (Array.isArray(interested) && interested.length > 0) {
+                await sendAuctionStartedToInterestedUsers(
+                  auctionData,
+                  interested
+                );
+              }
+              await sendAuctionParticipantNotificationToAll(
+                auctionData,
+                "auction_started"
+              );
+              await update(
+                ref(db, `auctions/${auction.id}/notificationsSent`),
+                { started: true }
+              );
+            } catch (e) {
+              console.error("Error sending start notifications:", e);
+            }
+          }
         }
-        // Check if auction should be ended
+
+        else if (now < startDate) {
+          const msToStart = startDate - now;
+          if (
+            msToStart > 0 &&
+            msToStart <= 60 * 1000 &&
+            !notificationsSent.startingSoon
+          ) {
+            try {
+              const auctionData = {
+                id: auction.id,
+                title: auction.title,
+                category: auction.category || auction.categoryId,
+              };
+              await sendAuctionParticipantNotificationToAll(
+                auctionData,
+                "auction_starting_soon"
+              );
+              await update(
+                ref(db, `auctions/${auction.id}/notificationsSent`),
+                { startingSoon: true }
+              );
+            } catch (e) {
+              console.error("Error sending starting soon notifications:", e);
+            }
+          }
+        }
+
         else if (now > endDate && currentStatus !== "ended") {
           await update(ref(db, `auctions/${auction.id}`), { status: "ended" });
+        }
+
+
+        if (now < endDate) {
+          const msToEnd = endDate - now;
+          if (
+            msToEnd > 0 &&
+            msToEnd <= 60 * 1000 &&
+            !notificationsSent.endingSoon
+          ) {
+            try {
+              const auctionData = {
+                id: auction.id,
+                title: auction.title,
+                category: auction.category || auction.categoryId,
+              };
+              await sendAuctionParticipantNotificationToAll(
+                auctionData,
+                "auction_ending_soon"
+              );
+              await update(
+                ref(db, `auctions/${auction.id}/notificationsSent`),
+                { endingSoon: true }
+              );
+            } catch (e) {
+              console.error("Error sending ending soon notifications:", e);
+            }
+          }
         }
       }
     };
 
-    // Check every minute
+
     const interval = setInterval(checkAuctionStatuses, 60000);
 
     return () => clearInterval(interval);

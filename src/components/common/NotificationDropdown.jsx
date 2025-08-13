@@ -3,8 +3,10 @@ import { useNotifications } from "../../hooks/useNotifications";
 import notificationIcon from "../../assets/icons/notification.svg";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 const NotificationDropdown = () => {
+  const navigate = useNavigate();
   const {
     notifications,
     unreadCount,
@@ -24,19 +26,18 @@ const NotificationDropdown = () => {
       markAsRead(notification.id);
     }
 
-
-    if (notification.data?.auctionId) {
-      window.location.href = `/auction/${notification.data.auctionId}`;
-      return;
-    }
-
-
+    // Winner payment deep link first
     if (
-      notification.type === "payment" &&
       notification.data?.auctionId &&
       notification.data?.action === "pay_winner"
     ) {
-      window.location.href = `/payment/${notification.data.auctionId}/winner`;
+      navigate(`/payment/${notification.data.auctionId}/winner`);
+      return;
+    }
+
+    // Default: go to auction
+    if (notification.data?.auctionId) {
+      navigate(`/auction/${notification.data.auctionId}`);
       return;
     }
 

@@ -8,6 +8,11 @@ import { getDatabase, ref, onValue, update, set } from "firebase/database";
 import { UserContext } from "../../context/UserContext";
 import { updateAuctionStatus } from "../../utils/firebaseUtils";
 import {
+  getUsersInterestedInCategory,
+  sendAuctionStartedToInterestedUsers,
+  sendAuctionParticipantNotificationToAll,
+} from "../../utils/notificationService";
+import {
   sendOutbidNotification,
   sendWinnerPaymentNotification,
 } from "../../utils/notificationService";
@@ -95,7 +100,7 @@ const BiddingChat = ({
   // بحسب الوقت المتبقي للبداية
   useEffect(() => {
     if (startDate && !isAuctionLive && status !== "ended") {
-      const updateRemainingTime = () => {
+      const updateRemainingTime = async () => {
         const now = new Date();
         const startDateObj = new Date(startDate);
         const diffMs = startDateObj - now;
@@ -116,8 +121,40 @@ const BiddingChat = ({
           setRemainingTime("0:00:00");
           setIsAuctionLive(true);
           const auctionRef = ref(db, `auctions/${auctionId}`);
-          update(auctionRef, { status: "active" });
+          update(auctionRef, {
+            status: "active",
+            actualStartDate: new Date().toISOString(),
+          });
           setStatus("active");
+
+          // Fire start notifications on auto-activate
+          (async () => {
+            try {
+              const auctionDataForNotify = {
+                id: auctionId,
+                title: auction?.title || "المزاد",
+                category: auction?.category || auction?.categoryId,
+              };
+              const interested = await getUsersInterestedInCategory(
+                auctionDataForNotify.category
+              );
+              if (Array.isArray(interested) && interested.length > 0) {
+                await sendAuctionStartedToInterestedUsers(
+                  auctionDataForNotify,
+                  interested
+                );
+              }
+              await sendAuctionParticipantNotificationToAll(
+                auctionDataForNotify,
+                "auction_started"
+              );
+            } catch (e) {
+              console.error(
+                "Error sending start notifications on auto-activate:",
+                e
+              );
+            }
+          })();
         }
       };
 
@@ -258,7 +295,6 @@ const BiddingChat = ({
     try {
       await update(bidsRef, bidData);
 
-
       const auctionRef = ref(db, `auctions/${auctionId}`);
       const updatedBids = [...bids, bidData];
       const newHighestBid = Math.max(
@@ -267,16 +303,13 @@ const BiddingChat = ({
       const formattedHighestBid = `${newHighestBid} ج.م`;
       await update(auctionRef, { highestBid: formattedHighestBid });
 
-
       setBids(updatedBids);
       setBidAmount("");
 
- 
       if (bids.length > 0) {
         const previousHighestBid = bids.reduce((max, current) =>
           Number(current.bidAmount) > Number(max.bidAmount) ? current : max
         );
-
 
         if (previousHighestBid.userId !== user.uid) {
           const auctionData = {
@@ -292,7 +325,6 @@ const BiddingChat = ({
           );
         }
       }
-
 
       try {
         const auctionDataForParticipants = {
@@ -387,7 +419,6 @@ const BiddingChat = ({
 
         setRemainingTime("");
 
-
         try {
           if (winnerBid?.userId) {
             const auctionDataForWinner = {
@@ -403,7 +434,6 @@ const BiddingChat = ({
         } catch (e) {
           console.error("Error sending winner payment notification:", e);
         }
-
 
         try {
           const auctionDataForEnd = {

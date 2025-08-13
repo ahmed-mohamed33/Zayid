@@ -60,7 +60,7 @@ function PreviewOptions() {
 
     try {
       await sendEmail({
-        to: "ahmedselim33@protonmail.com",
+        to: user.email,
         subject: "تأكيد حجز معاينة المزاد",
         text: `تم تأكيد حجز المعاينة الخاصة بك لمزاد "${
           auction?.title || ""

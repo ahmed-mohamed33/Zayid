@@ -82,14 +82,18 @@ function Payment() {
     const winnerSnapshot = await get(
       ref(db, `users/${user.uid}/auctions/${auctionId}`)
     );
-    const winnerData = winnerSnapshot.val();
+    const winnerData = winnerSnapshot.exists() ? winnerSnapshot.val() : null;
+
+    // Winner payment status is independent of participant record
+    if (type === "winner") {
+      return Boolean(winnerData?.isPaid);
+    }
 
     if (participantSnapshot.exists()) {
       const participantData = participantSnapshot.val();
       return (
-        (type === "shroot" && participantData.hasPurchasedShroot) ||
-        (type === "insurance" && participantData.hasPaidInsurance) ||
-        (type === "winner" && winnerData.isPaid)
+        (type === "shroot" && Boolean(participantData?.hasPurchasedShroot)) ||
+        (type === "insurance" && Boolean(participantData?.hasPaidInsurance))
       );
     }
 
@@ -144,7 +148,6 @@ function Payment() {
     await set(winnerRef, { ...currentData, ...updates });
   };
 
-
   const createPaymentRecord = async (amount) => {
     const db = getDatabase();
     const paymentRef = ref(db, "payments");
@@ -160,7 +163,6 @@ function Payment() {
       userId: user.uid,
     });
   };
-
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -221,7 +223,6 @@ function Payment() {
           paymentMethod: selectedPayment,
         });
 
-
         try {
           await sendNotification(user.uid, {
             type: "payment",
@@ -250,7 +251,6 @@ function Payment() {
     }
   };
 
-
   const handleOTPVerification = async () => {
     try {
       if (!otpCode || otpCode.length !== 6) {
@@ -278,13 +278,11 @@ function Payment() {
     }
   };
 
-
   const handleBackFromOTP = () => {
     setShowOTP(false);
     setOtpCode("");
     setStatus({ error: null, success: false, info: null });
   };
-
 
   const handleBackFromConfirmation = () => {
     setShowConfirmation(false);
@@ -294,7 +292,6 @@ function Payment() {
     setStatus({ error: null, success: false, info: null });
   };
 
-
   const handleResendOTP = () => {
     setStatus({
       error: null,
@@ -302,7 +299,6 @@ function Payment() {
       info: "تم إعادة إرسال رمز التحقق",
     });
   };
-
 
   const onSubmit = async (values) => {
     if (selectedPayment === "vodafone") {
@@ -323,11 +319,9 @@ function Payment() {
     }
   };
 
-
   if (loading) {
     return <LoadingScreen />;
   }
-
 
   if (alreadyPaid) {
     return (

@@ -1,4 +1,5 @@
-import { getDatabase, ref, update, remove, get } from 'firebase/database';
+import { getDatabase, ref, update, remove, get, set } from 'firebase/database';
+import { sendWinnerPaymentNotification } from '../utils/notificationService';
 import {
     notifyNewAuctionApproved,
     handleAuctionStartWithParticipants,
@@ -10,9 +11,11 @@ export const useAuctionActions = () => {
 
     const handleEndAuction = async (auctionId) => {
         try {
-            await update(ref(db, `auctions/${auctionId}`), { status: 'ended' });
+            const auctionRef = ref(db, `auctions/${auctionId}`);
+            const nowIso = new Date().toISOString();
+            await update(auctionRef, { status: 'ended', endDate: nowIso });
 
-            const auctionSnap = await get(ref(db, `auctions/${auctionId}`));
+            const auctionSnap = await get(auctionRef);
             const raw = auctionSnap.exists() ? auctionSnap.val() : {};
             const auctionData = { id: auctionId, ...raw, category: raw.category || raw.categoryId };
 
@@ -32,6 +35,26 @@ export const useAuctionActions = () => {
                     });
                     if (winnerUserId && highestBid !== -Infinity) {
                         winnerInfo = { userId: winnerUserId, finalBid: highestBid };
+                        
+                        await update(auctionRef, {
+                            winnerId: winnerUserId,
+                            winnerBid: highestBid,
+                        });
+                        const winnersRef = ref(db, `winners/${auctionId}`);
+                        await set(winnersRef, {
+                            auctionId,
+                            winnerId: winnerUserId,
+                            winnerBid: highestBid,
+                            isPaid: false,
+                            auctionTitle: raw.title || 'بدون عنوان',
+                            auctionImage: raw.imageUrls?.[0] || 'https://via.placeholder.com/80',
+                        });
+                        // 
+                        try {
+                            await sendWinnerPaymentNotification(winnerUserId, { id: auctionId, title: raw.title }, highestBid);
+                        } catch (e) {
+                            console.error('Error sending winner payment notification:', e);
+                        }
                     }
                 }
             } catch (err) {
