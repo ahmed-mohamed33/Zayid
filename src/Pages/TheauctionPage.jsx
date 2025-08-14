@@ -102,38 +102,7 @@ function TheauctionPage() {
     getParticipantData();
 
     //<<<<<<<< انا عملت تعديل هنا علشان الحاله كانت بتتغير علي حسب الوقت مش علي حسب ال الحاله اللث جايه من الفاير بيز <<<<<
-    if (auction?.startDate && auction?.endDate) {
-      const checkAuctionTime = () => {
-        const db = getDatabase();
-        const now = new Date();
-        const startDateObj = new Date(auction.startDate);
-        const endDateObj = new Date(auction.endDate);
-
-        if (auctionStatus === "ended") {
-          setIsAuctionLive(false);
-          return;
-        }
-
-        
-        if (now >= startDateObj && now <= endDateObj) {
-          setIsAuctionLive(true);
-          if (auctionStatus !== "active") {
-            update(ref(db, `auctions/${auctionId}`), { status: "active" });
-          }
-        } else if (now > endDateObj) {
-          setIsAuctionLive(false);
-          if (auctionStatus !== "ended") {
-            update(ref(db, `auctions/${auctionId}`), { status: "ended" });
-          }
-        } else {
-          setIsAuctionLive(false);
-        }
-      };
-
-      checkAuctionTime();
-      const interval = setInterval(checkAuctionTime, 60000);
-      return () => clearInterval(interval);
-    }
+    
 
     if (auctionId) {
       const db = getDatabase();

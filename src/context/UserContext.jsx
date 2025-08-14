@@ -129,17 +129,9 @@ export const UserProvider = ({ children }) => {
               let currentStatus = data.status || "pending";
 
               // Check if auction should be active
-              if (
-                now >= startDate &&
-                now <= endDate &&
-                currentStatus === "approved"
-              ) {
-                currentStatus = "active";
-                // Update status in database
-                await update(ref(db, `auctions/${id}`), { status: "active" });
-              }
+              
               // Check if auction should be ended
-              else if (now > endDate && currentStatus !== "ended") {
+              if (now > endDate && currentStatus !== "ended") {
                 currentStatus = "ended";
                 // Update status in database
                 await update(ref(db, `auctions/${id}`), { status: "ended" });
