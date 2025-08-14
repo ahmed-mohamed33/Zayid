@@ -72,7 +72,7 @@ const MyAuctionsSection = ({
                     highestBidderId: topBid.userId || null,
                   });
                 } else if (
-                  status === 'pending' &&
+                  status === "approved" &&
                   now >= startDate &&
                   now <= endDate
                 ) {
