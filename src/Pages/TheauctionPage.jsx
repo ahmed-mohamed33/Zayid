@@ -115,7 +115,8 @@ function TheauctionPage() {
           return;
         }
 
-        if (now >= startDateObj && now <= endDateObj) {
+        if (now >= startDateObj && now <= endDateObj && auctionStatus === "approved") {
+          
           setIsAuctionLive(true);
           if (auctionStatus !== "active") {
             update(ref(db, `auctions/${auctionId}`), { status: "active" });
