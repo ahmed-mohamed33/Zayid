@@ -123,11 +123,8 @@ export const UserProvider = ({ children }) => {
               let remainingTime = "";
               let currentStatus = data.status || "pending";
 
-              // Check if auction should be active
-              if (
-                now >= startDate &&
-                now <= endDate &&
-                currentStatus === "pending"
+             // Check if auction should be active
+              if (now >= startDate && now <= endDate && currentStatus === "approved"
               ) {
                 currentStatus = "active";
                 // Update status in database
@@ -191,37 +188,37 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // Periodic auction status check
-  useEffect(() => {
-    const checkAuctionStatuses = async () => {
-      if (auctions.length === 0) return;
+  // // Periodic auction status check
+  // useEffect(() => {
+  //   const checkAuctionStatuses = async () => {
+  //     if (auctions.length === 0) return;
 
-      const db = getDatabase();
-      const now = new Date();
+  //     const db = getDatabase();
+  //     const now = new Date();
 
-      for (const auction of auctions) {
-        const startDate = new Date(auction.startDate);
-        const endDate = new Date(auction.endDate);
-        const currentStatus = auction.status;
+  //     for (const auction of auctions) {
+  //       const startDate = new Date(auction.startDate);
+  //       const endDate = new Date(auction.endDate);
+  //       const currentStatus = auction.status;
 
-        // Check if auction should be active
-        if (now >= startDate && now <= endDate && currentStatus === "pending") {
-          await update(ref(db, `auctions/${auction.id}`), { status: "active" });
-        }
-        // Check if auction should be ended
-        else if (now > endDate && currentStatus !== "ended") {
-          await update(ref(db, `auctions/${auction.id}`), { status: "ended" });
-        }
-      }
-    };
+  //       // Check if auction should be active
+  //       if (now >= startDate && now <= endDate && currentStatus === "pending") {
+  //         await update(ref(db, `auctions/${auction.id}`), { status: "active" });
+  //       }
+  //       // Check if auction should be ended
+  //       else if (now > endDate && currentStatus !== "ended") {
+  //         await update(ref(db, `auctions/${auction.id}`), { status: "ended" });
+  //       }
+  //     }
+  //   };
 
-    // Check every minute
-    const interval = setInterval(checkAuctionStatuses, 60000);
+  //   // Check every minute
+  //   const interval = setInterval(checkAuctionStatuses, 60000);
 
-    return () => clearInterval(interval);
-  }, [auctions]);
+  //   return () => clearInterval(interval);
+  // }, [auctions]);
 
-  // Get Auction that user participated in
+  // Get Auction that user participated in 
   useEffect(() => {
     if (user) {
       const db = getDatabase();
