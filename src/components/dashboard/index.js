@@ -16,4 +16,8 @@ export * from './tabs/index.js';
 export * from './modals/index.js';
 
 // Shared Components
-export * from './shared/index.js'; 
+export * from './shared/index.js';
+// Settings
+export * from './settings/index.js';
+// Disputes
+export * from './disputes/index.js';

@@ -7,9 +7,18 @@ import {
   DashboardStats,
   UserInfoCard,
   DashboardCharts,
+  DefaultTerms,
+  DisputeManagement,
 } from "../components/dashboard";
 import { useDashboardData } from "../hooks/useDashboardData";
-import { FaUsers, FaGavel, FaChartLine, FaMoneyBillWave } from "react-icons/fa";
+import {
+  FaUsers,
+  FaGavel,
+  FaChartLine,
+  FaMoneyBillWave,
+  FaClipboardList,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 import { Line, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -23,7 +32,6 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
 
 ChartJS.register(
   CategoryScale,
@@ -306,6 +314,16 @@ const Dashboard = () => {
     { id: "users", name: "المستخدمين", icon: FaUsers },
     { id: "auctions", name: "المزادات", icon: FaGavel },
     { id: "payments", name: "المدفوعات", icon: FaMoneyBillWave },
+    {
+      id: "settings-default-terms",
+      name: "الشروط الافتراضية",
+      icon: FaClipboardList,
+    },
+    {
+      id: "disputes",
+      name: "إدارة النزاعات",
+      icon: FaExclamationTriangle,
+    },
   ];
 
   const handleLogout = async () => {
@@ -340,6 +358,10 @@ const Dashboard = () => {
           <Product />
         ) : activeMenu === "payments" ? (
           <PaymentManagement />
+        ) : activeMenu === "settings-default-terms" ? (
+          <DefaultTerms />
+        ) : activeMenu === "disputes" ? (
+          <DisputeManagement />
         ) : (
           <div className="flex flex-col gap-6">
             <UserInfoCard userData={userData} />
