@@ -120,42 +120,14 @@ const BiddingChat = ({
           );
         } else {
           setRemainingTime("0:00:00");
-          setIsAuctionLive(true);
-          const auctionRef = ref(db, `auctions/${auctionId}`);
-          update(auctionRef, {
-            status: "active",
-            actualStartDate: new Date().toISOString(),
-          });
-          setStatus("active");
-
-          // Fire start notifications on auto-activate
-          (async () => {
-            try {
-              const auctionDataForNotify = {
-                id: auctionId,
-                title: auction?.title || "المزاد",
-                category: auction?.category || auction?.categoryId,
-              };
-              const interested = await getUsersInterestedInCategory(
-                auctionDataForNotify.category
-              );
-              if (Array.isArray(interested) && interested.length > 0) {
-                await sendAuctionStartedToInterestedUsers(
-                  auctionDataForNotify,
-                  interested
-                );
-              }
-              await sendAuctionParticipantNotificationToAll(
-                auctionDataForNotify,
-                "auction_started"
-              );
-            } catch (e) {
-              console.error(
-                "Error sending start notifications on auto-activate:",
-                e
-              );
-            }
-          })();
+          setRemainingTime("0:00:00");
+          if (status === "approved") {
+            console.log("لما اشوف 🤌🏻");
+            setIsAuctionLive(true);
+            const auctionRef = ref(db, `auctions/${auctionId}`);
+            update(auctionRef, { status: "active" });
+            setStatus("active");
+          }
         }
       };
 
