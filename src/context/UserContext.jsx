@@ -132,7 +132,7 @@ export const UserProvider = ({ children }) => {
               if (
                 now >= startDate &&
                 now <= endDate &&
-                currentStatus === "pending"
+                currentStatus === "approved"
               ) {
                 currentStatus = "active";
                 // Update status in database
