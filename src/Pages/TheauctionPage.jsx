@@ -9,6 +9,7 @@ import PreviewOptions from "../components/auction/PreviewOptions";
 import Insurancepayment from "../components/auction/Insurancepayment";
 import BiddingChat from "../components/auction/BiddingChat";
 import AuctionResults from "../components/auction/AuctionResults";
+import DisputeSection from "../components/auction/DisputeSection"; // dispute section new selimmmmmm
 import { UserContext } from "../context/UserContext";
 import { getDatabase, ref, onValue, update } from "firebase/database";
 import Loading from "../components/common/Loading";
@@ -115,7 +116,14 @@ function TheauctionPage() {
       });
       return () => unsubscribeStatus();
     }
-  }, [user, auctionId, auction?.startDate, auction?.endDate ,auctionStatus,auction,]);
+  }, [
+    user,
+    auctionId,
+    auction?.startDate,
+    auction?.endDate,
+    auctionStatus,
+    auction,
+  ]);
 
   // هنا بعمل سبينر
   if (!auction) {
@@ -221,6 +229,9 @@ function TheauctionPage() {
       {auction.status === "ended" && (
         <AuctionResults auctionId={auctionId} auction={auction} />
       )}
+
+      {/* Dispute section selimmmmmm */}
+      <DisputeSection auctionId={auctionId} auction={auction} />
     </div>
   );
 }

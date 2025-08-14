@@ -29,7 +29,13 @@ export const useTermsActions = () => {
   const generateTermsPDF = useCallback(
     async (auctionData) => {
       try {
-        const { auctionId, sellerName, sellerLocation, lowestBid, insurancePrice } = auctionData;
+        const {
+          auctionId,
+          sellerName,
+          sellerLocation,
+          lowestBid,
+          insurancePrice,
+        } = auctionData;
 
         if (!auctionId) {
           throw new Error("معرف المزاد مطلوب لإنشاء كراسة الشروط");
@@ -47,8 +53,8 @@ export const useTermsActions = () => {
           console.warn("Could not fetch seller terms:", error);
         }
 
-        // Default terms and conditions content
-        const defaultTerms = [
+        // Fetch default terms from database with fallback
+        let defaultTerms = [
           "يجب على المشتري دفع مبلغ التأمين قبل المشاركة في المزاد",
           "يحق للبائع رفض أي عرض لا يتناسب مع قيمة السلعة",
           "يتحمل المشتري مسؤولية فحص السلعة قبل الشراء",
@@ -56,8 +62,23 @@ export const useTermsActions = () => {
           "يجب إتمام عملية الدفع خلال 24 ساعة من انتهاء المزاد",
           "يتحمل المشتري تكاليف الشحن والتوصيل",
           "في حالة عدم الدفع، يحق للبائع بيع السلعة للمزايد التالي",
-          "جميع المعاملات خاضعة لقوانين جمهورية مصر العربية"
+          "جميع المعاملات خاضعة لقوانين جمهورية مصر العربية",
         ];
+        try {
+          const defaultsRef = ref(db, `settings/defaultTerms`);
+          const defaultsSnap = await get(defaultsRef);
+          if (defaultsSnap.exists()) {
+            const data = defaultsSnap.val();
+            const items = Array.isArray(data)
+              ? data
+              : Array.isArray(data?.items)
+              ? data.items
+              : [];
+            if (items.length > 0) defaultTerms = items;
+          }
+        } catch (e) {
+          console.warn("Could not fetch default terms, using fallback:", e);
+        }
 
         // Generate PDF content
         const printContent = `
@@ -308,7 +329,7 @@ export const useTermsActions = () => {
               <div class="container">
                 <div class="header">
                   <h1>كراسة الشروط والأحكام</h1>
-                  <h2>مزاد رقم: ${auctionId || 'غير محدد'}</h2>
+                  <h2>مزاد رقم: ${auctionId || "غير محدد"}</h2>
                   <p class="date">تاريخ الإصدار: ${formatDate(new Date())}</p>
                 </div>
                 
@@ -317,19 +338,27 @@ export const useTermsActions = () => {
                   <div class="info-grid">
                     <div class="info-item">
                       <div class="info-label">اسم البائع:</div>
-                      <div class="info-value">${sellerName || 'غير محدد'}</div>
+                      <div class="info-value">${sellerName || "غير محدد"}</div>
                     </div>
                     <div class="info-item">
                       <div class="info-label">مكان المزاد:</div>
-                      <div class="info-value">${sellerLocation || 'غير محدد'}</div>
+                      <div class="info-value">${
+                        sellerLocation || "غير محدد"
+                      }</div>
                     </div>
                     <div class="info-item">
                       <div class="info-label">أقل مزايدة:</div>
-                      <div class="info-value">${lowestBid ? formatCurrency(lowestBid) : 'غير محدد'}</div>
+                      <div class="info-value">${
+                        lowestBid ? formatCurrency(lowestBid) : "غير محدد"
+                      }</div>
                     </div>
                     <div class="info-item">
                       <div class="info-label">مبلغ التأمين:</div>
-                      <div class="info-value">${insurancePrice ? formatCurrency(insurancePrice) : 'غير محدد'}</div>
+                      <div class="info-value">${
+                        insurancePrice
+                          ? formatCurrency(insurancePrice)
+                          : "غير محدد"
+                      }</div>
                     </div>
                   </div>
                 </div>
@@ -337,16 +366,20 @@ export const useTermsActions = () => {
                 <div class="terms-section">
                   <h3>الشروط والأحكام العامة</h3>
                   <ul class="terms-list">
-                    ${defaultTerms.map(term => `<li>${term}</li>`).join('')}
+                    ${defaultTerms.map((term) => `<li>${term}</li>`).join("")}
                   </ul>
                 </div>
 
-                ${sellerTerms ? `
+                ${
+                  sellerTerms
+                    ? `
                   <div class="seller-terms">
                     <h4>شروط البائع الخاصة</h4>
                     <div class="seller-terms-content">${sellerTerms}</div>
                   </div>
-                ` : ''}
+                `
+                    : ""
+                }
 
                 <div class="signature-section">
                   <div class="signature-box">
@@ -373,14 +406,16 @@ export const useTermsActions = () => {
 
         // Open print window with better error handling
         const printWindow = window.open("", "_blank", "width=800,height=600");
-        
+
         if (!printWindow) {
-          throw new Error("تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة وإعادة المحاولة.");
+          throw new Error(
+            "تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة وإعادة المحاولة."
+          );
         }
-        
+
         printWindow.document.write(printContent);
         printWindow.document.close();
-        
+
         // Wait for content to load before printing
         printWindow.onload = () => {
           printWindow.focus();
@@ -391,14 +426,13 @@ export const useTermsActions = () => {
 
         return {
           success: true,
-          message: "تم إنشاء كراسة الشروط بنجاح"
+          message: "تم إنشاء كراسة الشروط بنجاح",
         };
-
       } catch (error) {
         console.error("Error generating terms PDF:", error);
         return {
           success: false,
-          message: error.message || "حدث خطأ أثناء إنشاء كراسة الشروط"
+          message: error.message || "حدث خطأ أثناء إنشاء كراسة الشروط",
         };
       }
     },

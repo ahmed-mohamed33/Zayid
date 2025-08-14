@@ -128,10 +128,10 @@ export const UserProvider = ({ children }) => {
               let remainingTime = "";
               let currentStatus = data.status || "pending";
 
-              // Check if auction should be active
+            
               
               // Check if auction should be ended
-              if (now > endDate && currentStatus !== "ended") {
+               if (now > endDate && currentStatus !== "ended") {
                 currentStatus = "ended";
                 // Update status in database
                 await update(ref(db, `auctions/${id}`), { status: "ended" });
@@ -188,103 +188,107 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // useEffect(() => {
-  //   const checkAuctionStatuses = async () => {
-  //     if (auctions.length === 0) return;
+  useEffect(() => {
+    const checkAuctionStatuses = async () => {
+      if (auctions.length === 0) return;
 
   //     const db = getDatabase();
   //     const now = new Date();
 
-  //     for (const auction of auctions) {
-  //       const startDate = new Date(auction.startDate);
-  //       const endDate = new Date(auction.endDate);
-  //       const currentStatus = auction.status;
-  //       const notificationsSent = auction.notificationsSent || {};
+      for (const auction of auctions) {
+        const startDate = new Date(auction.startDate);
+        const endDate = new Date(auction.endDate);
+        const currentStatus = auction.status;
+        const notificationsSent = auction.notificationsSent || {};
 
-  //       if (
-  //         now >= startDate &&
-  //         now <= endDate &&
-  //         currentStatus === "approved" &&
-  //         !notificationsSent.started
-  //       ) {
-  //         try {
-  //           const auctionData = {
-  //             id: auction.id,
-  //             title: auction.title,
-  //             category: auction.category || auction.categoryId,
-  //           };
-  //           const interested = await getUsersInterestedInCategory(
-  //             auctionData.category
-  //           );
-  //           if (Array.isArray(interested) && interested.length > 0) {
-  //             await sendAuctionStartedToInterestedUsers(
-  //               auctionData,
-  //               interested
-  //             );
-  //           }
-  //           await sendAuctionParticipantNotificationToAll(
-  //             auctionData,
-  //             "auction_started"
-  //           );
-  //           await update(ref(db, `auctions/${auction.id}/notificationsSent`), {
-  //             started: true,
-  //           });
-  //         } catch (e) {
-  //           console.error("Error sending start notifications:", e);
-  //         }
-  //       }
+        if (
+          now >= startDate &&
+          now <= endDate &&
+          currentStatus === "approved" &&
+          !notificationsSent.started
+        ) {
+          try {
+            const auctionData = {
+              id: auction.id,
+              title: auction.title,
+              category: auction.category || auction.categoryId,
+            };
+            const interested = await getUsersInterestedInCategory(
+              auctionData.category
+            );
+            if (Array.isArray(interested) && interested.length > 0) {
+              await sendAuctionStartedToInterestedUsers(
+                auctionData,
+                interested
+              );
+            }
+            await sendAuctionParticipantNotificationToAll(
+              auctionData,
+              "auction_started"
+            );
+            await update(ref(db, `auctions/${auction.id}/notificationsSent`), {
+              started: true,
+            });
+          } catch (e) {
+            console.error("Error sending start notifications:", e);
+          }
+        }
 
-  //       // Send "auction starting soon" notification if auction is approved and about to start
-  //       if (
-  //         now < startDate &&
-  //         currentStatus === "approved" &&
-  //         !notificationsSent.startingSoon
-  //       ) {
-  //         const msToStart = startDate - now;
-  //         if (msToStart > 0 && msToStart <= 2 * 60 * 1000) {
-  //           try {
-  //             const auctionData = {
-  //               id: auction.id,
-  //               title: auction.title,
-  //               category: auction.category || auction.categoryId,
-  //             };
-  //             await sendAuctionParticipantNotificationToAll(
-  //               auctionData,
-  //               "auction_starting_soon"
-  //             );
-  //             await update(
-  //               ref(db, `auctions/${auction.id}/notificationsSent`),
-  //               { startingSoon: true }
-  //             );
-  //           } catch (e) {
-  //             console.error("Error sending starting soon notifications:", e);
-  //           }
-  //         }
-  //       }
+        // Send "auction starting soon" notification if auction is approved and about to start
+        if (
+          now < startDate &&
+          currentStatus === "approved" &&
+          !notificationsSent.startingSoon
+        ) {
+          const msToStart = startDate - now;
+          if (msToStart > 0 && msToStart <= 2 * 60 * 1000) {
+            try {
+              const auctionData = {
+                id: auction.id,
+                title: auction.title,
+                category: auction.category || auction.categoryId,
+              };
+              await sendAuctionParticipantNotificationToAll(
+                auctionData,
+                "auction_starting_soon"
+              );
+              await update(
+                ref(db, `auctions/${auction.id}/notificationsSent`),
+                { startingSoon: true }
+              );
+            } catch (e) {
+              console.error("Error sending starting soon notifications:", e);
+            }
+          }
+        }
 
-  //       // Send "auction ended" notifications if auction has ended and status is "ended"
-  //       if (
-  //         now > endDate &&
-  //         currentStatus === "ended" &&
-  //         !notificationsSent.ended
-  //       ) {
-  //         try {
-  //           const auctionData = {
-  //             id: auction.id,
-  //             title: auction.title,
-  //             category: auction.category || auction.categoryId,
-  //           };
-  //           await sendAuctionParticipantNotificationToAll(
-  //             auctionData,
-  //             "auction_ended"
-  //           );
-  //           await update(ref(db, `auctions/${auction.id}/notificationsSent`), {
-  //             ended: true,
-  //           });
-  //         } catch (e) {
-  //           console.error("Error sending ended notifications:", e);
-  //         }
-  //       }
+        // Send "auction ended" notifications if auction has ended and status is "ended"
+        if (
+          now > endDate &&
+          currentStatus === "ended" &&
+          !notificationsSent.ended
+        ) {
+          try {
+            const auctionData = {
+              id: auction.id,
+              title: auction.title,
+              category: auction.category || auction.categoryId,
+            };
+            await sendAuctionParticipantNotificationToAll(
+              auctionData,
+              "auction_ended"
+            );
+            await update(ref(db, `auctions/${auction.id}/notificationsSent`), {
+              ended: true,
+            });
+          } catch (e) {
+            console.error("Error sending ended notifications:", e);
+          }
+        }
+      }
+    };
+    checkAuctionStatuses();
+  }, [auctions]);
 
   //       // Send "auction ending soon" notification if auction is active and about to end
   //       if (
@@ -683,3 +687,13 @@ export const UserProvider = ({ children }) => {
     </UserContext.Provider>
   );
 };
+
+
+
+
+
+
+
+
+
+

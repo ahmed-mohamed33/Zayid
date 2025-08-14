@@ -321,7 +321,7 @@ exports.activateAuctionsAndNotifyStart = onSchedule({ schedule: 'every 1 minutes
         const startMs = Date.parse(a.startDate);
         if (Number.isNaN(startMs)) return;
 
-        if (startMs <= now && a.status !== 'active') {
+        if (startMs <= now && a.status === 'approved') {
             updates[`auctions/${auctionId}/status`] = 'active';
             updates[`auctions/${auctionId}/actualStartDate`] = new Date().toISOString();
             activated += 1;
