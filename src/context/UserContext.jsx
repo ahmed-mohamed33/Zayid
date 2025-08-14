@@ -132,7 +132,7 @@ export const UserProvider = ({ children }) => {
               if (
                 now >= startDate &&
                 now <= endDate &&
-                currentStatus === "pending"
+                currentStatus === "approved"
               ) {
                 currentStatus = "active";
                 // Update status in database
@@ -196,7 +196,6 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-
   useEffect(() => {
     const checkAuctionStatuses = async () => {
       if (auctions.length === 0) return;
@@ -210,11 +209,10 @@ export const UserProvider = ({ children }) => {
         const currentStatus = auction.status;
         const notificationsSent = auction.notificationsSent || {};
 
-  
         if (
           now >= startDate &&
           now <= endDate &&
-          (currentStatus === "approved") && 
+          currentStatus === "approved" &&
           !notificationsSent.started
         ) {
           try {
@@ -236,10 +234,9 @@ export const UserProvider = ({ children }) => {
               auctionData,
               "auction_started"
             );
-            await update(
-              ref(db, `auctions/${auction.id}/notificationsSent`),
-              { started: true }
-            );
+            await update(ref(db, `auctions/${auction.id}/notificationsSent`), {
+              started: true,
+            });
           } catch (e) {
             console.error("Error sending start notifications:", e);
           }
@@ -248,7 +245,7 @@ export const UserProvider = ({ children }) => {
         // Send "auction starting soon" notification if auction is approved and about to start
         if (
           now < startDate &&
-          (currentStatus === "approved") &&
+          currentStatus === "approved" &&
           !notificationsSent.startingSoon
         ) {
           const msToStart = startDate - now;
@@ -289,10 +286,9 @@ export const UserProvider = ({ children }) => {
               auctionData,
               "auction_ended"
             );
-            await update(
-              ref(db, `auctions/${auction.id}/notificationsSent`),
-              { ended: true }
-            );
+            await update(ref(db, `auctions/${auction.id}/notificationsSent`), {
+              ended: true,
+            });
           } catch (e) {
             console.error("Error sending ended notifications:", e);
           }
