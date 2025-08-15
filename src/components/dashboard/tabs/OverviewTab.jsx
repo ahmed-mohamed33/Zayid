@@ -1,4 +1,5 @@
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
+import { getDatabase, ref, onValue } from "firebase/database";
 
 const OverviewTab = memo(
   ({
@@ -13,6 +14,38 @@ const OverviewTab = memo(
     setIsEditing,
     formatCurrency,
   }) => {
+    // Overview simplified: show only KPIs here; detailed lists moved to Auctions tab
+    const [deletedCount, setDeletedCount] = useState(0);
+
+    useEffect(() => {
+      const ownerId = localUser?.userId || localUser?.uid || null;
+      if (!ownerId) {
+        setDeletedCount(0);
+        return;
+      }
+      const db = getDatabase();
+      const r = ref(db, "deleted_auctions");
+      const unsub = onValue(
+        r,
+        (snap) => {
+          if (!snap.exists()) {
+            setDeletedCount(0);
+            return;
+          }
+          const all = snap.val();
+          let count = 0;
+          for (const k in all) {
+            const a = all[k];
+            const owner = a?.ownerId || a?.createdBy;
+            if (owner === ownerId) count += 1;
+          }
+          setDeletedCount(count);
+        },
+        () => setDeletedCount(0)
+      );
+      return () => typeof unsub === "function" && unsub();
+    }, [localUser?.userId, localUser?.uid]);
+
     if (isEditing) {
       return (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
@@ -80,84 +113,99 @@ const OverviewTab = memo(
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
-            المعلومات الشخصية
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">الاسم الكامل:</span>
-              <span className="font-medium">
-                {localUser.fullName || "غير محدد"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">البريد الإلكتروني:</span>
-              <span className="font-medium">
-                {localUser.email || "غير محدد"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">رقم الهاتف:</span>
-              <span className="font-medium">
-                {localUser.phone || "غير محدد"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">الرقم القومي:</span>
-              <span className="font-medium">
-                {localUser.nationalID || "غير محدد"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">نوع المستخدم:</span>
-              <span className="font-medium">
-                {localUser.isCompany ? "شركة" : "فرد"}
-              </span>
-            </div>
-            {localUser.companyName && (
+      <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
+              المعلومات الشخصية
+            </h3>
+            <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">اسم الشركة:</span>
-                <span className="font-medium">{localUser.companyName}</span>
+                <span className="text-gray-600">الاسم الكامل:</span>
+                <span className="font-medium">
+                  {localUser.fullName || "غير محدد"}
+                </span>
               </div>
-            )}
+              <div className="flex justify-between">
+                <span className="text-gray-600">البريد الإلكتروني:</span>
+                <span className="font-medium">
+                  {localUser.email || "غير محدد"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">رقم الهاتف:</span>
+                <span className="font-medium">
+                  {localUser.phone || "غير محدد"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">الرقم القومي:</span>
+                <span className="font-medium">
+                  {localUser.nationalID || "غير محدد"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">نوع المستخدم:</span>
+                <span className="font-medium">
+                  {localUser.isCompany ? "شركة" : "فرد"}
+                </span>
+              </div>
+              {localUser.companyName && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">اسم الشركة:</span>
+                  <span className="font-medium">{localUser.companyName}</span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
-            إحصائيات سريعة
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {userAuctions.length}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
+              إحصائيات سريعة
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {userAuctions.length}
+                </div>
+                <div className="text-sm text-blue-700">المزادات</div>
               </div>
-              <div className="text-sm text-blue-700">المزادات</div>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {userPayments.length}
+
+              <div className="bg-purple-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {userAuctions.filter((a) => a.status === "active").length}
+                </div>
+                <div className="text-sm text-purple-700">مزادات نشطة</div>
               </div>
-              <div className="text-sm text-green-700">المدفوعات</div>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {userAuctions.filter((a) => a.status === "active").length}
+              <div className="bg-red-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-red-600">
+                  {deletedCount}
+                </div>
+                <div className="text-sm text-red-700">مزادات محذوفة</div>
               </div>
-              <div className="text-sm text-purple-700">مزادات نشطة</div>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {formatCurrency(
-                  userPayments.reduce(
-                    (sum, p) => sum + (Number(p.amount) || 0),
-                    0
-                  )
-                )}
+              <div className="bg-yellow-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-yellow-600">
+                  {userAuctions.filter((a) => a.status === "rejected").length}
+                </div>
+                <div className="text-sm text-yellow-700">مزادات مرفوضة</div>
               </div>
-              <div className="text-sm text-orange-700">إجمالي المدفوعات</div>
+              <div className="bg-green-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {userPayments.length}
+                </div>
+                <div className="text-sm text-green-700">المدفوعات</div>
+              </div>
+              <div className="bg-orange-50 p-4 rounded-lg text-center">
+                <div className="text-2xl font-bold text-orange-600">
+                  {formatCurrency(
+                    userPayments.reduce(
+                      (sum, p) => sum + (Number(p.amount) || 0),
+                      0
+                    )
+                  )}
+                </div>
+                <div className="text-sm text-orange-700">إجمالي المدفوعات</div>
+              </div>
             </div>
           </div>
         </div>

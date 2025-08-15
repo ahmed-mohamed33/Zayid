@@ -125,6 +125,7 @@ const UserProfile = ({ user, onBack }) => {
       case "auctions":
         return (
           <AuctionsTab
+            localUser={localUser}
             userAuctions={userAuctions}
             formatCurrency={formatCurrency}
             getAuctionStatusBadge={getAuctionStatusBadge}
