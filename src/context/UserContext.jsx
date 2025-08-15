@@ -128,10 +128,8 @@ export const UserProvider = ({ children }) => {
               let remainingTime = "";
               let currentStatus = data.status || "pending";
 
-              if (
-                now >= startDate &&
-                now <= endDate &&
-                currentStatus === "approved"
+             // Check if auction should be active
+              if (now >= startDate && now <= endDate && currentStatus === "approved"
               ) {
                 currentStatus = "active";
                 
@@ -200,8 +198,8 @@ export const UserProvider = ({ children }) => {
     const checkAuctionStatuses = async () => {
       if (auctions.length === 0) return;
 
-      const db = getDatabase();
-      const now = new Date();
+  //     const db = getDatabase();
+  //     const now = new Date();
 
       for (const auction of auctions) {
         const startDate = new Date(auction.startDate);
@@ -330,7 +328,7 @@ export const UserProvider = ({ children }) => {
   }, [auctions]);
 
 
-  // Get Auction that user participated in
+  // Get Auction that user participated in 
   useEffect(() => {
     if (user) {
       const db = getDatabase();

@@ -109,18 +109,24 @@ function TheauctionPage() {
         const now = new Date();
         const startDateObj = new Date(auction.startDate);
         const endDateObj = new Date(auction.endDate);
+          console.log(startDateObj);
+          console.log(endDateObj);
+          console.log(now );
+
 
         if (auctionStatus === "ended") {
           setIsAuctionLive(false);
           return;
         }
-        if (auctionStatus === "pending" || auctionStatus === "rejected") {
-          return;
-        }
-        if (now >= startDateObj && now <= endDateObj) {
+
+        
+if (now >= startDateObj && now <= endDateObj && auctionStatus === "approved") {
+          console.log("Auction is approved and within time range, setting to active");
           setIsAuctionLive(true);
           if (auctionStatus !== "active") {
-            update(ref(db, `auctions/${auctionId}`), { status: "active" });
+            update(ref(db, `auctions/${auctionId}`), { status: "active" })
+              .then(() => console.log("Status updated to active in Firebase"))
+              .catch((error) => console.error("Error updating status to active:", error));
           }
         } else if (now > endDateObj) {
           setIsAuctionLive(false);

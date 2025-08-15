@@ -121,13 +121,10 @@ const BiddingChat = ({
         } else {
           setRemainingTime("0:00:00");
           if (status === "approved") {
-            console.log("لما اشوف 🤌🏻");
+            console.log("لما اشوف 🤌🏻")
             setIsAuctionLive(true);
             const auctionRef = ref(db, `auctions/${auctionId}`);
-            update(auctionRef, {
-              status: "active",
-              actualStartDate: new Date().toISOString(),
-            });
+            update(auctionRef, { status: "active" });
             setStatus("active");
           }
         }
