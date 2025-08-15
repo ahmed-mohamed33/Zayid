@@ -128,10 +128,18 @@ export const UserProvider = ({ children }) => {
               let remainingTime = "";
               let currentStatus = data.status || "pending";
 
-            
+              if (
+                now >= startDate &&
+                now <= endDate &&
+                currentStatus === "approved"
+              ) {
+                currentStatus = "active";
+                
+                await update(ref(db, `auctions/${id}`), { status: "active" });
+              }
               
               // Check if auction should be ended
-               if (now > endDate && currentStatus !== "ended") {
+               else if (now > endDate && currentStatus !== "ended") {
                 currentStatus = "ended";
                 // Update status in database
                 await update(ref(db, `auctions/${id}`), { status: "ended" });
@@ -192,8 +200,8 @@ export const UserProvider = ({ children }) => {
     const checkAuctionStatuses = async () => {
       if (auctions.length === 0) return;
 
-  //     const db = getDatabase();
-  //     const now = new Date();
+      const db = getDatabase();
+      const now = new Date();
 
       for (const auction of auctions) {
         const startDate = new Date(auction.startDate);
@@ -285,45 +293,42 @@ export const UserProvider = ({ children }) => {
             console.error("Error sending ended notifications:", e);
           }
         }
+        if (
+          now < endDate &&
+          currentStatus === "active" &&
+          !notificationsSent.endingSoon
+        ) {
+          const msToEnd = endDate - now;
+          if (msToEnd > 0 && msToEnd <= 2 * 60 * 1000) {
+            try {
+              const auctionData = {
+                id: auction.id,
+                title: auction.title,
+                category: auction.category || auction.categoryId,
+              };
+              await sendAuctionParticipantNotificationToAll(
+                auctionData,
+                "auction_ending_soon"
+              );
+              await update(
+                ref(db, `auctions/${auction.id}/notificationsSent`),
+                { endingSoon: true }
+              );
+            } catch (e) {
+              console.error("Error sending ending soon notifications:", e);
+            }
+          }
+        }
       }
     };
-    checkAuctionStatuses();
+
+    const interval = setInterval(checkAuctionStatuses, 60000);
+
+    return () => clearInterval(interval);
+
+    
   }, [auctions]);
 
-  //       // Send "auction ending soon" notification if auction is active and about to end
-  //       if (
-  //         now < endDate &&
-  //         currentStatus === "active" &&
-  //         !notificationsSent.endingSoon
-  //       ) {
-  //         const msToEnd = endDate - now;
-  //         if (msToEnd > 0 && msToEnd <= 2 * 60 * 1000) {
-  //           try {
-  //             const auctionData = {
-  //               id: auction.id,
-  //               title: auction.title,
-  //               category: auction.category || auction.categoryId,
-  //             };
-  //             await sendAuctionParticipantNotificationToAll(
-  //               auctionData,
-  //               "auction_ending_soon"
-  //             );
-  //             await update(
-  //               ref(db, `auctions/${auction.id}/notificationsSent`),
-  //               { endingSoon: true }
-  //             );
-  //           } catch (e) {
-  //             console.error("Error sending ending soon notifications:", e);
-  //           }
-  //         }
-  //       }
-  //     }
-  //   };
-
-  //   const interval = setInterval(checkAuctionStatuses, 60000);
-
-  //   return () => clearInterval(interval);
-  // }, [auctions]);
 
   // Get Auction that user participated in
   useEffect(() => {

@@ -124,7 +124,10 @@ const BiddingChat = ({
             console.log("لما اشوف 🤌🏻");
             setIsAuctionLive(true);
             const auctionRef = ref(db, `auctions/${auctionId}`);
-            update(auctionRef, { status: "active" });
+            update(auctionRef, {
+              status: "active",
+              actualStartDate: new Date().toISOString(),
+            });
             setStatus("active");
           }
         }
@@ -592,11 +595,11 @@ const BiddingChat = ({
       {/* لو المزاد انتهي  يوقف شكل المزاد */}
       {status === "ended" && (
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-1 rounded-2xl flex flex-col justify-center items-center p-6 shadow-2xl">
-          <div className="bg-white text-center rounded-xl p-6 shadow-md max-w-md w-full animate-fade-in-up">
-            <h1 className="text-xl font-extrabold text-[#fa3a00] mb-4">
+          <div className="bg-white text-center flex justify-center items-center rounded-xl p-6 shadow-md max-w-md w-full animate-fade-in-up">
+          <h1 className="text-xl font-extrabold text-[#fa3a00] mx-2 ">
               المزاد انتهى
             </h1>
-            <div className="text-lg text-[#2D3142] flex justify-center items-center">
+            <div className="text-lg text-[#2D3142] flex ">
               الفائز:{" "}
               {winner?.userName ? (
                 <>
