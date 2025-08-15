@@ -200,8 +200,8 @@ export const UserProvider = ({ children }) => {
     const checkAuctionStatuses = async () => {
       if (auctions.length === 0) return;
 
-      const db = getDatabase();
-      const now = new Date();
+  //     const db = getDatabase();
+  //     const now = new Date();
 
       for (const auction of auctions) {
         const startDate = new Date(auction.startDate);
@@ -330,7 +330,7 @@ export const UserProvider = ({ children }) => {
   }, [auctions]);
 
 
-  // Get Auction that user participated in
+  // Get Auction that user participated in 
   useEffect(() => {
     if (user) {
       const db = getDatabase();
