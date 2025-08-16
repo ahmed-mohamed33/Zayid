@@ -14,8 +14,8 @@ import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { ref, remove } from 'firebase/database';
 
-import ProfileInfoCard from './../profileComponents/ProfileInfoCard';
-import DeleteAccountSection from './../profileComponents/DeleteAccountSection';
+import ProfileInfoCard from './ProfileInfoCard';
+import DeleteAccountSection from './DeleteAccountSection';
 
 const Settings = () => {
   const { userData } = useContext(UserContext);

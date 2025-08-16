@@ -29,6 +29,9 @@ import ErrorPage from "./components/common/errorPage.jsx";
 import TitleUpdater from "./components/common/TitleUpdater.jsx";
 import ChatbotWidget from "./components/common/ChatbotWidget.jsx";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 function App() {
   // Initialize service worker for notifications
   useEffect(() => {
@@ -53,7 +56,7 @@ function App() {
         <Router>
           <Navbar />
           <AllDataComponent />
-          <TitleUpdater/>
+          <TitleUpdater />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
@@ -100,6 +103,7 @@ function App() {
           <NotificationPermissionBanner />
           <Footer />
           <ChatbotWidget />
+          <ToastContainer position="top-center" autoClose={3000} />
         </Router>
       </UserProvider>
     </div>

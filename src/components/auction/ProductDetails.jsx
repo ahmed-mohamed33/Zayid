@@ -11,8 +11,10 @@ function ProductDetails({
   startDate,
   hasPaidTerms,
   auction,
+  status,
 }) {
   const { user, userData } = useContext(UserContext);
+  console.log("Status received:", status);
   return (
     <div className="detailsSide bg-white w-full md:w-[50%] rounded-md py-9 px-6 shadow-md flex flex-col justify-between">
       <div>
@@ -46,7 +48,12 @@ function ProductDetails({
           حالة المنتج: {condition || "غير محدد"}
         </p>
         {!hasPaidTerms &&
-          (user && auction && user.uid === auction.createdBy ? (
+          (<div
+            className={`transition-opacity duration-300 ${
+              status === "active" ? "opacity-0" : "opacity-100"
+            }`}
+          >
+            {user && auction && user.uid === auction.createdBy ? (
             <button className="flex items-center justify-between bg-[#FFF0E6] cursor-pointer p-2 mt-6 w-full text-right border-r-4 border-amber-600 rounded text-sm">
               <span>هذا المزاد الخاص بك</span>
             </button>
@@ -62,7 +69,8 @@ function ProductDetails({
                 اشتري الان
               </a>
             </button>
-          ))}
+          )}
+          </div>)}
       </div>
     </div>
   );

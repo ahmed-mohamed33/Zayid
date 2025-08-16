@@ -152,7 +152,7 @@ const BiddingChat = ({
         // بجيب البيدات
         const bidsData = data.bids || {};
         const bidsArray = Object.values(bidsData).sort(
-          (a, b) => new Date(b.bidTime) - new Date(a.bidTime)
+          (a, b) => new Date(a.bidTime) - new Date(b.bidTime)
         );
         setBids(bidsArray);
 
@@ -177,6 +177,13 @@ const BiddingChat = ({
 
     return () => unsubscribe();
   }, [auctionId]);
+
+  useEffect(() => {
+    if (bidsContainerRef.current) {
+      bidsContainerRef.current.scrollTop =
+      bidsContainerRef.current.scrollHeight;
+    }
+  }, [bids]);
 
   const finalizeAuction = async () => {
     if (hasFinalizedRef.current) return;
@@ -503,7 +510,7 @@ const BiddingChat = ({
       <div className="bg-[#FCF6F6] rounded-lg p-6 mb-4">
         <div
           ref={bidsContainerRef}
-          className="space-y-1.5 max-h-[300px] overflow-y-auto scroll-smooth flex flex-col-reverse"
+          className="space-y-1.5 max-h-[300px] overflow-y-auto scroll-smooth"
         >
           {bids.map((bid, index) => (
             <div
@@ -593,7 +600,7 @@ const BiddingChat = ({
       {status === "ended" && (
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-1 rounded-2xl flex flex-col justify-center items-center p-6 shadow-2xl">
           <div className="bg-white text-center flex justify-center items-center rounded-xl p-6 shadow-md max-w-md w-full animate-fade-in-up">
-          <h1 className="text-xl font-extrabold text-[#fa3a00] mx-2 ">
+            <h1 className="text-xl font-extrabold text-[#fa3a00] mx-2 ">
               المزاد انتهى
             </h1>
             <div className="text-lg text-[#2D3142] flex ">

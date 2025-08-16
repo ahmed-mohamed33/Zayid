@@ -8,6 +8,8 @@ import ProductCategorySelector from "./ProductCatigorySelector";
 import DateInputField from "../addAuction/DateInput";
 import { UserContext } from "../../context/UserContext";
 import { IoIosArrowDown } from "react-icons/io";
+import LocationModal from "./LocationPicker";
+import { toast } from "react-toastify";
 
 function AddAuctionForm() {
   const navigate = useNavigate();
@@ -30,6 +32,9 @@ function AddAuctionForm() {
   const [uploadProgress, setUploadProgress] = useState(0);
   // add productCondition
   const [productCondition, setProductCondition] = useState("new");
+
+  // location in google map
+  const [mapOpen, setMapOpen] = useState(false);
 
   // Image upload limits
   const MAX_IMAGES = 5;
@@ -106,29 +111,31 @@ function AddAuctionForm() {
     // Validation
     if (!productName.trim()) newErrors.productName = "هذا الحقل مطلوب";
     if (!productDesc.trim()) newErrors.productDesc = "هذا الحقل مطلوب";
-    if (!location.trim()) newErrors.location = "هذا الحقل مطلوب";
+    if (!location || !location.trim()){
+    newErrors.location = "مكان المعاينة مطلوب"}
     if (!termsText.trim()) newErrors.termsText = "هذا الحقل مطلوب";
     if (!agreeTerms) newErrors.terms = "يجب الموافقة على الشروط";
     if (!images || images.length === 0) {
       newErrors.images = "هذا الحقل مطلوب";
+      newErrors.images = "يجب رفع صور للمنتج";
     } else if (images.length > MAX_IMAGES) {
       newErrors.images = `يمكنك رفع ${MAX_IMAGES} صور كحد أقصى`;
     }
     if (!category.trim()) newErrors.category = "يجب اختيار تصنيف المنتج";
     if (!initialPrice.trim()) newErrors.initialPrice = "هذا الحقل مطلوب";
     if (!minIncrement.trim()) newErrors.minIncrement = "هذا الحقل مطلوب";
-    if (!productCondition)
-      newErrors.productCondition = "يجب اختيار حالة المنتج";
+    if (!productCondition) newErrors.productCondition = "حالة المنتج مطلوبة";
+    // newErrors.productCondition = "يجب اختيار حالة المنتج";
     // Date validation
     const now = new Date();
 
     // Validate start date
     if (!startDate.trim()) {
-      newErrors.startDate = "هذا الحقل مطلوب";
+      newErrors.startDate = "تاريخ البدء مطلوب";
     } else {
       const startDateTime = new Date(startDate);
       if (isNaN(startDateTime.getTime())) {
-        newErrors.startDate = "تاريخ غير صالح";
+        newErrors.startDate = "تاريخ البدء غير صالح";
       } else if (startDateTime < now) {
         newErrors.startDate = "يجب أن يكون تاريخ البدء في المستقبل";
       }
@@ -149,67 +156,68 @@ function AddAuctionForm() {
 
     // Validate inspection date
     if (!inspectionDate.trim()) {
-      newErrors.inspectionDate = "هذا الحقل مطلوب";
+      newErrors.inspectionDate = "موعد المعاينة مطلوب";
     } else {
       const inspectionDateTime = new Date(inspectionDate);
       const startDateTime = new Date(startDate);
       if (isNaN(inspectionDateTime.getTime())) {
-        newErrors.inspectionDate = "تاريخ غير صالح";
+        newErrors.inspectionDate = "موعد المعاينة غير صالح";
       } else if (inspectionDateTime >= startDateTime) {
-        newErrors.inspectionDate =
-          "يجب أن يكون موعد المعاينة قبل تاريخ بدء المزاد";
+        newErrors.inspectionDate = "موعد المعاينة يجب أن يكون قبل تاريخ البدء";
       }
     }
     scrollTo(0, 0);
 
-    setErrors(newErrors);
+    // لو فيه أخطاء نعرضها كتويتس
+    if (Object.keys(newErrors).length > 0) {
+      Object.values(newErrors).forEach((msg) => toast.error(msg));
+      setErrors(newErrors);
+      return; // منكمّلش
+    }
 
-    if (Object.keys(newErrors).length === 0) {
-      try {
-        setIsSubmitting(true);
-        setUploadProgress(10);
+    // setErrors(newErrors);
 
-        const imageFiles = images.map((img) => img.file);
-        const auctionData = {
-          title: productName,
-          description: productDesc,
-          categoryId: category,
-          startPrice: Number(initialPrice),
-          minIncrement: Number(minIncrement),
-          startDate: new Date(startDate).toISOString(),
-          endDate: new Date(endDate).toISOString(),
-          seller: {
-            name: userData.fullName || "",
-            email: userData.email || "",
-            phone: userData.phone || "",
-            id: userData.userId || "",
-          },
-          inspection: {
-            place: location,
-            inspectionDate: new Date(inspectionDate).toISOString(),
-          },
-          terms: {
-            details: termsText,
-            price: Math.round(initialPrice * 0.05),
-          },
-          // بضيف حاله المنتج للمزاد
-          productCondition: productCondition,
-        };
+    // if (Object.keys(newErrors).length === 0) {
+    try {
+      setIsSubmitting(true);
+      setUploadProgress(10);
 
-        await createAuction(auctionData, imageFiles);
+      const imageFiles = images.map((img) => img.file);
+      const auctionData = {
+        title: productName,
+        description: productDesc,
+        categoryId: category,
+        startPrice: Number(initialPrice),
+        minIncrement: Number(minIncrement),
+        startDate: new Date(startDate).toISOString(),
+        endDate: new Date(endDate).toISOString(),
+        seller: {
+          name: userData.fullName || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+          id: userData.userId || "",
+        },
+        inspection: {
+          place: location,
+          inspectionDate: new Date(inspectionDate).toISOString(),
+        },
+        terms: {
+          details: termsText,
+          price: Math.round(initialPrice * 0.05),
+        },
+        // بضيف حاله المنتج للمزاد
+        productCondition: productCondition,
+      };
 
-        setUploadProgress(100);
-        navigate("/");
-      } catch (error) {
-        setErrors({
-          submit:
-            error.message ||
-            "حدث خطأ أثناء إنشاء المزاد. يرجى المحاولة مرة أخرى.",
-        });
-      } finally {
-        setIsSubmitting(false);
-        setUploadProgress(0);
-      }
+      await createAuction(auctionData, imageFiles);
+
+      setUploadProgress(100);
+      navigate("/");
+    } catch (error) {
+      toast.error(error.message || "حدث خطأ أثناء إنشاء المزاد");
+    } finally {
+      setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -514,19 +522,29 @@ function AddAuctionForm() {
       </div>
       <InputField
         label="مكان المعاينة"
-        placeholder="ادخل مكان معاينة المنتج"
+        placeholder="اضغط لتحديد المكان"
         variant="icon"
         icon={
           <img src={LocationIcon} alt="LocationIcon" width={24} height={24} />
         }
         value={location}
-        onChange={(e) => {
-          setLocation(e.target.value);
-          if (errors.location && e.target.value.trim()) {
+        onFocus={() => setMapOpen(true)}
+        readOnly
+        error={errors.location}
+      />
+
+      <LocationModal
+        isOpen={mapOpen}
+        onClose={() => setMapOpen(false)}
+        onSelectLocation={(loc) => {
+          const selectedName = loc.name || "";
+          setLocation(selectedName);
+
+          if (errors.location && selectedName.trim()) {
             setErrors((prev) => ({ ...prev, location: null }));
           }
+          setMapOpen(false);
         }}
-        error={errors.location}
       />
       <DateInputField
         label="موعد المعاينة"

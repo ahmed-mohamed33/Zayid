@@ -140,10 +140,10 @@ function TheauctionPage() {
         }
       };
 
-      checkAuctionTime();
-      const interval = setInterval(checkAuctionTime, 60000);
-      return () => clearInterval(interval);
-    }
+    //   checkAuctionTime();
+    //   const interval = setInterval(checkAuctionTime, 60000);
+    //   return () => clearInterval(interval);
+    // }
 
     if (auctionId) {
       const db = getDatabase();
@@ -151,7 +151,33 @@ function TheauctionPage() {
       const unsubscribeStatus = onValue(auctionRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
+          const now = new Date();
+          const startDateObj = new Date(data.startDate);
+          const endDateObj = new Date(data.endDate);
+
           setAuctionStatus(data.status || "pending");
+
+          // update status dynamic passed on time --Taiseer
+          if (data.status !== "ended" && now > endDateObj) {
+            update(ref(db, `auctions/${auctionId}`), { status: "ended" })
+              .then(() => setAuctionStatus("ended"))
+              .catch((error) =>
+                console.error("Error updating to ended:", error)
+              );
+          } else if (
+            data.status !== "active" &&
+            now >= startDateObj &&
+            now <= endDateObj
+          ) {
+            update(ref(db, `auctions/${auctionId}`), { status: "active" })
+              .then(() => setAuctionStatus("active"))
+              .catch((error) =>
+                console.error("Error updating to active:", error)
+              );
+          }
+
+          // update isAuctionLive passed on time --Taiseer
+          setIsAuctionLive(now >= startDateObj && now <= endDateObj);
         }
       });
       return () => unsubscribeStatus();
@@ -166,7 +192,7 @@ function TheauctionPage() {
   ]);
 
   // هنا بعمل سبينر
-  if (!auction) {
+  if (!auction || !auctionStatus) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loading />
@@ -190,6 +216,7 @@ function TheauctionPage() {
           startDate={auction.startDate}
           hasPaidTerms={hasPaidTerms}
           auction={auction}
+          status={auctionStatus}
         />
       </div>
       <ProductDescription description={auction.description} />
