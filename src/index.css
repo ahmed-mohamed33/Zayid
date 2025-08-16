@@ -2,6 +2,7 @@
 @plugin "daisyui" {
   themes: light --default;
 }
+@import "leaflet/dist/leaflet.css";
 
 * {
   font-family: Almarai;
