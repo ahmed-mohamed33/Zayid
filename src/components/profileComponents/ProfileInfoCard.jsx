@@ -4,8 +4,13 @@ import { UserContext } from './../../context/UserContext';
 export default function ProfileInfoCard() {
   const inputRef = useRef();
   const [loading, setLoading] = useState(true);
-  const { userData, user, setUserData, updateUserData } =
-    useContext(UserContext);
+  const {
+    userData,
+    user,
+    setUserData,
+    updateUserData,
+    updateUserDataInProfile,
+  } = useContext(UserContext);
 
   useEffect(() => {
     if (user && userData) {
@@ -43,9 +48,10 @@ export default function ProfileInfoCard() {
 
       const imageUrl = await uploadProfileImageToCloudinary(file);
 
-      await updateUserData(user.uid, {
+      await updateUserDataInProfile(user.uid, {
         profileImage: imageUrl,
       });
+
       setUserData((prev) => ({
         ...prev,
         profileImage: imageUrl,
@@ -62,8 +68,7 @@ export default function ProfileInfoCard() {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow p-4 flex flex-col sm:flex-row w-full sm:justify-between gap-6">
-
+      <div className="bg-white rounded-xl shadow p-6 flex flex-row items-center justify-between">
         <div className="flex items-center gap-6">
           {/* الصورة */}
           {loading ? (
