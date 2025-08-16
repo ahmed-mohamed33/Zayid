@@ -13,6 +13,8 @@ function InputField({
   accept,
   error,
   disabled = false,
+  readOnly = false,
+  ...props
 }) {
   const containerClass = `
     border ${error ? "border-red-500" : "border-[#bfc0c0]"}
@@ -114,6 +116,7 @@ function InputField({
             onChange={onChange}
             disabled={disabled}
             className={inputClass}
+            readOnly={readOnly}
           />
         ) : (
           <input
@@ -123,6 +126,8 @@ function InputField({
             onChange={onChange}
             disabled={disabled}
             className={inputClass}
+            readOnly={readOnly}
+            {...props}
           />
         )}
       </div>
