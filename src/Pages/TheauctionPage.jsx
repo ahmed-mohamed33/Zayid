@@ -295,7 +295,7 @@ function TheauctionPage() {
       )}
 
       {/* Dispute section selimmmmmm */}
-      {/* <DisputeSection auctionId={auctionId} auction={auction} /> */}
+      <DisputeSection auctionId={auctionId} auction={auction} />
     </div>
   );
 }

@@ -88,7 +88,11 @@ const DisputeSection = ({ auctionId, auction }) => {
       return;
     }
 
-
+    // Convert highestBid to string 
+    const highestBidValue = auction.highestBid
+      ? String(auction.highestBid).replace(" ج.م", "").trim()
+      : null;
+    const amount = Number(highestBidValue || auction.startPrice || 0);
 
     const disputeData = {
       auctionId,
@@ -96,18 +100,13 @@ const DisputeSection = ({ auctionId, auction }) => {
       reason:
         formData.reason === "other" ? formData.customReason : formData.reason,
       description: formData.description,
-      amount: Number(
-        auction.highestBid?.replace(" ج.م", "") || auction.startPrice || 0
-      ),
+      amount: amount,
       userName: userData?.fullName || user?.displayName || "مستخدم غير معروف",
       userEmail: userData?.email || user?.email || "",
       userPhone: userData?.phone || "",
       auctionTitle: auction.title || "مزاد غير معروف",
-      auctionPrice: Number(
-        auction.highestBid?.replace(" ج.م", "") || auction.startPrice || 0
-      ),
+      auctionPrice: amount, 
       auctionEndDate: auction.endDate,
-
       sellerId: auction.seller.id,
       sellerName: auction.seller.name || "بائع غير معروف",
       sellerEmail: auction.seller.email || "",
@@ -135,7 +134,6 @@ const DisputeSection = ({ auctionId, auction }) => {
     }
   };
 
-
   if (loadingSettings || !settings?.enabled || auction.status !== "ended") {
     return null;
   }
@@ -152,9 +150,10 @@ const DisputeSection = ({ auctionId, auction }) => {
     return null;
   }
 
-  const auctionAmount = Number(
-    auction.highestBid?.replace(" ج.م", "") || auction.startPrice
-  );
+  const highestBidValue = auction.highestBid
+    ? String(auction.highestBid).replace(" ج.م", "").trim()
+    : null;
+  const auctionAmount = Number(highestBidValue || auction.startPrice);
   const canSubmitDispute = auctionAmount >= settings.minDisputeAmount;
 
   return (
