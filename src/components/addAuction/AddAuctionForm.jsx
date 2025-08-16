@@ -111,8 +111,8 @@ function AddAuctionForm() {
     // Validation
     if (!productName.trim()) newErrors.productName = "هذا الحقل مطلوب";
     if (!productDesc.trim()) newErrors.productDesc = "هذا الحقل مطلوب";
-    if (!location || !location.trim());
-    newErrors.location = "مكان المعاينة مطلوب";
+    if (!location || !location.trim()){
+    newErrors.location = "مكان المعاينة مطلوب"}
     if (!termsText.trim()) newErrors.termsText = "هذا الحقل مطلوب";
     if (!agreeTerms) newErrors.terms = "يجب الموافقة على الشروط";
     if (!images || images.length === 0) {
