@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import Logo from '../assets/images/Logo.png';
-import logbg from '../assets/images/logbg.png';
+import logbg from '../assets/images/logbg.svg';
 import SmsIcon from '../assets/icons/sms.svg';
 import LockIcon from '../assets/icons/lock-register.svg';
 import EyeIcon from '../assets/icons/eye.svg';

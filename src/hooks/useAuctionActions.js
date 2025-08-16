@@ -1,6 +1,7 @@
 import { getDatabase, ref, update, remove, get, set } from "firebase/database";
 import { auth } from "../config/Firebase";
 import { sendWinnerPaymentNotification } from "../utils/notificationService";
+import Swal from 'sweetalert2';
 import {
   notifyNewAuctionApproved,
   handleAuctionStartWithParticipants,
@@ -76,26 +77,61 @@ export const useAuctionActions = () => {
       } catch (err) {
         console.error("Error sending end notifications:", err);
       }
-      alert("تم إنهاء المزاد بنجاح");
+      await Swal.fire({
+        title: 'تم الإنهاء!',
+        text: 'تم إنهاء المزاد بنجاح',
+        icon: 'success',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#10b981'
+      });
       return { success: true };
     } catch (err) {
-      alert("حدث خطأ أثناء إنهاء المزاد");
+      await Swal.fire({
+        title: 'خطأ!',
+        text: 'حدث خطأ أثناء إنهاء المزاد',
+        icon: 'error',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#ef4444'
+      });
       return { success: false, error: err };
     }
   };
 
   const handleRemoveAuction = async (auctionId) => {
-    if (
-      !window.confirm(
-        "هل أنت متأكد من حذف هذا المزاد؟ هذا الإجراء لا يمكن التراجع عنه."
-      )
-    ) {
+    const result = await Swal.fire({
+      title: 'تأكيد الحذف',
+      text: 'هل أنت متأكد من حذف هذا المزاد؟ هذا الإجراء لا يمكن التراجع عنه.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'نعم، احذف المزاد',
+      cancelButtonText: 'إلغاء',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280'
+    });
+
+    if (!result.isConfirmed) {
       return { success: false, cancelled: true };
     }
 
     try {
       // Optional reason from admin/user to aid auditing
-      const reason = window.prompt("سبب الحذف (اختياري):", "") || null;
+      const reasonResult = await Swal.fire({
+        title: 'سبب الحذف',
+        input: 'textarea',
+        inputLabel: 'سبب الحذف (اختياري)',
+        inputPlaceholder: 'اكتب السبب هنا...',
+        showCancelButton: true,
+        confirmButtonText: 'متابعة',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280'
+      });
+
+      if (reasonResult.isDismissed) {
+        return { success: false, cancelled: true };
+      }
+
+      const reason = reasonResult.value || null;
 
       // Read the auction to archive it client-side (in case backend trigger isn't active)
       const auctionRef = ref(db, `auctions/${auctionId}`);
@@ -124,10 +160,22 @@ export const useAuctionActions = () => {
 
       // Hard delete (will trigger archive function too, if deployed)
       await remove(auctionRef);
-      alert("تم حذف المزاد بنجاح");
+      await Swal.fire({
+        title: 'تم الحذف!',
+        text: 'تم حذف المزاد بنجاح',
+        icon: 'success',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#10b981'
+      });
       return { success: true };
     } catch (err) {
-      alert("حدث خطأ أثناء حذف المزاد");
+      await Swal.fire({
+        title: 'خطأ!',
+        text: 'حدث خطأ أثناء حذف المزاد',
+        icon: 'error',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#ef4444'
+      });
       return { success: false, error: err };
     }
   };
@@ -150,10 +198,22 @@ export const useAuctionActions = () => {
       } catch (err) {
         console.error("Error sending approval notifications:", err);
       }
-      alert("تم الموافقة على المزاد بنجاح");
+      await Swal.fire({
+        title: 'تمت الموافقة!',
+        text: 'تم الموافقة على المزاد بنجاح',
+        icon: 'success',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#10b981'
+      });
       return { success: true };
     } catch (err) {
-      alert("حدث خطأ أثناء الموافقة على المزاد");
+      await Swal.fire({
+        title: 'خطأ!',
+        text: 'حدث خطأ أثناء الموافقة على المزاد',
+        icon: 'error',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#ef4444'
+      });
       return { success: false, error: err };
     }
   };
@@ -179,21 +239,60 @@ export const useAuctionActions = () => {
       } catch (err) {
         console.error("Error sending start notifications:", err);
       }
-      alert("تم تفعيل المزاد بنجاح");
+      await Swal.fire({
+        title: 'تم التفعيل!',
+        text: 'تم تفعيل المزاد بنجاح',
+        icon: 'success',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#10b981'
+      });
       return { success: true };
     } catch (err) {
-      alert("حدث خطأ أثناء تفعيل المزاد");
+      await Swal.fire({
+        title: 'خطأ!',
+        text: 'حدث خطأ أثناء تفعيل المزاد',
+        icon: 'error',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#ef4444'
+      });
       return { success: false, error: err };
     }
   };
 
   const handleRejectAuction = async (auctionId) => {
-    if (!window.confirm("هل أنت متأكد من رفض هذا المزاد؟")) {
+    const result = await Swal.fire({
+      title: 'تأكيد الرفض',
+      text: 'هل أنت متأكد من رفض هذا المزاد؟',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'نعم، ارفض المزاد',
+      cancelButtonText: 'إلغاء',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280'
+    });
+
+    if (!result.isConfirmed) {
       return { success: false, cancelled: true };
     }
 
     try {
-      const reason = window.prompt("سبب الرفض (اختياري):", "") || null;
+      const reasonResult = await Swal.fire({
+        title: 'سبب الرفض',
+        input: 'textarea',
+        inputLabel: 'سبب الرفض (اختياري)',
+        inputPlaceholder: 'اكتب السبب هنا...',
+        showCancelButton: true,
+        confirmButtonText: 'متابعة',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280'
+      });
+
+      if (reasonResult.isDismissed) {
+        return { success: false, cancelled: true };
+      }
+
+      const reason = reasonResult.value || null;
       const rejectedAt = new Date().toISOString();
       await update(ref(db, `auctions/${auctionId}`), {
         status: "rejected",
@@ -204,10 +303,22 @@ export const useAuctionActions = () => {
           at: rejectedAt,
         },
       });
-      alert("تم رفض المزاد");
+      await Swal.fire({
+        title: 'تم الرفض!',
+        text: 'تم رفض المزاد',
+        icon: 'success',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#10b981'
+      });
       return { success: true };
     } catch (err) {
-      alert("حدث خطأ أثناء رفض المزاد");
+      await Swal.fire({
+        title: 'خطأ!',
+        text: 'حدث خطأ أثناء رفض المزاد',
+        icon: 'error',
+        confirmButtonText: 'موافق',
+        confirmButtonColor: '#ef4444'
+      });
       return { success: false, error: err };
     }
   };
