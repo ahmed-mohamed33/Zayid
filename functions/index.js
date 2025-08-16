@@ -27,11 +27,10 @@ exports.sendOutbidNotification = onValueCreated(
           auctionId: notificationData.auctionId || "",
           action: notificationData.data?.action || "view_auction",
           type: notificationData.type || "outbid",
-          click_action: `https://${
-            notificationData.auctionId
-              ? `zayid-itp25.web.app/auction/${notificationData.auctionId}`
-              : "zayid-itp25.web.app"
-          }`,
+          click_action: `https://${notificationData.auctionId
+            ? `zayid-itp25.web.app/auction/${notificationData.auctionId}`
+            : "zayid-itp25.web.app"
+            }`,
         },
         token: userToken,
         priority: "high",
@@ -142,8 +141,27 @@ async function getUserIdToToken(db) {
   snap.forEach((child) => {
     const userId = child.key;
     const val = child.val();
-    const token = val && val.fcmToken && val.fcmToken.token;
-    if (token) tokens.set(userId, token);
+
+    // Support both old and new token structure
+    const allUserTokens = [];
+
+    // Old structure (backwards compatibility)
+    if (val && val.fcmToken && val.fcmToken.token) {
+      allUserTokens.push(val.fcmToken.token);
+    }
+
+    // New structure (multiple platforms)
+    if (val && val.fcmTokens) {
+      Object.values(val.fcmTokens).forEach(tokenData => {
+        if (tokenData.token) {
+          allUserTokens.push(tokenData.token);
+        }
+      });
+    }
+
+    if (allUserTokens.length > 0) {
+      tokens.set(userId, allUserTokens);
+    }
   });
   return tokens;
 }
@@ -205,13 +223,13 @@ exports.notifyAuctionsStartingSoon = onSchedule(
         const participantSet = auctionParticipants.get(auctionId) || new Set();
         const tokens = Array.from(participantSet)
           .map((uid) => userTokens.get(uid))
-          .filter(Boolean);
+          .filter(Boolean)
+          .flat(); // Flatten array of arrays
 
         if (tokens.length > 0) {
           const title = "المزاد سيبدأ قريباً ⏳";
-          const body = `المزاد "${
-            a.title || ""
-          }" سيبدأ خلال 30 دقيقة. استعد للمزايدة!`;
+          const body = `المزاد "${a.title || ""
+            }" سيبدأ خلال 30 دقيقة. استعد للمزايدة!`;
           const payload = {
             title,
             body,
@@ -269,13 +287,13 @@ exports.notifyAuctionsEndingSoon = onSchedule(
         const participantSet = auctionParticipants.get(auctionId) || new Set();
         const tokens = Array.from(participantSet)
           .map((uid) => userTokens.get(uid))
-          .filter(Boolean);
+          .filter(Boolean)
+          .flat(); // Flatten array of arrays
 
         if (tokens.length > 0) {
           const title = "المزاد سينتهي قريباً ⏰";
-          const body = `المزاد "${
-            a.title || ""
-          }" سينتهي خلال 30 دقيقة. قدّم مزايدتك الأخيرة الآن!`;
+          const body = `المزاد "${a.title || ""
+            }" سينتهي خلال 30 دقيقة. قدّم مزايدتك الأخيرة الآن!`;
           const payload = {
             title,
             body,
@@ -311,8 +329,8 @@ async function getInterestedUserIdsByCategory(db, category) {
     const interests = Array.isArray(u.userInterests)
       ? u.userInterests
       : Array.isArray(u.interests)
-      ? u.interests
-      : [];
+        ? u.interests
+        : [];
     const history = Array.isArray(u.biddingHistory) ? u.biddingHistory : [];
     const matches =
       interests.includes(category) ||
@@ -367,7 +385,8 @@ exports.activateAuctionsAndNotifyStart = onSchedule(
               );
               const interestedTokens = Array.from(interestedIds)
                 .map((uid) => userTokens.get(uid))
-                .filter(Boolean);
+                .filter(Boolean)
+                .flat(); // Flatten array of arrays
               if (interestedTokens.length > 0) {
                 const payloadInterested = {
                   title: "بدأ المزاد! 🚀",
@@ -394,13 +413,13 @@ exports.activateAuctionsAndNotifyStart = onSchedule(
               const participantsSet = await participantsSetPromise;
               const participantTokens = Array.from(participantsSet)
                 .map((uid) => userTokens.get(uid))
-                .filter(Boolean);
+                .filter(Boolean)
+                .flat(); // Flatten array of arrays
               if (participantTokens.length > 0) {
                 const payloadParticipants = {
                   title: "بدأ المزاد الذي شاركت فيه! 🚀",
-                  body: `المزاد "${
-                    a.title || ""
-                  }" أصبح نشطاً - ابدأ المزايدة الآن!`,
+                  body: `المزاد "${a.title || ""
+                    }" أصبح نشطاً - ابدأ المزايدة الآن!`,
                   auctionId,
                   type: "auction_participant_auction_started",
                   data: { action: "view_auction" },
@@ -497,14 +516,14 @@ exports.getDeletedAuctions = onRequest(async (req, res) => {
         // Whitelist owner fields to avoid accidentally leaking tokens or sensitive data
         const ownerSafe = owner
           ? {
-              userId: owner.userId || ownerId,
-              idKey: owner.idKey || null,
-              fullName: owner.fullName || null,
-              email: owner.email || null,
-              phone: owner.phone || null,
-              isCompany: !!owner.isCompany,
-              companyName: owner.companyName || null,
-            }
+            userId: owner.userId || ownerId,
+            idKey: owner.idKey || null,
+            fullName: owner.fullName || null,
+            email: owner.email || null,
+            phone: owner.phone || null,
+            isCompany: !!owner.isCompany,
+            companyName: owner.companyName || null,
+          }
           : null;
 
         items.push({ id, ...a, owner: ownerSafe });

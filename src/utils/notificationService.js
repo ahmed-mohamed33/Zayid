@@ -149,24 +149,25 @@ export const getFCMToken = async () => {
 };
 
 
-export const saveFCMToken = async (userId, token) => {
+export const saveFCMToken = async (userId, token, platform = 'web') => {
     try {
-        const tokenRef = ref(database, `users/${userId}/fcmToken`);
+        const tokenRef = ref(database, `users/${userId}/fcmTokens/${platform}`);
         await set(tokenRef, {
             token: token,
             timestamp: new Date().toISOString(),
-            platform: 'web'
+            platform: platform,
+            deviceType: platform === 'web' ? 'web' : 'mobile'
         });
-        console.log('FCM token saved for user:', userId);
+        console.log(`${platform} FCM token saved for user:`, userId);
     } catch (error) {
         console.error('Error saving FCM token:', error);
     }
 };
 
 
-export const getUserFCMToken = async (userId) => {
+export const getUserFCMToken = async (userId, platform = 'web') => {
     try {
-        const tokenRef = ref(database, `users/${userId}/fcmToken`);
+        const tokenRef = ref(database, `users/${userId}/fcmTokens/${platform}`);
         const snapshot = await get(tokenRef);
         if (snapshot.exists()) {
             return snapshot.val().token;
@@ -175,6 +176,33 @@ export const getUserFCMToken = async (userId) => {
     } catch (error) {
         console.error('Error getting user FCM token:', error);
         return null;
+    }
+};
+
+export const getAllUserFCMTokens = async (userId) => {
+    try {
+        const tokensRef = ref(database, `users/${userId}/fcmTokens`);
+        const snapshot = await get(tokensRef);
+        const tokens = [];
+
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                const tokenData = childSnapshot.val();
+                if (tokenData.token) {
+                    tokens.push({
+                        token: tokenData.token,
+                        platform: tokenData.platform,
+                        deviceType: tokenData.deviceType,
+                        timestamp: tokenData.timestamp
+                    });
+                }
+            });
+        }
+
+        return tokens;
+    } catch (error) {
+        console.error('Error getting user FCM tokens:', error);
+        return [];
     }
 };
 
@@ -475,7 +503,6 @@ export const getUsersWhoBidOnAuction = async (auctionId) => {
 
 const sendFCMNotification = async (token, notificationData) => {
     try {
-
         const fcmNotificationRef = ref(database, `fcm_notifications/${token}`);
         await push(fcmNotificationRef, {
             ...notificationData,
@@ -486,14 +513,28 @@ const sendFCMNotification = async (token, notificationData) => {
     }
 };
 
-export const sendNotification = async (userId, notificationData) => {
+const sendFCMNotificationToAllDevices = async (userId, notificationData) => {
     try {
-        const userToken = await getUserFCMToken(userId);
-        if (!userToken) {
-            console.log('No FCM token found for user:', userId);
+        const allTokens = await getAllUserFCMTokens(userId);
+
+        if (allTokens.length === 0) {
+            console.log('No FCM tokens found for user:', userId);
             return;
         }
 
+        const sendPromises = allTokens.map(tokenData =>
+            sendFCMNotification(tokenData.token, notificationData)
+        );
+
+        await Promise.all(sendPromises);
+        console.log(`FCM notification sent to ${allTokens.length} devices for user:`, userId);
+    } catch (error) {
+        console.error('Error sending FCM notification to all devices:', error);
+    }
+};
+
+export const sendNotification = async (userId, notificationData) => {
+    try {
         const notificationRef = ref(database, `notifications/${userId}`);
         const newNotificationRef = push(notificationRef);
 
@@ -506,7 +547,7 @@ export const sendNotification = async (userId, notificationData) => {
 
         await set(newNotificationRef, fullNotificationData);
 
-        await sendFCMNotification(userToken, fullNotificationData);
+        await sendFCMNotificationToAllDevices(userId, fullNotificationData);
 
         console.log('Notification sent to user:', userId);
         return fullNotificationData;
@@ -672,7 +713,7 @@ export const setupForegroundMessageListener = (callback) => {
                 icon: '/logo-zayid.png',
                 badge: '/logo-zayid.png',
                 data: payload.data,
-                tag: payload.data?.auctionId || 'zayid-notification', // Group notifications
+                tag: payload.data?.auctionId || 'zayid-notification',
                 requireInteraction: true
             });
 
