@@ -9,6 +9,7 @@ import DateInputField from "../addAuction/DateInput";
 import { UserContext } from "../../context/UserContext";
 import { IoIosArrowDown } from "react-icons/io";
 import LocationModal from "./LocationPicker";
+// import MapContainer from './LocationPicker';
 import { toast } from "react-toastify";
 
 function AddAuctionForm() {
@@ -101,7 +102,8 @@ function AddAuctionForm() {
 
     // Show success message for valid uploads
     if (validFiles.length > 0) {
-      }
+      console.log(`تم رفع ${validFiles.length} صور بنجاح`);
+    }
   };
 
   const handleSubmit = async () => {
@@ -110,8 +112,9 @@ function AddAuctionForm() {
     // Validation
     if (!productName.trim()) newErrors.productName = "هذا الحقل مطلوب";
     if (!productDesc.trim()) newErrors.productDesc = "هذا الحقل مطلوب";
-    if (!location || !location.trim()){
-    newErrors.location = "مكان المعاينة مطلوب"}
+    if (!location || !location.trim()) {
+      newErrors.location = "مكان المعاينة مطلوب";
+    }
     if (!termsText.trim()) newErrors.termsText = "هذا الحقل مطلوب";
     if (!agreeTerms) newErrors.terms = "يجب الموافقة على الشروط";
     if (!images || images.length === 0) {
@@ -538,13 +541,12 @@ function AddAuctionForm() {
         onSelectLocation={(loc) => {
           const selectedName = loc.name || "";
           setLocation(selectedName);
-
           if (errors.location && selectedName.trim()) {
             setErrors((prev) => ({ ...prev, location: null }));
           }
-          setMapOpen(false);
         }}
       />
+      {/* ------------------------------- */}
       <DateInputField
         label="موعد المعاينة"
         value={inspectionDate}
@@ -556,6 +558,7 @@ function AddAuctionForm() {
         }}
         error={errors.inspectionDate}
       />
+
       <InputField
         label="شروط المزاد"
         placeholder="ادخل شروط المزاد"
@@ -604,4 +607,3 @@ function AddAuctionForm() {
 }
 
 export default AddAuctionForm;
-
