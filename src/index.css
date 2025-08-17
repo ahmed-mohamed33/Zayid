@@ -1,15 +1,17 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui" {
   themes: light --default;
 }
-@import "leaflet/dist/leaflet.css";
+@import 'leaflet/dist/leaflet.css';
+
+@import 'leaflet-geosearch/dist/geosearch.css';
 
 * {
   font-family: Almarai;
 }
 
 /* Hide the native WebKit date picker icon but keep it clickable */
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type='date']::-webkit-calendar-picker-indicator {
   opacity: 0;
   position: absolute;
   top: 0;

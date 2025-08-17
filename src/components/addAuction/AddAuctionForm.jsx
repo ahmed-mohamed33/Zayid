@@ -1,37 +1,38 @@
-import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import InputField from "../addAuction/InputField";
-import DollarIcon from "../../assets/icons/dollar-circle.svg";
-import InformationIcon from "../../assets/icons/information.svg";
-import LocationIcon from "../../assets/icons/location.svg";
-import ProductCategorySelector from "./ProductCatigorySelector";
-import DateInputField from "../addAuction/DateInput";
-import { UserContext } from "../../context/UserContext";
-import { IoIosArrowDown } from "react-icons/io";
-import LocationModal from "./LocationPicker";
-import { toast } from "react-toastify";
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import InputField from '../addAuction/InputField';
+import DollarIcon from '../../assets/icons/dollar-circle.svg';
+import InformationIcon from '../../assets/icons/information.svg';
+import LocationIcon from '../../assets/icons/location.svg';
+import ProductCategorySelector from './ProductCatigorySelector';
+import DateInputField from '../addAuction/DateInput';
+import { UserContext } from '../../context/UserContext';
+import { IoIosArrowDown } from 'react-icons/io';
+import LocationModal from './LocationPicker';
+// import MapContainer from './LocationPicker';
+import { toast } from 'react-toastify';
 
 function AddAuctionForm() {
   const navigate = useNavigate();
   const { user, userData, isAuthenticated, createAuction } =
     useContext(UserContext);
-  const [productName, setProductName] = useState("");
-  const [productDesc, setProductDesc] = useState("");
-  const [initialPrice, setInitialPrice] = useState("");
-  const [minIncrement, setMinIncrement] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [location, setLocation] = useState("");
-  const [inspectionDate, setInspectionDate] = useState("");
-  const [termsText, setTermsText] = useState("");
+  const [productName, setProductName] = useState('');
+  const [productDesc, setProductDesc] = useState('');
+  const [initialPrice, setInitialPrice] = useState('');
+  const [minIncrement, setMinIncrement] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [location, setLocation] = useState('');
+  const [inspectionDate, setInspectionDate] = useState('');
+  const [termsText, setTermsText] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   // add productCondition
-  const [productCondition, setProductCondition] = useState("new");
+  const [productCondition, setProductCondition] = useState('new');
 
   // location in google map
   const [mapOpen, setMapOpen] = useState(false);
@@ -39,7 +40,7 @@ function AddAuctionForm() {
   // Image upload limits
   const MAX_IMAGES = 5;
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-  const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -81,7 +82,7 @@ function AddAuctionForm() {
     if (invalidFiles.length > 0) {
       setErrors((prev) => ({
         ...prev,
-        images: invalidFiles.join("\n"),
+        images: invalidFiles.join('\n'),
       }));
       return;
     }
@@ -109,61 +110,62 @@ function AddAuctionForm() {
     const newErrors = {};
 
     // Validation
-    if (!productName.trim()) newErrors.productName = "هذا الحقل مطلوب";
-    if (!productDesc.trim()) newErrors.productDesc = "هذا الحقل مطلوب";
-    if (!location || !location.trim());
-    newErrors.location = "مكان المعاينة مطلوب";
-    if (!termsText.trim()) newErrors.termsText = "هذا الحقل مطلوب";
-    if (!agreeTerms) newErrors.terms = "يجب الموافقة على الشروط";
+    if (!productName.trim()) newErrors.productName = 'هذا الحقل مطلوب';
+    if (!productDesc.trim()) newErrors.productDesc = 'هذا الحقل مطلوب';
+    if (!location || !location.trim()) {
+      newErrors.location = 'مكان المعاينة مطلوب';
+    }
+    if (!termsText.trim()) newErrors.termsText = 'هذا الحقل مطلوب';
+    if (!agreeTerms) newErrors.terms = 'يجب الموافقة على الشروط';
     if (!images || images.length === 0) {
-      newErrors.images = "هذا الحقل مطلوب";
-      newErrors.images = "يجب رفع صور للمنتج";
+      newErrors.images = 'هذا الحقل مطلوب';
+      newErrors.images = 'يجب رفع صور للمنتج';
     } else if (images.length > MAX_IMAGES) {
       newErrors.images = `يمكنك رفع ${MAX_IMAGES} صور كحد أقصى`;
     }
-    if (!category.trim()) newErrors.category = "يجب اختيار تصنيف المنتج";
-    if (!initialPrice.trim()) newErrors.initialPrice = "هذا الحقل مطلوب";
-    if (!minIncrement.trim()) newErrors.minIncrement = "هذا الحقل مطلوب";
-    if (!productCondition) newErrors.productCondition = "حالة المنتج مطلوبة";
+    if (!category.trim()) newErrors.category = 'يجب اختيار تصنيف المنتج';
+    if (!initialPrice.trim()) newErrors.initialPrice = 'هذا الحقل مطلوب';
+    if (!minIncrement.trim()) newErrors.minIncrement = 'هذا الحقل مطلوب';
+    if (!productCondition) newErrors.productCondition = 'حالة المنتج مطلوبة';
     // newErrors.productCondition = "يجب اختيار حالة المنتج";
     // Date validation
     const now = new Date();
 
     // Validate start date
     if (!startDate.trim()) {
-      newErrors.startDate = "تاريخ البدء مطلوب";
+      newErrors.startDate = 'تاريخ البدء مطلوب';
     } else {
       const startDateTime = new Date(startDate);
       if (isNaN(startDateTime.getTime())) {
-        newErrors.startDate = "تاريخ البدء غير صالح";
+        newErrors.startDate = 'تاريخ البدء غير صالح';
       } else if (startDateTime < now) {
-        newErrors.startDate = "يجب أن يكون تاريخ البدء في المستقبل";
+        newErrors.startDate = 'يجب أن يكون تاريخ البدء في المستقبل';
       }
     }
 
     // Validate end date
     if (!endDate.trim()) {
-      newErrors.endDate = "هذا الحقل مطلوب";
+      newErrors.endDate = 'هذا الحقل مطلوب';
     } else {
       const endDateTime = new Date(endDate);
       const startDateTime = new Date(startDate);
       if (isNaN(endDateTime.getTime())) {
-        newErrors.endDate = "تاريخ غير صالح";
+        newErrors.endDate = 'تاريخ غير صالح';
       } else if (endDateTime <= startDateTime) {
-        newErrors.endDate = "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء";
+        newErrors.endDate = 'يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء';
       }
     }
 
     // Validate inspection date
     if (!inspectionDate.trim()) {
-      newErrors.inspectionDate = "موعد المعاينة مطلوب";
+      newErrors.inspectionDate = 'موعد المعاينة مطلوب';
     } else {
       const inspectionDateTime = new Date(inspectionDate);
       const startDateTime = new Date(startDate);
       if (isNaN(inspectionDateTime.getTime())) {
-        newErrors.inspectionDate = "موعد المعاينة غير صالح";
+        newErrors.inspectionDate = 'موعد المعاينة غير صالح';
       } else if (inspectionDateTime >= startDateTime) {
-        newErrors.inspectionDate = "موعد المعاينة يجب أن يكون قبل تاريخ البدء";
+        newErrors.inspectionDate = 'موعد المعاينة يجب أن يكون قبل تاريخ البدء';
       }
     }
     scrollTo(0, 0);
@@ -192,10 +194,10 @@ function AddAuctionForm() {
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
         seller: {
-          name: userData.fullName || "",
-          email: userData.email || "",
-          phone: userData.phone || "",
-          id: userData.userId || "",
+          name: userData.fullName || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          id: userData.userId || '',
         },
         inspection: {
           place: location,
@@ -212,9 +214,9 @@ function AddAuctionForm() {
       await createAuction(auctionData, imageFiles);
 
       setUploadProgress(100);
-      navigate("/");
+      navigate('/');
     } catch (error) {
-      toast.error(error.message || "حدث خطأ أثناء إنشاء المزاد");
+      toast.error(error.message || 'حدث خطأ أثناء إنشاء المزاد');
     } finally {
       setIsSubmitting(false);
       setUploadProgress(0);
@@ -301,11 +303,11 @@ function AddAuctionForm() {
             role="button"
             className="btn bg-transparent border-1 text-right w-full flex justify-between items-center"
           >
-            {productCondition === "new"
-              ? "جديد"
-              : productCondition === "veryGood"
-              ? "جيد جدًا"
-              : "مستعمل"}
+            {productCondition === 'new'
+              ? 'جديد'
+              : productCondition === 'veryGood'
+              ? 'جيد جدًا'
+              : 'مستعمل'}
             <IoIosArrowDown className="text-orange-500" />
           </div>
 
@@ -316,7 +318,7 @@ function AddAuctionForm() {
             <li>
               <a
                 onClick={() => {
-                  setProductCondition("new");
+                  setProductCondition('new');
                   if (errors.productCondition) {
                     setErrors((prev) => ({ ...prev, productCondition: null }));
                   }
@@ -328,7 +330,7 @@ function AddAuctionForm() {
             <li>
               <a
                 onClick={() => {
-                  setProductCondition("veryGood");
+                  setProductCondition('veryGood');
                   if (errors.productCondition) {
                     setErrors((prev) => ({ ...prev, productCondition: null }));
                   }
@@ -340,7 +342,7 @@ function AddAuctionForm() {
             <li>
               <a
                 onClick={() => {
-                  setProductCondition("old");
+                  setProductCondition('old');
                   if (errors.productCondition) {
                     setErrors((prev) => ({ ...prev, productCondition: null }));
                   }
@@ -403,7 +405,7 @@ function AddAuctionForm() {
                         if (newImages.length === 0) {
                           setErrors((prev) => ({
                             ...prev,
-                            images: "هذا الحقل مطلوب",
+                            images: 'هذا الحقل مطلوب',
                           }));
                         }
                         return newImages;
@@ -444,12 +446,12 @@ function AddAuctionForm() {
               if (!value.trim()) {
                 setErrors((prev) => ({
                   ...prev,
-                  initialPrice: "هذا الحقل مطلوب",
+                  initialPrice: 'هذا الحقل مطلوب',
                 }));
               } else if (isNaN(value) || Number(value) <= 0) {
                 setErrors((prev) => ({
                   ...prev,
-                  initialPrice: "يجب أن يكون رقمًا صحيحًا أكبر من صفر",
+                  initialPrice: 'يجب أن يكون رقمًا صحيحًا أكبر من صفر',
                 }));
               } else {
                 setErrors((prev) => ({ ...prev, initialPrice: null }));
@@ -472,12 +474,12 @@ function AddAuctionForm() {
               if (!val.trim()) {
                 setErrors((prev) => ({
                   ...prev,
-                  minIncrement: "هذا الحقل مطلوب",
+                  minIncrement: 'هذا الحقل مطلوب',
                 }));
               } else if (isNaN(val) || Number(val) <= 0) {
                 setErrors((prev) => ({
                   ...prev,
-                  minIncrement: "يجب أن يكون رقمًا صحيحًا أكبر من صفر",
+                  minIncrement: 'يجب أن يكون رقمًا صحيحًا أكبر من صفر',
                 }));
               } else {
                 setErrors((prev) => {
@@ -537,15 +539,14 @@ function AddAuctionForm() {
         isOpen={mapOpen}
         onClose={() => setMapOpen(false)}
         onSelectLocation={(loc) => {
-          const selectedName = loc.name || "";
+          const selectedName = loc.name || '';
           setLocation(selectedName);
-
           if (errors.location && selectedName.trim()) {
             setErrors((prev) => ({ ...prev, location: null }));
           }
-          setMapOpen(false);
         }}
       />
+      {/* ------------------------------- */}
       <DateInputField
         label="موعد المعاينة"
         value={inspectionDate}
@@ -557,6 +558,7 @@ function AddAuctionForm() {
         }}
         error={errors.inspectionDate}
       />
+
       <InputField
         label="شروط المزاد"
         placeholder="ادخل شروط المزاد"
@@ -584,7 +586,7 @@ function AddAuctionForm() {
           className="ml-2"
         />
         <label htmlFor="terms" className="text-[#2d3142]">
-          {" "}
+          {' '}
           أوافق على الشروط والأحكام *
         </label>
       </div>
@@ -593,12 +595,12 @@ function AddAuctionForm() {
       )}
       <button
         className={`bg-[#FA6300] w-full h-12 rounded-lg text-white text-lg font-bold cursor-pointer hover:bg-[#e45a00] transition ${
-          isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+          isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
         }`}
         onClick={handleSubmit}
         disabled={isSubmitting}
       >
-        {isSubmitting ? "جاري إنشاء المزاد..." : "إضافة مزاد"}
+        {isSubmitting ? 'جاري إنشاء المزاد...' : 'إضافة مزاد'}
       </button>
     </div>
   );
