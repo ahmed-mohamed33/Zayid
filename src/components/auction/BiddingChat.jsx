@@ -33,7 +33,7 @@ const BiddingChat = ({
   auction,
 }) => {
   const { user, userData } = useContext(UserContext);
-  // const [auctionTime, setAuctionTime] = useState(" ...");
+  const [auctionTime, setAuctionTime] = useState(" ...");
   const [highestBid, setHighestBid] = useState("0 ج.م");
   const [noOfBids, setNoOfBids] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
@@ -81,10 +81,8 @@ const BiddingChat = ({
           if (status !== "ended") {
             const auctionRef = ref(db, `auctions/${auctionId}`);
             update(auctionRef, { status: "ended" })
-              .then(() => {
-                })
-              .catch((error) => {
-                });
+              .then(() => {})
+              .catch((error) => {});
           }
         }
       };
@@ -176,7 +174,7 @@ const BiddingChat = ({
   useEffect(() => {
     if (bidsContainerRef.current) {
       bidsContainerRef.current.scrollTop =
-      bidsContainerRef.current.scrollHeight;
+        bidsContainerRef.current.scrollHeight;
     }
   }, [bids]);
 
@@ -191,7 +189,7 @@ const BiddingChat = ({
         bids[0]
       );
     } else {
-      }
+    }
     if (winnerBid && winnerBid.userId) {
       setWinner(winnerBid);
       setAuctionWinner(winnerBid);
@@ -204,8 +202,9 @@ const BiddingChat = ({
           winnerBid: winnerBid.bidAmount,
           winnerTime: winnerBid.bidTime,
         });
-        } catch (error) {
-        }
+      } catch (error) {
+        console.log(error, "error in update auction");
+      }
 
       const winnersRef = ref(db, `winners/${auctionId}`);
       try {
@@ -220,10 +219,11 @@ const BiddingChat = ({
             auction?.imageUrls?.[0] || "https://via.placeholder.com/80",
           auctionTitle: auction?.title || "بدون عنوان",
         });
-        } catch (error) {
-        }
-    } else {
+      } catch (error) {
+        console.log(error, "error in set winners");
       }
+    } else {
+    }
 
     setRemainingTime("");
 
@@ -240,7 +240,8 @@ const BiddingChat = ({
         );
       }
     } catch (e) {
-      }
+      console.log(e, "error in sendWinnerPaymentNotification");
+    }
 
     try {
       const auctionDataForEnd = {
@@ -256,7 +257,8 @@ const BiddingChat = ({
         : null;
       await handleAuctionEndWithParticipants(auctionDataForEnd, winnerInfo);
     } catch (notifyErr) {
-      }
+      console.log(notifyErr, "error in handleAuctionEndWithParticipants");
+    }
   };
 
   //winners
@@ -383,8 +385,7 @@ const BiddingChat = ({
         await handleNewBidWithParticipantNotification(
           auctionDataForParticipants
         );
-      } catch (notifyErr) {
-        }
+      } catch (notifyErr) {}
       setHighestBid(formattedHighestBid);
     } catch (error) {
       Swal.fire({
@@ -418,7 +419,7 @@ const BiddingChat = ({
         });
       }
     } else {
-      }
+    }
   };
   // هنا بقي الداتا بقت دينامك
   // useMemo
@@ -596,4 +597,3 @@ const BiddingChat = ({
 };
 
 export default BiddingChat;
-

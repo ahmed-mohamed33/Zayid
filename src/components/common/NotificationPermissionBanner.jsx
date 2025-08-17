@@ -67,6 +67,63 @@ const NotificationPermissionBanner = () => {
 
   const content = getMessageContent();
 
+  // Function to render the status message above the banner
+  const renderStatusMessage = () => {
+    if (permissionStatus.status === "default") {
+      return (
+        <div className="fixed bottom-20 left-4 z-50 w-64 p-1 rounded-lg shadow-md bg-white border border-gray-200 text-gray-700">
+          <div className="flex items-center">
+            <svg
+              className="w-4 h-4 mr-2 flex-shrink-0 text-blue-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div className="text-xs">
+              <p className="font-medium">الإشعارات غير مفعلة</p>
+              <p className="text-xs text-gray-500">
+                اضغط على الزر أدناه لتفعيل الإشعارات
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (permissionStatus.status === "denied") {
+      return (
+        <div className="fixed bottom-20 left-4 z-50 w-64 p-1 rounded-lg shadow-md bg-white border border-gray-200 text-gray-700">
+          <div className="flex items-center">
+            <svg
+              className="w-4 h-4 mr-2 flex-shrink-0 text-red-500"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div className="text-xs">
+              <p className="font-medium">الإشعارات محظورة</p>
+              <p className="text-xs text-gray-500">
+                يجب تفعيل الإشعارات من إعدادات المتصفح
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   const getToggleButtonStyles = () => {
     const baseStyles =
       "fixed bottom-4 left-4 z-50 p-3 rounded-full shadow-lg border-2 transition-all duration-200 hover:scale-110";
@@ -135,6 +192,9 @@ const NotificationPermissionBanner = () => {
 
   return (
     <>
+      {/* Status message above the banner */}
+      {renderStatusMessage()}
+
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={getToggleButtonStyles()}

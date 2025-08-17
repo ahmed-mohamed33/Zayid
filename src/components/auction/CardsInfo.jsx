@@ -39,6 +39,7 @@ function CardsInfo({ sellerName, insurancePrice, lowestBid, sellerLocation, auct
         alert(result.message);
       }
     } catch (error) {
+      console.log(error, "error in handleDownloadTerms");
       alert("حدث خطأ أثناء تحميل كراسة الشروط");
     } finally {
       setIsGeneratingPDF(false);

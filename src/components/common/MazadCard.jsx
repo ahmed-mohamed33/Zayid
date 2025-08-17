@@ -47,6 +47,7 @@ function MazadCard({ auctionId }) {
 
       navigate(`/auction/${auction.id}`);
     } catch (error) {
+      console.log(error, "error in handleAuctionClick");
       navigate(`/auction/${auction.id}`);
     }
   };

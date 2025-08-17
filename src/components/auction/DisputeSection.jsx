@@ -28,6 +28,7 @@ const DisputeSection = ({ auctionId, auction }) => {
           setSettings(snapshot.val());
         }
       } catch (error) {
+        console.log(error, "error in fetchSettings");
         } finally {
         setLoadingSettings(false);
       }

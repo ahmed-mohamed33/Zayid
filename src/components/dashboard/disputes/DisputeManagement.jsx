@@ -82,6 +82,7 @@ const DisputeManagement = () => {
 
         return () => unsubscribe();
       } catch (error) {
+        console.log(error, "error in fetchData");
         setLoading(false);
       }
     };

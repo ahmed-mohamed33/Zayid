@@ -98,6 +98,7 @@ const PaymentCharts = memo(
           ],
         };
       } catch (error) {
+        console.log(error, "error in statusChartData");
         return {
           labels: [],
           datasets: [
@@ -161,6 +162,7 @@ const PaymentCharts = memo(
           ],
         };
       } catch (error) {
+        console.log(error, "error in methodChartData");
         return {
           labels: [],
           datasets: [
@@ -222,7 +224,8 @@ const PaymentCharts = memo(
           ],
         };
       } catch (error) {
-        return {
+        console.log(error, "error in typeChartData");
+          return {
           labels: [],
           datasets: [
             {

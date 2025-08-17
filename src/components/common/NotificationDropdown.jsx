@@ -56,6 +56,7 @@ const NotificationDropdown = () => {
         locale: ar,
       });
     } catch (error) {
+      console.log(error, "error in formatTime");
       return "منذ لحظات";
     }
   };

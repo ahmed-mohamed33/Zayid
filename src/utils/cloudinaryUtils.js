@@ -4,7 +4,7 @@ const UPLOAD_PRESET = 'auctions';
 
 export const uploadToCloudinary = async (file, preset = UPLOAD_PRESET) => {
     try {
-        // const formData = new FormData();
+        const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', preset);
         formData.append('cloud_name', CLOUDINARY_CLOUD_NAME);
@@ -23,7 +23,7 @@ export const uploadToCloudinary = async (file, preset = UPLOAD_PRESET) => {
         }
 
         const data = await response.json();
-        // return {
+        return {
             success: true,
             url: data.secure_url,
             publicId: data.public_id
@@ -38,7 +38,7 @@ export const uploadToCloudinary = async (file, preset = UPLOAD_PRESET) => {
 
 export const uploadMultipleImages = async (files, preset = UPLOAD_PRESET) => {
     try {
-        // const uploadPromises = files.map(file => uploadToCloudinary(file, preset));
+        const uploadPromises = files.map(file => uploadToCloudinary(file, preset));
         const results = await Promise.all(uploadPromises);
 
         // Check if any upload failed
@@ -48,7 +48,7 @@ export const uploadMultipleImages = async (files, preset = UPLOAD_PRESET) => {
             throw new Error(`Failed to upload images: ${errors}`);
         }
 
-        // return {
+        return {
             success: true,
             urls: results.map(result => result.url)
         };

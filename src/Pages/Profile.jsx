@@ -32,7 +32,7 @@ const Profile = () => {
 
   //taps
   const [activeTab, setActiveTab] = useState("مزاداتي");
-  // const categories = [
+  const categories = [
     { label: "الملف الشخصي", icon: userIcon },
     { label: "الاعدادات", icon: userIcon },
     { label: "تسجيل الخروج", icon: userIcon },
@@ -171,7 +171,7 @@ const Profile = () => {
             setAuctions([]);
           }
         } catch (error) {
-          } finally {
+        } finally {
           setLoadingAuctions(false);
         }
       }
@@ -217,9 +217,9 @@ const Profile = () => {
           );
 
           setPurchases(purchasesList);
-          }
+        }
       } catch (err) {
-        } finally {
+      } finally {
         setLoadingPurchases(false);
       }
     });
@@ -342,7 +342,7 @@ const Profile = () => {
 
         setStats({ total, active, pending, approved, ended });
       } catch (error) {
-        } finally {
+      } finally {
         setLoadingStats(false);
       }
     };
@@ -355,8 +355,7 @@ const Profile = () => {
     try {
       await deleteAuction(auctionId);
       setAuctions((prev) => prev.filter((item) => item.id !== auctionId));
-    } catch (err) {
-      }
+    } catch (err) {}
   };
 
   // إنهاء
@@ -381,8 +380,7 @@ const Profile = () => {
       const auth = getAuth();
       await signOut(auth);
       navigate("/login");
-    } catch (error) {
-      }
+    } catch (error) {}
   };
 
   return (
@@ -505,4 +503,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
