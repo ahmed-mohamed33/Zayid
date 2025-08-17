@@ -66,7 +66,7 @@ function App() {
             <Route path="/forgetpass" element={<Forgetpass />} />
 
             <Route path="/selectCategory" element={<OnboardingPage />} />
-
+            <Route path="/profile" element={<Profile />} />
             <Route path="/auctions" element={<AuctionsPage />} />
             <Route
               path="/terms-and-conditions"
@@ -77,7 +77,7 @@ function App() {
 
             <Route element={<ProtectedRoute requireActive={true} />}>
               <Route path="/addAuction" element={<AddAuctionPage />} />
-              <Route path="/profile" element={<Profile />} />
+
               <Route path="/payment/:auctionId/:type" element={<Payment />} />
               <Route path="/auction/:auctionId" element={<TheauctionPage />} />
             </Route>
