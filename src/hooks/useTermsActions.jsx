@@ -50,8 +50,7 @@ export const useTermsActions = () => {
             sellerTerms = termsSnapshot.val() || "";
           }
         } catch (error) {
-          console.warn("Could not fetch seller terms:", error);
-        }
+          }
 
         // Fetch default terms from database with fallback
         let defaultTerms = [
@@ -77,8 +76,7 @@ export const useTermsActions = () => {
             if (items.length > 0) defaultTerms = items;
           }
         } catch (e) {
-          console.warn("Could not fetch default terms, using fallback:", e);
-        }
+          }
 
         // Generate PDF content
         const printContent = `
@@ -429,7 +427,6 @@ export const useTermsActions = () => {
           message: "تم إنشاء كراسة الشروط بنجاح",
         };
       } catch (error) {
-        console.error("Error generating terms PDF:", error);
         return {
           success: false,
           message: error.message || "حدث خطأ أثناء إنشاء كراسة الشروط",
@@ -443,3 +440,4 @@ export const useTermsActions = () => {
     generateTermsPDF,
   };
 };
+

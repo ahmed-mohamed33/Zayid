@@ -317,8 +317,7 @@ export default function ChatbotWidget() {
       setActiveThreadId(nextActive);
       if (threadId === activeThreadId) setMessages([]);
     } catch (e) {
-      console.error(e);
-    } finally {
+      } finally {
       setDeleting(false);
     }
   };
@@ -625,3 +624,4 @@ function ResponseRenderer({ text }) {
     </div>
   );
 }
+

@@ -24,7 +24,6 @@ export const useUserProfile = (user) => {
         const userIdentifier = user.userId || user.id;
 
         if (!userIdentifier) {
-          console.error("No user identifier found");
           return;
         }
 
@@ -61,8 +60,7 @@ export const useUserProfile = (user) => {
           paymentsUnsubscribe();
         };
       } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
+        }
     };
 
     fetchUserData();
@@ -81,7 +79,6 @@ export const useUserProfile = (user) => {
       setLocalUser((prev) => ({ ...prev, isActive: true }));
       return { success: true, message: "تم تفعيل المستخدم بنجاح" };
     } catch (error) {
-      console.error("Error approving user:", error);
       return { success: false, message: "حدث خطأ أثناء التفعيل" };
     } finally {
       setActionLoading(false);
@@ -100,7 +97,6 @@ export const useUserProfile = (user) => {
       setLocalUser((prev) => ({ ...prev, isActive: false }));
       return { success: true, message: "تم حظر المستخدم بنجاح" };
     } catch (error) {
-      console.error("Error blocking user:", error);
       return { success: false, message: "حدث خطأ أثناء الحظر" };
     } finally {
       setActionLoading(false);
@@ -114,7 +110,6 @@ export const useUserProfile = (user) => {
       await remove(ref(db, `users/${userKey}`));
       return { success: true, message: "تم حذف المستخدم بنجاح" };
     } catch (error) {
-      console.error("Error removing user:", error);
       return { success: false, message: "حدث خطأ أثناء الحذف" };
     } finally {
       setActionLoading(false);
@@ -134,7 +129,6 @@ export const useUserProfile = (user) => {
       setIsEditing(false);
       return { success: true, message: "تم تحديث بيانات المستخدم بنجاح" };
     } catch (error) {
-      console.error("Error updating user:", error);
       return { success: false, message: "حدث خطأ أثناء التحديث" };
     } finally {
       setActionLoading(false);
@@ -239,3 +233,4 @@ export const useUserProfile = (user) => {
     getPaymentMethodName,
   };
 };
+

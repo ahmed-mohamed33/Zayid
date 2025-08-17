@@ -3,9 +3,10 @@ import { auth } from "../config/Firebase";
 import { sendWinnerPaymentNotification } from "../utils/notificationService";
 import Swal from 'sweetalert2';
 import {
-  notifyNewAuctionApproved,
   handleAuctionStartWithParticipants,
   handleAuctionEndWithParticipants,
+  notifyAuctionApproved,
+  notifyNewAuctionToInterestedUsers,
 } from "../utils/auctionNotificationUtils";
 
 export const useAuctionActions = () => {
@@ -193,7 +194,12 @@ export const useAuctionActions = () => {
             ...raw,
             category: raw.category || raw.categoryId,
           };
-          await notifyNewAuctionApproved(auctionData);
+
+          // Notify the auction owner that their auction was approved
+          await notifyAuctionApproved(auctionData);
+
+          // Also notify interested users about the new approved auction
+          await notifyNewAuctionToInterestedUsers(auctionData);
         }
       } catch (err) {
         console.error("Error sending approval notifications:", err);

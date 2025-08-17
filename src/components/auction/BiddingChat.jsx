@@ -33,8 +33,7 @@ const BiddingChat = ({
   auction,
 }) => {
   const { user, userData } = useContext(UserContext);
-  // console.log("User from Context in BiddingChat:", user, "UserData:", userData);
-  const [auctionTime, setAuctionTime] = useState(" ...");
+  // const [auctionTime, setAuctionTime] = useState(" ...");
   const [highestBid, setHighestBid] = useState("0 ج.م");
   const [noOfBids, setNoOfBids] = useState(0);
   const [bidAmount, setBidAmount] = useState("");
@@ -83,11 +82,9 @@ const BiddingChat = ({
             const auctionRef = ref(db, `auctions/${auctionId}`);
             update(auctionRef, { status: "ended" })
               .then(() => {
-                console.log("Status updated to ended in useEffect");
-              })
+                })
               .catch((error) => {
-                console.error("Error updating to ended:", error);
-              });
+                });
           }
         }
       };
@@ -121,7 +118,6 @@ const BiddingChat = ({
         } else {
           setRemainingTime("0:00:00");
           if (status === "approved") {
-            console.log("لما اشوف 🤌🏻")
             setIsAuctionLive(true);
             const auctionRef = ref(db, `auctions/${auctionId}`);
             update(auctionRef, { status: "active" });
@@ -145,7 +141,6 @@ const BiddingChat = ({
       const data = snapshot.val();
       if (data) {
         // بجيب عدد المشاركين
-        console.log("Fetched status from Firebase:", data.status);
         const participants = data.participants || {};
         setParticipantsCount(Object.keys(participants).length);
 
@@ -196,18 +191,10 @@ const BiddingChat = ({
         bids[0]
       );
     } else {
-      console.log("No bids available, setting winner to null");
-    }
+      }
     if (winnerBid && winnerBid.userId) {
       setWinner(winnerBid);
       setAuctionWinner(winnerBid);
-
-      console.log("تفاصيل الفائز:", {
-        winnerId: winnerBid.userId,
-        winnerName: winnerBid.userName,
-        winnerBid: winnerBid.bidAmount,
-        winnerTime: winnerBid.bidTime,
-      });
 
       const auctionRef = ref(db, `auctions/${auctionId}`);
       try {
@@ -217,10 +204,8 @@ const BiddingChat = ({
           winnerBid: winnerBid.bidAmount,
           winnerTime: winnerBid.bidTime,
         });
-        console.log("Winner data updated successfully in auctions");
-      } catch (error) {
-        console.error("Error updating winner data in auctions:", error);
-      }
+        } catch (error) {
+        }
 
       const winnersRef = ref(db, `winners/${auctionId}`);
       try {
@@ -235,13 +220,10 @@ const BiddingChat = ({
             auction?.imageUrls?.[0] || "https://via.placeholder.com/80",
           auctionTitle: auction?.title || "بدون عنوان",
         });
-        console.log("Winner data updated successfully in winners");
-      } catch (error) {
-        console.error("Error updating winner data in winners:", error);
-      }
+        } catch (error) {
+        }
     } else {
-      console.log("No winner set due to no bids or invalid data");
-    }
+      }
 
     setRemainingTime("");
 
@@ -258,8 +240,7 @@ const BiddingChat = ({
         );
       }
     } catch (e) {
-      console.error("Error sending winner payment notification:", e);
-    }
+      }
 
     try {
       const auctionDataForEnd = {
@@ -275,8 +256,7 @@ const BiddingChat = ({
         : null;
       await handleAuctionEndWithParticipants(auctionDataForEnd, winnerInfo);
     } catch (notifyErr) {
-      console.error("Error notifying end-of-auction:", notifyErr);
-    }
+      }
   };
 
   //winners
@@ -404,11 +384,9 @@ const BiddingChat = ({
           auctionDataForParticipants
         );
       } catch (notifyErr) {
-        console.error("Error notifying participants about new bid:", notifyErr);
-      }
+        }
       setHighestBid(formattedHighestBid);
     } catch (error) {
-      console.error("Error updating bid:", error);
       Swal.fire({
         title: "خطأ!",
         text: "حدث خطأ أثناء إضافة المزايدة، حاول مرة أخرى!",
@@ -427,15 +405,10 @@ const BiddingChat = ({
       const now = new Date().toISOString();
       try {
         await update(auctionRef, { status: "ended", endDate: now });
-        console.log(
-          "Status updated to ended successfully for auction:",
-          auctionId
-        );
         setStatus("ended");
         setIsAuctionLive(false);
         await finalizeAuction();
       } catch (error) {
-        console.error("Error updating status to ended:", error);
         Swal.fire({
           title: "خطأ!",
           text: `حدث خطأ أثناء إنهاء المزاد: ${error.message}. حاول مرة أخرى!`,
@@ -445,8 +418,7 @@ const BiddingChat = ({
         });
       }
     } else {
-      console.log("User is not the auction creator:", user.uid, createdBy);
-    }
+      }
   };
   // هنا بقي الداتا بقت دينامك
   // useMemo
@@ -624,3 +596,4 @@ const BiddingChat = ({
 };
 
 export default BiddingChat;
+

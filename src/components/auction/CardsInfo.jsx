@@ -39,7 +39,6 @@ function CardsInfo({ sellerName, insurancePrice, lowestBid, sellerLocation, auct
         alert(result.message);
       }
     } catch (error) {
-      console.error("Error downloading terms:", error);
       alert("حدث خطأ أثناء تحميل كراسة الشروط");
     } finally {
       setIsGeneratingPDF(false);
@@ -83,3 +82,4 @@ function CardsInfo({ sellerName, insurancePrice, lowestBid, sellerLocation, auct
 }
 
 export default CardsInfo;
+

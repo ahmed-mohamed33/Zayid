@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   FaTimes,
   FaChevronLeft,
@@ -11,6 +11,10 @@ import {
 import { UserContext } from "../../../context/UserContext";
 import { getDatabase, ref, update } from "firebase/database";
 import Swal from "sweetalert2";
+import {
+  getUsersWhoParticipatedInAuction,
+  sendAuctionEditNotification,
+} from "../../../utils/notificationService";
 
 const AuctionModal = ({
   showModal,
@@ -22,28 +26,333 @@ const AuctionModal = ({
   getBidInfo,
   getStatusBadge,
   setShowModal,
+  onAuctionUpdate,
 }) => {
   if (!showModal || !selectedAuction) return null;
 
   const { auctions, setAuctions } = useContext(UserContext);
   const db = getDatabase();
-  const [startPrice, setStartPrice] = useState(selectedAuction.startPrice || "");
+  const [startPrice, setStartPrice] = useState(
+    selectedAuction.startPrice || ""
+  );
   const [startDate, setStartDate] = useState(
-    selectedAuction.startDate ? new Date(selectedAuction.startDate).toISOString().slice(0, 16) : ""
+    selectedAuction.startDate
+      ? new Date(selectedAuction.startDate).toISOString().slice(0, 16)
+      : ""
   );
   const [endDate, setEndDate] = useState(
-    selectedAuction.endDate ? new Date(selectedAuction.endDate).toISOString().slice(0, 16) : ""
+    selectedAuction.endDate
+      ? new Date(selectedAuction.endDate).toISOString().slice(0, 16)
+      : ""
   );
   const [isEditingPrice, setIsEditingPrice] = useState(false);
   const [isEditingStartDate, setIsEditingStartDate] = useState(false);
   const [isEditingEndDate, setIsEditingEndDate] = useState(false);
 
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalAuction, setOriginalAuction] = useState(null);
+
+  // Helper function to convert database date to local datetime-local format
+  const convertDbDateToLocal = (dbDate) => {
+    if (!dbDate) return "";
+    const dateLocal = new Date(dbDate);
+    // Adjust for timezone offset to get local time
+    const dateAdjusted = new Date(
+      dateLocal.getTime() - dateLocal.getTimezoneOffset() * 60000
+    );
+    return dateAdjusted.toISOString().slice(0, 16);
+  };
+
+  // Helper function to convert local datetime-local format to database ISO string
+  const convertLocalToDbDate = (localDate) => {
+    if (!localDate) return null;
+    return new Date(localDate).toISOString();
+  };
+
+  // Initialize original auction data when modal opens
+  useEffect(() => {
+    if (selectedAuction) {
+      // Store the original values from the database
+      const originalStartDate = selectedAuction.startDate;
+      const originalEndDate = selectedAuction.endDate;
+
+      setOriginalAuction({
+        startPrice: selectedAuction.startPrice,
+        startDate: originalStartDate,
+        endDate: originalEndDate,
+      });
+      setHasChanges(false);
+
+      // Reset form values to current auction data from database
+      setStartPrice(selectedAuction.startPrice || "");
+
+      // Convert database dates to local datetime-local format
+      setStartDate(convertDbDateToLocal(originalStartDate));
+      setEndDate(convertDbDateToLocal(originalEndDate));
+    }
+  }, [selectedAuction]);
+
+  // Check for changes
+  useEffect(() => {
+    if (originalAuction) {
+      const priceChanged =
+        Number(startPrice) !== Number(originalAuction.startPrice);
+
+      // Convert original dates to the same format for comparison
+      const originalStartDateFormatted = convertDbDateToLocal(
+        originalAuction.startDate
+      );
+      const originalEndDateFormatted = convertDbDateToLocal(
+        originalAuction.endDate
+      );
+
+      const startDateChanged = startDate !== originalStartDateFormatted;
+      const endDateChanged = endDate !== originalEndDateFormatted;
+
+      setHasChanges(priceChanged || startDateChanged || endDateChanged);
+    }
+  }, [startPrice, startDate, endDate, originalAuction]);
+
+  // Check if auction is active (prevent changes)
+  const isAuctionActive = () => {
+    if (!selectedAuction) return false;
+
+    // Check if auction has started and not ended
+    const now = new Date();
+    const currentStartDate = startDate ? new Date(startDate) : null;
+    const currentEndDate = endDate ? new Date(endDate) : null;
+
+    // Auction is active if it has started and not ended
+    if (currentStartDate && currentEndDate) {
+      return now >= currentStartDate && now <= currentEndDate;
+    }
+
+    // If no dates set, check status
+    return selectedAuction.status === "active";
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {});
   };
 
+  // Function to cancel editing and reset values
+  const cancelEditing = (fieldType) => {
+    if (originalAuction) {
+      switch (fieldType) {
+        case "price":
+          setStartPrice(originalAuction.startPrice);
+          setIsEditingPrice(false);
+          break;
+        case "startDate":
+          setStartDate(convertDbDateToLocal(originalAuction.startDate));
+          setIsEditingStartDate(false);
+          break;
+        case "endDate":
+          setEndDate(convertDbDateToLocal(originalAuction.endDate));
+          setIsEditingEndDate(false);
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
+  // Function to send notifications to auction participants
+  const sendAuctionEditNotifications = async () => {
+    try {
+      if (!hasChanges) return;
+
+      // Get participants who have bought insurance or terms (shroot) for this auction
+      const participants = await getUsersWhoParticipatedInAuction(
+        selectedAuction.id
+      );
+
+      if (participants.length === 0) {
+        console.log("No participants found for auction:", selectedAuction.id);
+        return;
+      }
+
+      const changes = [];
+      if (Number(startPrice) !== Number(originalAuction.startPrice)) {
+        changes.push(
+          `السعر الابتدائي من ${Number(
+            originalAuction.startPrice
+          ).toLocaleString()} إلى ${Number(startPrice).toLocaleString()} جنيه`
+        );
+      }
+
+      // Convert original dates to the same format for comparison
+      const originalStartDateFormatted = convertDbDateToLocal(
+        originalAuction.startDate
+      );
+      const originalEndDateFormatted = convertDbDateToLocal(
+        originalAuction.endDate
+      );
+
+      if (startDate !== originalStartDateFormatted) {
+        changes.push(
+          `تاريخ البدء من ${
+            originalAuction.startDate
+              ? new Date(originalAuction.startDate).toLocaleString("ar-EG")
+              : "غير محدد"
+          } إلى ${new Date(startDate).toLocaleString("ar-EG")}`
+        );
+      }
+      if (endDate !== originalEndDateFormatted) {
+        changes.push(
+          `تاريخ الانتهاء من ${
+            originalAuction.endDate
+              ? new Date(originalAuction.endDate).toLocaleString("ar-EG")
+              : "غير محدد"
+          } إلى ${new Date(endDate).toLocaleString("ar-EG")}`
+        );
+      }
+
+      const changesText = changes.join("، ");
+
+      // Send notifications to all participants
+      const notificationPromises = participants.map((userId) =>
+        sendAuctionEditNotification(userId, selectedAuction, changesText)
+      );
+
+      await Promise.all(notificationPromises);
+      console.log(
+        `Sent auction edit notifications to ${participants.length} insurance/terms participants`
+      );
+
+      // Show success message
+      Swal.fire({
+        icon: "success",
+        title: "تم إرسال الإشعارات!",
+        text: `تم إرسال إشعارات التعديل إلى ${participants.length} مشترك في التأمين/الشروط`,
+        confirmButtonText: "حسنًا",
+        customClass: {
+          confirmButton: "bg-green-500 text-white hover:bg-green-600",
+        },
+      });
+    } catch (error) {
+      console.error("Error sending auction edit notifications:", error);
+      // Don't show error to user, just log it
+    }
+  };
+
+  // Enhanced close function that saves changes and sends notifications
+  const handleCloseModal = async () => {
+    if (hasChanges) {
+      // First, save all pending changes to the database
+      try {
+        const updates = {};
+
+        // Check what has changed and prepare updates
+        if (Number(startPrice) !== Number(originalAuction.startPrice)) {
+          updates.startPrice = Number(startPrice);
+        }
+
+        // Convert original dates to the same format for comparison
+        const originalStartDateFormatted = convertDbDateToLocal(
+          originalAuction.startDate
+        );
+        const originalEndDateFormatted = convertDbDateToLocal(
+          originalAuction.endDate
+        );
+
+        if (startDate !== originalStartDateFormatted) {
+          updates.startDate = convertLocalToDbDate(startDate);
+        }
+        if (endDate !== originalEndDateFormatted) {
+          updates.endDate = convertLocalToDbDate(endDate);
+        }
+
+        // Save to database
+        if (Object.keys(updates).length > 0) {
+          const auctionRef = ref(db, `auctions/${selectedAuction.id}`);
+          await update(auctionRef, updates);
+
+          // Update local auctions array
+          const updatedSelectedAuction = { ...selectedAuction, ...updates };
+          const updatedAuctions = auctions.map((auction) =>
+            auction.id === selectedAuction.id ? updatedSelectedAuction : auction
+          );
+          setAuctions(updatedAuctions);
+
+          // Notify parent component
+          if (onAuctionUpdate) {
+            onAuctionUpdate(updatedSelectedAuction);
+          }
+        }
+
+        // Check if there are participants before showing the prompt
+        const participants = await getUsersWhoParticipatedInAuction(
+          selectedAuction.id
+        );
+
+        if (participants.length > 0) {
+          const result = await Swal.fire({
+            icon: "question",
+            title: "إرسال إشعارات التعديل",
+            text: `تم تعديل المزاد. هل تريد إرسال إشعارات إلى ${participants.length} مشترك في التأمين/الشروط؟`,
+            showCancelButton: true,
+            confirmButtonText: "نعم، أرسل الإشعارات",
+            cancelButtonText: "إغلاق بدون إشعارات",
+            customClass: {
+              confirmButton: "bg-blue-500 text-white hover:bg-blue-600",
+              cancelButton: "bg-gray-500 text-white hover:bg-gray-600",
+            },
+          });
+
+          if (result.isConfirmed) {
+            await sendAuctionEditNotifications();
+          }
+        } else {
+          // No participants, just show info and close
+          await Swal.fire({
+            icon: "info",
+            title: "لا يوجد مشتركون",
+            text: "تم تعديل المزاد ولكن لا يوجد مشتركون في التأمين/الشروط لإرسال إشعارات إليهم.",
+            confirmButtonText: "حسنًا",
+            customClass: {
+              confirmButton: "bg-blue-500 text-white hover:bg-blue-600",
+            },
+          });
+        }
+      } catch (error) {
+        console.error("Error saving auction changes:", error);
+        Swal.fire({
+          icon: "error",
+          title: "خطأ في الحفظ!",
+          text: "حدث خطأ أثناء حفظ التغييرات. يرجى المحاولة مرة أخرى.",
+          confirmButtonText: "حسنًا",
+          customClass: {
+            confirmButton: "bg-red-500 text-white hover:bg-red-600",
+          },
+        });
+        return; // Don't close if save failed
+      }
+    }
+
+    // Reset state and close modal
+    setHasChanges(false);
+    setOriginalAuction(null);
+    setShowModal(false);
+  };
+
   const handlePriceUpdate = async (e) => {
     e.preventDefault();
+
+    // Check if auction is active
+    if (isAuctionActive()) {
+      Swal.fire({
+        icon: "error",
+        title: "غير مسموح بالتعديل!",
+        text: "لا يمكن تعديل المزاد أثناء نشاطه!",
+        confirmButtonText: "حسنًا",
+        customClass: {
+          confirmButton: "bg-red-500 text-white hover:bg-red-600",
+        },
+      });
+      return;
+    }
+
     const newPrice = Number(startPrice);
     if (isNaN(newPrice) || newPrice <= 0) {
       Swal.fire({
@@ -58,39 +367,38 @@ const AuctionModal = ({
       return;
     }
 
-    const auctionRef = ref(db, `auctions/${selectedAuction.id}`);
-    try {
-      await update(auctionRef, { startPrice: newPrice });
-      const updatedAuctions = auctions.map((auction) =>
-        auction.id === selectedAuction.id ? { ...auction, startPrice: newPrice } : auction
-      );
-      setAuctions(updatedAuctions);
-      setIsEditingPrice(false);
-      Swal.fire({
-        icon: "success",
-        title: "نجاح!",
-        text: "تم تحديث السعر بنجاح!",
-        confirmButtonText: "حسنًا",
-        customClass: {
-          confirmButton: "bg-green-500 text-white hover:bg-green-600",
-        },
-      });
-    } catch (error) {
-      console.error("Error updating start price:", error);
+    // Just update local state - database save happens on close
+    setStartPrice(newPrice);
+    setIsEditingPrice(false);
+
+    Swal.fire({
+      icon: "success",
+      title: "تم التعديل!",
+      text: "تم تعديل السعر. سيتم حفظ التغييرات عند إغلاق النافذة.",
+      confirmButtonText: "حسنًا",
+      customClass: {
+        confirmButton: "bg-green-500 text-white hover:bg-green-600",
+      },
+    });
+  };
+
+  const handleStartDateUpdate = async (e) => {
+    e.preventDefault();
+
+    // Check if auction is active
+    if (isAuctionActive()) {
       Swal.fire({
         icon: "error",
-        title: "خطأ!",
-        text: "حدث خطأ أثناء تحديث السعر!",
+        title: "غير مسموح بالتعديل!",
+        text: "لا يمكن تعديل المزاد أثناء نشاطه!",
         confirmButtonText: "حسنًا",
         customClass: {
           confirmButton: "bg-red-500 text-white hover:bg-red-600",
         },
       });
+      return;
     }
-  };
 
-  const handleStartDateUpdate = async (e) => {
-    e.preventDefault();
     const newStartDate = new Date(startDate).toISOString();
     const currentDate = new Date().toISOString();
     if (new Date(newStartDate) < new Date(currentDate)) {
@@ -118,39 +426,38 @@ const AuctionModal = ({
       return;
     }
 
-    const auctionRef = ref(db, `auctions/${selectedAuction.id}`);
-    try {
-      await update(auctionRef, { startDate: newStartDate });
-      const updatedAuctions = auctions.map((auction) =>
-        auction.id === selectedAuction.id ? { ...auction, startDate: newStartDate } : auction
-      );
-      setAuctions(updatedAuctions);
-      setIsEditingStartDate(false);
-      Swal.fire({
-        icon: "success",
-        title: "نجاح!",
-        text: "تم تحديث تاريخ البدء بنجاح!",
-        confirmButtonText: "حسنًا",
-        customClass: {
-          confirmButton: "bg-green-500 text-white hover:bg-green-600",
-        },
-      });
-    } catch (error) {
-      console.error("Error updating start date:", error);
+    // Just update local state - database save happens on close
+    setStartDate(startDate);
+    setIsEditingStartDate(false);
+
+    Swal.fire({
+      icon: "success",
+      title: "تم التعديل!",
+      text: "تم تعديل تاريخ البدء. سيتم حفظ التغييرات عند إغلاق النافذة.",
+      confirmButtonText: "حسنًا",
+      customClass: {
+        confirmButton: "bg-green-500 text-white hover:bg-green-600",
+      },
+    });
+  };
+
+  const handleEndDateUpdate = async (e) => {
+    e.preventDefault();
+
+    // Check if auction is active
+    if (isAuctionActive()) {
       Swal.fire({
         icon: "error",
-        title: "خطأ!",
-        text: "حدث خطأ أثناء تحديث تاريخ البدء!",
+        title: "غير مسموح بالتعديل!",
+        text: "لا يمكن تعديل المزاد أثناء نشاطه!",
         confirmButtonText: "حسنًا",
         customClass: {
           confirmButton: "bg-red-500 text-white hover:bg-red-600",
         },
       });
+      return;
     }
-  };
 
-  const handleEndDateUpdate = async (e) => {
-    e.preventDefault();
     const newEndDate = new Date(endDate).toISOString();
     if (new Date(newEndDate) <= new Date(startDate)) {
       Swal.fire({
@@ -165,35 +472,19 @@ const AuctionModal = ({
       return;
     }
 
-    const auctionRef = ref(db, `auctions/${selectedAuction.id}`);
-    try {
-      await update(auctionRef, { endDate: newEndDate });
-      const updatedAuctions = auctions.map((auction) =>
-        auction.id === selectedAuction.id ? { ...auction, endDate: newEndDate } : auction
-      );
-      setAuctions(updatedAuctions);
-      setIsEditingEndDate(false);
-      Swal.fire({
-        icon: "success",
-        title: "نجاح!",
-        text: "تم تحديث تاريخ الانتهاء بنجاح!",
-        confirmButtonText: "حسنًا",
-        customClass: {
-          confirmButton: "bg-green-500 text-white hover:bg-green-600",
-        },
-      });
-    } catch (error) {
-      console.error("Error updating end date:", error);
-      Swal.fire({
-        icon: "error",
-        title: "خطأ!",
-        text: "حدث خطأ أثناء تحديث تاريخ الانتهاء!",
-        confirmButtonText: "حسنًا",
-        customClass: {
-          confirmButton: "bg-red-500 text-white hover:bg-red-600",
-        },
-      });
-    }
+    // Just update local state - database save happens on close
+    setEndDate(endDate);
+    setIsEditingEndDate(false);
+
+    Swal.fire({
+      icon: "success",
+      title: "تم التعديل!",
+      text: "تم تعديل تاريخ الانتهاء. سيتم حفظ التغييرات عند إغلاق النافذة.",
+      confirmButtonText: "حسنًا",
+      customClass: {
+        confirmButton: "bg-green-500 text-white hover:bg-green-600",
+      },
+    });
   };
 
   return (
@@ -201,9 +492,21 @@ const AuctionModal = ({
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900">تفاصيل المزاد</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-900">تفاصيل المزاد</h3>
+              {isAuctionActive() && (
+                <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                  مزاد نشط
+                </span>
+              )}
+              {hasChanges && (
+                <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
+                  تم التعديل
+                </span>
+              )}
+            </div>
             <button
-              onClick={() => setShowModal(false)}
+              onClick={handleCloseModal}
               className="text-gray-400 hover:text-gray-600"
             >
               <FaTimes />
@@ -224,7 +527,9 @@ const AuctionModal = ({
                     <div className="relative h-80 bg-gray-100 rounded-lg overflow-hidden">
                       <img
                         src={selectedAuction.imageUrls[currentImageIndex]}
-                        alt={`${selectedAuction.title} ${currentImageIndex + 1}`}
+                        alt={`${selectedAuction.title} ${
+                          currentImageIndex + 1
+                        }`}
                         className="w-full h-full object-contain cursor-pointer"
                         onClick={() => openImageModal(currentImageIndex)}
                       />
@@ -249,7 +554,8 @@ const AuctionModal = ({
 
                       {/* Image Counter */}
                       <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
-                        {currentImageIndex + 1} / {selectedAuction.imageUrls.length}
+                        {currentImageIndex + 1} /{" "}
+                        {selectedAuction.imageUrls.length}
                       </div>
 
                       {/* Expand Button */}
@@ -271,12 +577,16 @@ const AuctionModal = ({
                           key={index}
                           onClick={() => setCurrentImageIndex(index)}
                           className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                            index === currentImageIndex ? "border-orange-500" : "border-gray-200 hover:border-gray-300"
+                            index === currentImageIndex
+                              ? "border-orange-500"
+                              : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
                           <img
                             src={image}
-                            alt={`${selectedAuction.title} thumbnail ${index + 1}`}
+                            alt={`${selectedAuction.title} thumbnail ${
+                              index + 1
+                            }`}
                             className="w-full h-full object-cover"
                           />
                         </button>
@@ -329,7 +639,10 @@ const AuctionModal = ({
                     السعر الابتدائي:
                   </span>
                   {isEditingPrice ? (
-                    <form onSubmit={handlePriceUpdate} className="mt-1 flex items-center">
+                    <form
+                      onSubmit={handlePriceUpdate}
+                      className="mt-1 flex items-center"
+                    >
                       <input
                         type="number"
                         value={startPrice}
@@ -342,21 +655,37 @@ const AuctionModal = ({
                       <button
                         type="submit"
                         className="ml-2 p-2 text-green-500 hover:text-green-700"
+                        title="حفظ"
                       >
                         <FaCheck />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => cancelEditing("price")}
+                        className="ml-1 p-2 text-red-500 hover:text-red-700"
+                        title="إلغاء"
+                      >
+                        <FaTimes />
                       </button>
                     </form>
                   ) : (
                     <div className="mt-1 flex items-center">
                       <p className="text-gray-900">
-                        {Number(selectedAuction.startPrice).toLocaleString()} جنيه
+                        {Number(startPrice).toLocaleString()} جنيه
                       </p>
-                      <button
-                        onClick={() => setIsEditingPrice(true)}
-                        className="ml-2 p-2 text-gray-500 hover:text-gray-700"
-                      >
-                        <FaPencilAlt />
-                      </button>
+                      {!isAuctionActive() ? (
+                        <button
+                          onClick={() => setIsEditingPrice(true)}
+                          className="ml-2 p-2 text-gray-500 hover:text-gray-700"
+                          title="تعديل السعر"
+                        >
+                          <FaPencilAlt />
+                        </button>
+                      ) : (
+                        <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                          لا يمكن التعديل
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -392,9 +721,12 @@ const AuctionModal = ({
                   </span>
                   <p className="text-gray-900 mt-1">
                     {selectedAuction.createdAt
-                      ? new Date(selectedAuction.createdAt).toLocaleString("ar-EG", {
-                          timeZone: "Africa/Cairo",
-                        })
+                      ? new Date(selectedAuction.createdAt).toLocaleString(
+                          "ar-EG",
+                          {
+                            timeZone: "Africa/Cairo",
+                          }
+                        )
                       : "غير محدد"}
                   </p>
                 </div>
@@ -403,7 +735,10 @@ const AuctionModal = ({
                     تاريخ البدء المخطط:
                   </span>
                   {isEditingStartDate ? (
-                    <form onSubmit={handleStartDateUpdate} className="mt-1 flex items-center">
+                    <form
+                      onSubmit={handleStartDateUpdate}
+                      className="mt-1 flex items-center"
+                    >
                       <input
                         type="datetime-local"
                         value={startDate}
@@ -413,25 +748,41 @@ const AuctionModal = ({
                       <button
                         type="submit"
                         className="ml-2 p-2 text-green-500 hover:text-green-700"
+                        title="حفظ"
                       >
                         <FaCheck />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => cancelEditing("startDate")}
+                        className="ml-1 p-2 text-red-500 hover:text-red-700"
+                        title="إلغاء"
+                      >
+                        <FaTimes />
                       </button>
                     </form>
                   ) : (
                     <div className="mt-1 flex items-center">
                       <p className="text-gray-900">
-                        {selectedAuction.startDate
-                          ? new Date(selectedAuction.startDate).toLocaleString("ar-EG", {
+                        {startDate
+                          ? new Date(startDate).toLocaleString("ar-EG", {
                               timeZone: "Africa/Cairo",
                             })
                           : "غير محدد"}
                       </p>
-                      <button
-                        onClick={() => setIsEditingStartDate(true)}
-                        className="ml-2 p-2 text-gray-500 hover:text-gray-700"
-                      >
-                        <FaPencilAlt />
-                      </button>
+                      {!isAuctionActive() ? (
+                        <button
+                          onClick={() => setIsEditingStartDate(true)}
+                          className="ml-2 p-2 text-gray-500 hover:text-gray-700"
+                          title="تعديل تاريخ البدء"
+                        >
+                          <FaPencilAlt />
+                        </button>
+                      ) : (
+                        <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                          لا يمكن التعديل
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -440,7 +791,10 @@ const AuctionModal = ({
                     تاريخ الانتهاء:
                   </span>
                   {isEditingEndDate ? (
-                    <form onSubmit={handleEndDateUpdate} className="mt-1 flex items-center">
+                    <form
+                      onSubmit={handleEndDateUpdate}
+                      className="mt-1 flex items-center"
+                    >
                       <input
                         type="datetime-local"
                         value={endDate}
@@ -450,25 +804,41 @@ const AuctionModal = ({
                       <button
                         type="submit"
                         className="ml-2 p-2 text-green-500 hover:text-green-700"
+                        title="حفظ"
                       >
                         <FaCheck />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => cancelEditing("endDate")}
+                        className="ml-1 p-2 text-red-500 hover:text-red-700"
+                        title="إلغاء"
+                      >
+                        <FaTimes />
                       </button>
                     </form>
                   ) : (
                     <div className="mt-1 flex items-center">
                       <p className="text-gray-900">
-                        {selectedAuction.endDate
-                          ? new Date(selectedAuction.endDate).toLocaleString("ar-EG", {
+                        {endDate
+                          ? new Date(endDate).toLocaleString("ar-EG", {
                               timeZone: "Africa/Cairo",
                             })
                           : "غير محدد"}
                       </p>
-                      <button
-                        onClick={() => setIsEditingEndDate(true)}
-                        className="ml-2 p-2 text-gray-500 hover:text-gray-700"
-                      >
-                        <FaPencilAlt />
-                      </button>
+                      {!isAuctionActive() ? (
+                        <button
+                          onClick={() => setIsEditingEndDate(true)}
+                          className="ml-2 p-2 text-gray-500 hover:text-gray-700"
+                          title="تعديل تاريخ الانتهاء"
+                        >
+                          <FaPencilAlt />
+                        </button>
+                      ) : (
+                        <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                          لا يمكن التعديل
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -479,7 +849,9 @@ const AuctionModal = ({
                   <p className="text-gray-900 mt-1">
                     {(() => {
                       const { bidCount } = getBidInfo(selectedAuction);
-                      return `${bidCount} ${bidCount === 1 ? "مزايدة" : "مزايدات"}`;
+                      return `${bidCount} ${
+                        bidCount === 1 ? "مزايدة" : "مزايدات"
+                      }`;
                     })()}
                   </p>
                 </div>
@@ -511,10 +883,14 @@ const AuctionModal = ({
 
           <div className="mt-6 flex gap-2 justify-end">
             <button
-              onClick={() => setShowModal(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              onClick={handleCloseModal}
+              className={`px-4 py-2 border rounded-lg transition-colors ${
+                hasChanges
+                  ? "border-orange-500 bg-orange-50 text-orange-700 hover:bg-orange-100"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
             >
-              إغلاق
+              {hasChanges ? "حفظ التغييرات وإغلاق" : "إغلاق"}
             </button>
           </div>
         </div>

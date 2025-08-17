@@ -330,8 +330,7 @@ const Dashboard = () => {
     try {
       await logout();
     } catch (error) {
-      console.error("Logout error:", error);
-    }
+      }
   };
 
   if (loading) {
@@ -381,3 +380,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

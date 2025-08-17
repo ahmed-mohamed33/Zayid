@@ -254,7 +254,6 @@ export const useDisputeActions = () => {
             };
 
         } catch (error) {
-            console.error('Error creating dispute:', error);
             return {
                 success: false,
                 message: error.message || 'حدث خطأ أثناء إنشاء النزاع'
@@ -447,7 +446,6 @@ export const useDisputeActions = () => {
             };
 
         } catch (error) {
-            console.error('Error updating dispute status:', error);
             return {
                 success: false,
                 message: error.message || 'حدث خطأ أثناء تحديث حالة النزاع'
@@ -645,7 +643,6 @@ export const useDisputeActions = () => {
             };
 
         } catch (error) {
-            console.error('Error escalating dispute:', error);
             return {
                 success: false,
                 message: error.message || 'حدث خطأ أثناء تصعيد النزاع'

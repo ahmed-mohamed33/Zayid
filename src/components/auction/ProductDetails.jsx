@@ -14,7 +14,6 @@ function ProductDetails({
   status,
 }) {
   const { user, userData } = useContext(UserContext);
-  console.log("Status received:", status);
   return (
     <div className="detailsSide bg-white w-full md:w-[50%] rounded-md py-9 px-6 shadow-md flex flex-col justify-between">
       <div>
@@ -77,3 +76,4 @@ function ProductDetails({
 }
 
 export default ProductDetails;
+

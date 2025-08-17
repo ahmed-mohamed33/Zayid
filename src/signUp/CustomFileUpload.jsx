@@ -34,7 +34,6 @@ export default function CustomFileUpload({
           onImageSelect(cloudinaryUrl);
         }
       } catch (error) {
-        console.error("Error uploading to Cloudinary:", error);
         // You might want to show an error message to the user here
       } finally {
         setIsUploading(false);
@@ -114,3 +113,4 @@ export default function CustomFileUpload({
     </div>
   );
 }
+

@@ -56,8 +56,6 @@ export const UserProvider = ({ children }) => {
   // Update the user data fetching useEffect
   useEffect(() => {
     if (user && isAuthenticated) {
-      console.log("Fetching user data for authenticated user:", user.uid);
-
       const db = getDatabase();
       const usersRef = ref(db, "users");
 
@@ -66,8 +64,6 @@ export const UserProvider = ({ children }) => {
         (snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.val();
-            console.log("All users data:", data);
-
             // Find user by Firebase Auth UID
             const userEntry = Object.entries(data).find(
               ([_, userData]) => userData.userId === user.uid
@@ -75,25 +71,21 @@ export const UserProvider = ({ children }) => {
 
             if (userEntry) {
               const [_, userData] = userEntry;
-              console.log("Found user data:", userData);
               setUserData(userData);
               setIsActive(userData.isActive);
               setIsAdmin(userData.isAdmin);
             } else {
-              console.log("No user data found for UID:", user.uid);
               setUserData(null);
               setIsActive(false);
               setIsAdmin(false);
             }
           } else {
-            console.log("No users data exists");
             setUserData(null);
             setIsActive(false);
             setIsAdmin(false);
           }
         },
         (error) => {
-          console.error("Error fetching user data:", error);
           setUserData(null);
           setIsActive(false);
           setIsAdmin(false);
@@ -128,16 +120,19 @@ export const UserProvider = ({ children }) => {
               let remainingTime = "";
               let currentStatus = data.status || "pending";
 
-             // Check if auction should be active
-              if (now >= startDate && now <= endDate && currentStatus === "approved"
+              // Check if auction should be active
+              if (
+                now >= startDate &&
+                now <= endDate &&
+                currentStatus === "approved"
               ) {
                 currentStatus = "active";
-                
+
                 await update(ref(db, `auctions/${id}`), { status: "active" });
               }
-              
+
               // Check if auction should be ended
-               else if (now > endDate && currentStatus !== "ended") {
+              else if (now > endDate && currentStatus !== "ended") {
                 currentStatus = "ended";
                 // Update status in database
                 await update(ref(db, `auctions/${id}`), { status: "ended" });
@@ -185,7 +180,6 @@ export const UserProvider = ({ children }) => {
         }
       },
       (error) => {
-        console.error("Error fetching auctions:", error);
         setAuctions([]);
         setAuctionsLoading(false);
       }
@@ -198,8 +192,8 @@ export const UserProvider = ({ children }) => {
     const checkAuctionStatuses = async () => {
       if (auctions.length === 0) return;
 
-  //     const db = getDatabase();
-  //     const now = new Date();
+      //     const db = getDatabase();
+      //     const now = new Date();
 
       for (const auction of auctions) {
         const startDate = new Date(auction.startDate);
@@ -236,8 +230,7 @@ export const UserProvider = ({ children }) => {
               started: true,
             });
           } catch (e) {
-            console.error("Error sending start notifications:", e);
-          }
+            }
         }
 
         // Send "auction starting soon" notification if auction is approved and about to start
@@ -263,8 +256,7 @@ export const UserProvider = ({ children }) => {
                 { startingSoon: true }
               );
             } catch (e) {
-              console.error("Error sending starting soon notifications:", e);
-            }
+              }
           }
         }
 
@@ -288,8 +280,7 @@ export const UserProvider = ({ children }) => {
               ended: true,
             });
           } catch (e) {
-            console.error("Error sending ended notifications:", e);
-          }
+            }
         }
         if (
           now < endDate &&
@@ -313,8 +304,7 @@ export const UserProvider = ({ children }) => {
                 { endingSoon: true }
               );
             } catch (e) {
-              console.error("Error sending ending soon notifications:", e);
-            }
+              }
           }
         }
       }
@@ -323,12 +313,9 @@ export const UserProvider = ({ children }) => {
     const interval = setInterval(checkAuctionStatuses, 60000);
 
     return () => clearInterval(interval);
-
-    
   }, [auctions]);
 
-
-  // Get Auction that user participated in 
+  // Get Auction that user participated in
   useEffect(() => {
     if (user) {
       const db = getDatabase();
@@ -385,7 +372,6 @@ export const UserProvider = ({ children }) => {
           }
         },
         (error) => {
-          console.error("Error fetching auctions:", error);
           setUserAuctions([]);
         }
       );
@@ -417,7 +403,6 @@ export const UserProvider = ({ children }) => {
           }
         },
         (error) => {
-          console.error("Error fetching winners:", error);
           setWinners({});
         }
       );
@@ -455,7 +440,6 @@ export const UserProvider = ({ children }) => {
           }
         },
         (error) => {
-          console.error("Error fetching payments:", error);
           setPayments([]);
         }
       );
@@ -492,7 +476,6 @@ export const UserProvider = ({ children }) => {
         }
       }
     } catch (error) {
-      console.error("Login error:", error.message);
       throw error;
     }
   };
@@ -539,7 +522,6 @@ export const UserProvider = ({ children }) => {
 
       setUserData(userData);
     } catch (error) {
-      console.error("Sign up error:", error.message);
       throw error;
     }
   };
@@ -565,7 +547,6 @@ export const UserProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      console.error("Update user data error:", error.message);
       return { success: false, error: error.message };
     }
   };
@@ -578,7 +559,6 @@ export const UserProvider = ({ children }) => {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error("Logout error:", error.message);
       throw error;
     }
   };
@@ -657,7 +637,6 @@ export const UserProvider = ({ children }) => {
       ];
       setAuctions(updatedAuctions);
     } catch (error) {
-      console.error("Create auction error:", error.message);
       throw error;
     }
   };
@@ -690,13 +669,4 @@ export const UserProvider = ({ children }) => {
     </UserContext.Provider>
   );
 };
-
-
-
-
-
-
-
-
-
 

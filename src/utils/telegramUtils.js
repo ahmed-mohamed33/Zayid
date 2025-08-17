@@ -18,7 +18,7 @@
 //     if (!data.ok) throw new Error(data.description);
 //     return true;
 //   } catch (error) {
-//     console.error("Telegram Error:", error.message);
-//     return false;
+//     //     return false;
 //   }
 // };
+

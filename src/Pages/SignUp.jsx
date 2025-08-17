@@ -108,7 +108,6 @@ export default function SignUp() {
       await register(values, idImageFile, companyName, companyImageFile);
       navigate("/onboarding");
     } catch (error) {
-      console.error("Registration error:", error);
       setError(getFirebaseErrorMessage(error.message));
     } finally {
       setIsLoading(false);
@@ -279,3 +278,4 @@ export default function SignUp() {
     </>
   );
 }
+

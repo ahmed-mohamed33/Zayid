@@ -101,8 +101,7 @@ function AddAuctionForm() {
 
     // Show success message for valid uploads
     if (validFiles.length > 0) {
-      console.log(`تم رفع ${validFiles.length} صور بنجاح`);
-    }
+      }
   };
 
   const handleSubmit = async () => {
@@ -605,3 +604,4 @@ function AddAuctionForm() {
 }
 
 export default AddAuctionForm;
+

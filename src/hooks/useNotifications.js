@@ -14,7 +14,7 @@ import { ref, onValue, off } from 'firebase/database';
 import { database } from '../config/Firebase';
 
 export const useNotifications = () => {
-    const { user } = useContext(UserContext);
+    const { user, userData } = useContext(UserContext);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +24,7 @@ export const useNotifications = () => {
 
     // Initialize notifications when user is authenticated
     useEffect(() => {
-        if (user?.uid) {
+        if (user?.uid && userData) {
             initializeNotificationsForUser();
             const cleanup = setupRealTimeNotificationsListener();
 
@@ -33,13 +33,15 @@ export const useNotifications = () => {
                 if (cleanup) cleanup();
             };
         }
-    }, [user]);
+    }, [user, userData]);
 
-    // Setup real-time listener for notifications
+
     const setupRealTimeNotificationsListener = () => {
-        if (!user?.uid) return null;
+        if (!user?.uid || !userData) return null;
 
-        const notificationsRef = ref(database, `notifications/${user.uid}`);
+
+        const nationalID = userData.nationalID || user.uid;
+        const notificationsRef = ref(database, `notifications/${nationalID}`);
 
         const unsubscribe = onValue(notificationsRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -73,9 +75,6 @@ export const useNotifications = () => {
                         setHasNewNotifications(false);
                     }, 3000);
 
-                    
-                
-
                     // Show browser notification if app is in background
                     if (document.hidden && Notification.permission === 'granted') {
                         const latestNotification = sortedNotifications.find(n => !n.read);
@@ -97,35 +96,37 @@ export const useNotifications = () => {
             console.error('Error listening to notifications:', error);
         });
 
-
-        return () => {
-            off(notificationsRef);
-        };
+        return unsubscribe;
     };
 
-    // Initialize FCM and request permissions 
+    // Initialize notifications for the current user
     const initializeNotificationsForUser = async () => {
+        if (!user?.uid || !userData) return;
+
         try {
             setIsLoading(true);
-            setInitializationError(null);
 
-            // Get current permission status
-            const currentStatus = getPermissionStatus();
-            setPermissionStatus(currentStatus);
+            // Check if notifications are already initialized
+            if (permissionStatus.status === 'granted') {
+                console.log('Notifications already initialized');
+                return;
+            }
 
-            // If permission is blocked, show error
-            if (currentStatus.status === 'denied') {
-                setInitializationError('PERMISSION_BLOCKED');
+            // Check if permission is blocked
+            if (isPermissionBlocked()) {
+                setPermissionStatus(getPermissionStatus());
                 return;
             }
 
             // Initialize notifications
             const result = await initializeNotifications();
 
-            if (result.success && result.token && user?.uid) {
-                await saveFCMToken(user.uid, result.token);
+            if (result.success && result.token && user?.uid && userData) {
+                // Use national ID for saving FCM token
+                const nationalID = userData.nationalID || user.uid;
+                await saveFCMToken(nationalID, result.token);
                 setPermissionStatus(getPermissionStatus());
-                console.log('Notifications initialized successfully');
+                console.log('Notifications initialized successfully for user:', nationalID);
             } else {
                 setInitializationError(result.error);
                 console.error('Failed to initialize notifications:', result.error);
@@ -147,15 +148,17 @@ export const useNotifications = () => {
 
     // Load user notifications ( real-time listener)
     const loadUserNotifications = async () => {
-       
+
     };
 
     // Mark notification as read
     const markAsRead = async (notificationId) => {
-        if (!user?.uid) return;
+        if (!user?.uid || !userData) return;
 
         try {
-            await markNotificationAsRead(user.uid, notificationId);
+            // Use national ID for notifications path
+            const nationalID = userData.nationalID || user.uid;
+            await markNotificationAsRead(nationalID, notificationId);
 
             setNotifications(prev =>
                 prev.map(notification =>
@@ -165,7 +168,6 @@ export const useNotifications = () => {
                 )
             );
 
-
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
             console.error('Error marking notification as read:', error);
@@ -174,10 +176,12 @@ export const useNotifications = () => {
 
     // Delete notification
     const removeNotification = async (notificationId) => {
-        if (!user?.uid) return;
+        if (!user?.uid || !userData) return;
 
         try {
-            await deleteNotification(user.uid, notificationId);
+            // Use national ID for notifications path
+            const nationalID = userData.nationalID || user.uid;
+            await deleteNotification(nationalID, notificationId);
 
             // Update local state
             setNotifications(prev =>
@@ -196,15 +200,16 @@ export const useNotifications = () => {
 
     // Mark all notifications as read
     const markAllAsRead = async () => {
-        if (!user?.uid) return;
+        if (!user?.uid || !userData) return;
 
         try {
             const unreadNotifications = notifications.filter(notification => !notification.read);
 
             // Mark all unread notifications as read
+            const nationalID = userData.nationalID || user.uid;
             await Promise.all(
                 unreadNotifications.map(notification =>
-                    markNotificationAsRead(user.uid, notification.id)
+                    markNotificationAsRead(nationalID, notification.id)
                 )
             );
 

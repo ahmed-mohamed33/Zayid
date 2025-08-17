@@ -34,8 +34,6 @@ const Products = () => {
   }, [categoryFromUrl]);
   const { auctions, auctionsLoading, userData } = useContext(UserContext);
   const userInterests = userData?.userInterests || [];
-  console.log("User Interests:", userInterests);
-
   const applyFilters = () => {
     const term = searchTerm.trim().toLowerCase();
 
@@ -306,3 +304,4 @@ const Products = () => {
 };
 
 export default Products;
+

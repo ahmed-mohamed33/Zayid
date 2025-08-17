@@ -91,7 +91,6 @@ const Settings = () => {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      console.error('Error updating password:', error);
       if (error.code === 'auth/invalid-credential') {
         setErrorMessage('كلمة المرور الحالية غير صحيحة');
       } else {
@@ -122,11 +121,9 @@ const Settings = () => {
 
       await deleteUser(user);
 
-      console.log('تم حذف الحساب وكل البيانات بنجاح.');
       // redirect to homepage or show confirmation
     } catch (error) {
-      console.error('خطأ أثناء حذف الحساب:', error);
-    }
+      }
   };
 
   return (
@@ -333,3 +330,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

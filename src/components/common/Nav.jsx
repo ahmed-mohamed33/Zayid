@@ -35,8 +35,7 @@ function Nav() {
       navigate("/login");
       setIsMobileMenuOpen(false);
     } catch (error) {
-      console.error("Logout error:", error.message);
-    }
+      }
   };
 
   const toggleMobileMenu = () => {
@@ -414,3 +413,4 @@ function Nav() {
 }
 
 export default Nav;
+

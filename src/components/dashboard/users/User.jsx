@@ -48,7 +48,6 @@ export default function User() {
         setUsersLoading(false);
       },
       (error) => {
-        console.error("Error fetching users:", error);
         setAllUsers([]);
         setUsersLoading(false);
       }
@@ -206,3 +205,4 @@ export default function User() {
     </div>
   );
 }
+

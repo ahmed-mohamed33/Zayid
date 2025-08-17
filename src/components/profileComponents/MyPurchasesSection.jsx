@@ -72,8 +72,6 @@ const MyPurchases = ({ loadingPurchases, purchases }) => {
                     : 'bg-[#FA6300] hover:bg-[#e55a00] disabled:bg-[#e55a00] cursor-pointer'
                 } text-white`}
                 onClick={() => {
-                  console.log('++++++item.isPaid', item.isPaid);
-
                   if (!item.isPaid) {
                     navigate(`/payment/${item.auctionId}/winner`);
                   }
@@ -91,3 +89,4 @@ const MyPurchases = ({ loadingPurchases, purchases }) => {
 };
 
 export default MyPurchases;
+

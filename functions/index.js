@@ -139,8 +139,9 @@ async function getUserIdToToken(db) {
   const tokens = new Map();
   if (!snap.exists()) return tokens;
   snap.forEach((child) => {
-    const userId = child.key;
+    const nationalID = child.key;  // This is the national ID (node key)
     const val = child.val();
+    const firebaseUID = val.userId;  // This is the Firebase UID
 
     // Support both old and new token structure
     const allUserTokens = [];
@@ -160,7 +161,11 @@ async function getUserIdToToken(db) {
     }
 
     if (allUserTokens.length > 0) {
-      tokens.set(userId, allUserTokens);
+      // Store tokens under both national ID and Firebase UID for backward compatibility
+      tokens.set(nationalID, allUserTokens);
+      if (firebaseUID) {
+        tokens.set(firebaseUID, allUserTokens);
+      }
     }
   });
   return tokens;
@@ -323,9 +328,10 @@ async function getInterestedUserIdsByCategory(db, category) {
   const set = new Set();
   if (!snap.exists()) return set;
   snap.forEach((child) => {
+    const nationalID = child.key;  // This is the national ID (node key)
     const u = child.val() || {};
-    const uid = u.userId;
-    if (!uid) return;
+    const firebaseUID = u.userId;  // This is the Firebase UID
+
     const interests = Array.isArray(u.userInterests)
       ? u.userInterests
       : Array.isArray(u.interests)
@@ -340,7 +346,13 @@ async function getInterestedUserIdsByCategory(db, category) {
           b?.auctionCategory === category ||
           b?.categoryId === category
       );
-    if (matches) set.add(uid);
+    if (matches) {
+      // Add both national ID and Firebase UID for backward compatibility
+      set.add(nationalID);
+      if (firebaseUID) {
+        set.add(firebaseUID);
+      }
+    }
   });
   return set;
 }

@@ -16,7 +16,6 @@ export const getFormConfig = (paymentMethod) => {
   };
 };
 
-
 export const getInitialValues = (paymentMethod) => {
   const values = {
     vodafone: { phoneNumber: '' },
@@ -83,7 +82,6 @@ export const getFieldConfig = (fieldName) => ({
   }
 }[fieldName] || {});
 
-
 export const handlePaymentSubmit = async (values, paymentMethod) => {
   try {
     const confirmMessage = paymentMethod === 'card'
@@ -94,15 +92,11 @@ export const handlePaymentSubmit = async (values, paymentMethod) => {
       return { success: false, error: 'تم إلغاء عملية الدفع' };
     }
 
-
-    console.log('Processing payment:', { values, paymentMethod });
     return { success: true };
   } catch (error) {
-    console.error('Payment error:', error);
     return { success: false, error: error.message };
   }
 };
-
 
 export const paymentMethods = {
   vodafone: {

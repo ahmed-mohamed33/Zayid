@@ -15,8 +15,7 @@ export default function ProfileInfoCard() {
   useEffect(() => {
     if (user && userData) {
       setLoading(false);
-      console.log('📦 بيانات المستخدم:', user, userData?.fullName);
-    }
+      }
   }, [user, userData]);
 
   if (!user || !userData) return null;
@@ -59,7 +58,6 @@ export default function ProfileInfoCard() {
 
       alert(' تم تحديث صورة البروفايل بنجاح');
     } catch (error) {
-      console.error(' خطأ أثناء رفع أو تحديث الصورة:', error);
       alert('حدث خطأ أثناء رفع الصورة');
     } finally {
       setLoading(false);
@@ -174,3 +172,4 @@ export default function ProfileInfoCard() {
     </>
   );
 }
+

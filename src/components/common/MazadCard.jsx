@@ -47,8 +47,6 @@ function MazadCard({ auctionId }) {
 
       navigate(`/auction/${auction.id}`);
     } catch (error) {
-      console.error("Error adding participant:", error);
-
       navigate(`/auction/${auction.id}`);
     }
   };
@@ -154,3 +152,4 @@ function MazadCard({ auctionId }) {
 }
 
 export default MazadCard;
+

@@ -170,7 +170,6 @@ function Payment() {
         const hasPaid = await checkPaymentStatus();
         setAlreadyPaid(hasPaid);
       } catch (error) {
-        console.error("Error checking payment status:", error);
         setStatus({
           error: "خطأ في التحقق من حالة الدفع",
           success: false,
@@ -235,14 +234,12 @@ function Payment() {
             },
           });
         } catch (e) {
-          console.error("Error sending payment confirmation notification:", e);
-        }
+          }
       }
 
       setStatus({ success: true, error: null, info: null });
       navigate(`/auction/${auction.id}`);
     } catch (error) {
-      console.error("payment error:", error);
       setStatus({
         success: false,
         error: error.message || "خطأ أثناء الدفع ",

@@ -12,15 +12,11 @@ export const useUserActions = () => {
                 activatedAt: new Date().toISOString()
             });
 
-
-
             let notificationResult = null;
             try {
                 notificationResult = await sendUserActivationNotification(userId);
-                console.log('Activation notification sent successfully');
-            } catch (notificationError) {
-                console.error('Error sending activation notification:', notificationError);
-            }
+                } catch (notificationError) {
+                }
 
             await Swal.fire({
                 title: 'تم التفعيل!',

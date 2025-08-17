@@ -84,10 +84,6 @@ function TheauctionPage() {
             setHasPaidTerms(participantData.hasPurchasedShroot === true);
             setHasPaidInsurance(participantData.hasPaidInsurance === true);
             setIsParticipant(true);
-            console.log(
-              "Participant Data from TheauctionPage:",
-              participantData
-            );
           } else {
             setHasPaidTerms(false);
             setHasPaidInsurance(false);
@@ -109,26 +105,21 @@ function TheauctionPage() {
         const now = new Date();
         const startDateObj = new Date(auction.startDate);
         const endDateObj = new Date(auction.endDate);
-        console.log(startDateObj);
-        console.log(endDateObj);
-        console.log(now);
-
         if (auctionStatus === "ended") {
           setIsAuctionLive(false);
           return;
         }
 
         if (now >= startDateObj && now <= endDateObj) {
-          console.log(
-            "Auction is approved and within time range, setting to active"
-          );
           setIsAuctionLive(true);
           if (auctionStatus !== "active") {
             update(ref(db, `auctions/${auctionId}`), { status: "active" })
-              .then(() => console.log("Status updated to active in Firebase"))
-              .catch((error) =>
-                console.error("Error updating status to active:", error)
-              );
+              .then(() => {
+                // Status updated successfully
+              })
+              .catch((error) => {
+                console.error("Error updating auction status:", error);
+              });
           }
         } else if (now > endDateObj) {
           setIsAuctionLive(false);
@@ -161,9 +152,12 @@ function TheauctionPage() {
             if (data.status !== "ended" && now > endDateObj) {
               update(ref(db, `auctions/${auctionId}`), { status: "ended" })
                 .then(() => setAuctionStatus("ended"))
-                .catch((error) =>
-                  console.error("Error updating to ended:", error)
-                );
+                .catch((error) => {
+                  console.error(
+                    "Error updating auction status to ended:",
+                    error
+                  );
+                });
             } else if (
               data.status !== "active" &&
               now >= startDateObj &&
@@ -171,9 +165,12 @@ function TheauctionPage() {
             ) {
               update(ref(db, `auctions/${auctionId}`), { status: "active" })
                 .then(() => setAuctionStatus("active"))
-                .catch((error) =>
-                  console.error("Error updating to active:", error)
-                );
+                .catch((error) => {
+                  console.error(
+                    "Error updating auction status to active:",
+                    error
+                  );
+                });
             }
 
             // update isAuctionLive passed on time --Taiseer

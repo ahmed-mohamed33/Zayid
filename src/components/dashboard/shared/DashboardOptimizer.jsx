@@ -103,8 +103,7 @@ class DashboardErrorBoundary extends React.Component {
     });
 
     // Log error to monitoring service
-    console.error("Dashboard Error:", error, errorInfo);
-  }
+    }
 
   render() {
     if (this.state.hasError) {
@@ -219,8 +218,7 @@ const useResourcePreloader = () => {
             setPreloadedComponents((prev) => new Set([...prev, componentName]));
           })
           .catch((error) => {
-            console.error(`Error preloading ${componentName}:`, error);
-          });
+            });
       }
     },
     [preloadedComponents]
@@ -280,8 +278,7 @@ const DashboardOptimizer = memo(
           <OptimizedComponent
             onVisible={() => {
               if (enablePerformanceMonitoring) {
-                console.log(`Component ${activeComponent} became visible`);
-              }
+                }
             }}
           >
             {children}
@@ -408,3 +405,4 @@ OptimizedComponent.displayName = "OptimizedComponent";
 
 export default DashboardOptimizer;
 export { LoadingSpinner, DashboardErrorBoundary, OptimizedComponent };
+

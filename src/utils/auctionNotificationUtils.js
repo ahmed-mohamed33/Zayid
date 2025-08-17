@@ -8,7 +8,8 @@ import {
     getUsersWhoBidOnAuction,
     getUsersWhoParticipatedInAuction,
     sendAuctionParticipantNotification,
-    sendAuctionParticipantNotificationToAll
+    sendAuctionParticipantNotificationToAll,
+    sendAuctionApprovedNotification
 } from './notificationService';
 
 
@@ -220,6 +221,38 @@ export const notifySpecificAuctionParticipant = async (userId, auctionData, noti
         return true;
     } catch (error) {
         console.error('Error notifying specific auction participant:', error);
+        throw error;
+    }
+};
+
+
+export const notifyAuctionApproved = async (auctionData) => {
+    try {
+        // Only notify the auction owner that their auction was approved
+        await sendAuctionApprovedNotification(auctionData);
+        console.log(`Notified auction owner about auction approval: ${auctionData.title}`);
+        return true;
+    } catch (error) {
+        console.error('Error notifying about auction approval:', error);
+        throw error;
+    }
+};
+
+export const notifyNewAuctionToInterestedUsers = async (auctionData) => {
+    try {
+        // This function is for when a genuinely NEW auction is approved and should notify interested users
+        const interestedUsers = await getUsersInterestedInCategory(auctionData.category);
+
+        if (interestedUsers.length > 0) {
+            await sendNewAuctionApprovedToInterestedUsers(auctionData, interestedUsers);
+            console.log(`Notified ${interestedUsers.length} interested users about new auction: ${auctionData.title}`);
+        } else {
+            console.log('No interested users found for category:', auctionData.category);
+        }
+
+        return interestedUsers.length;
+    } catch (error) {
+        console.error('Error notifying interested users about new auction:', error);
         throw error;
     }
 };

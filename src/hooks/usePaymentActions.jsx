@@ -31,7 +31,6 @@ export const usePaymentActions = () => {
 
         return { success: true, message: "تم تأكيد الدفع بنجاح" };
       } catch (error) {
-        console.error("Error verifying payment:", error);
         return { success: false, message: "حدث خطأ أثناء تأكيد الدفع" };
       }
     },
@@ -73,7 +72,6 @@ export const usePaymentActions = () => {
           message: `تم استرداد ${refundAmount} جنيه بنجاح`,
         };
       } catch (error) {
-        console.error("Error refunding payment:", error);
         return { success: false, message: "حدث خطأ أثناء استرداد المبلغ" };
       }
     },
@@ -133,7 +131,6 @@ export const usePaymentActions = () => {
           message: `تم تغيير الحالة إلى "${statusMap[status]}" بنجاح`,
         };
       } catch (error) {
-        console.error("Error updating payment status:", error);
         return { success: false, message: "حدث خطأ أثناء تحديث الحالة" };
       }
     },
@@ -198,7 +195,6 @@ export const usePaymentActions = () => {
           message: `تم ${actionConfig.message} لـ ${paymentIds.length} مدفوعة بنجاح`,
         };
       } catch (error) {
-        console.error("Error in bulk update:", error);
         return { success: false, message: "حدث خطأ أثناء التحديث الجماعي" };
       }
     },
@@ -402,7 +398,6 @@ export const usePaymentActions = () => {
         message: `تم تصدير ${payments.length} مدفوعة بنجاح`,
       };
     } catch (error) {
-      console.error("Error exporting payments:", error);
       return { success: false, message: "حدث خطأ أثناء تصدير البيانات" };
     }
   }, []);
@@ -429,7 +424,6 @@ export const usePaymentActions = () => {
 
         return { success: true, message: "تم إضافة الملاحظة بنجاح" };
       } catch (error) {
-        console.error("Error adding payment note:", error);
         return { success: false, message: "حدث خطأ أثناء إضافة الملاحظة" };
       }
     },
@@ -460,7 +454,6 @@ export const usePaymentActions = () => {
 
         return { success: true, message: "تم حذف المدفوعة بنجاح" };
       } catch (error) {
-        console.error("Error deleting payment:", error);
         return { success: false, message: "حدث خطأ أثناء حذف المدفوعة" };
       }
     },
@@ -477,3 +470,4 @@ export const usePaymentActions = () => {
     deletePayment,
   };
 };
+

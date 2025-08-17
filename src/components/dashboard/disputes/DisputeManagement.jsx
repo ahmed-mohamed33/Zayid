@@ -82,7 +82,6 @@ const DisputeManagement = () => {
 
         return () => unsubscribe();
       } catch (error) {
-        console.error("Error fetching data:", error);
         setLoading(false);
       }
     };
@@ -107,7 +106,6 @@ const DisputeManagement = () => {
         confirmButtonColor: "#FA6300",
       });
     } catch (error) {
-      console.error("Error saving settings:", error);
       Swal.fire({
         icon: "error",
         title: "خطأ",
@@ -751,3 +749,4 @@ const DisputeManagement = () => {
 };
 
 export default DisputeManagement;
+

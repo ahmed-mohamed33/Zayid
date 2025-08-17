@@ -32,9 +32,7 @@ const Profile = () => {
 
   //taps
   const [activeTab, setActiveTab] = useState("مزاداتي");
-  // console.log('activeTab:', activeTab);
-
-  const categories = [
+  // const categories = [
     { label: "الملف الشخصي", icon: userIcon },
     { label: "الاعدادات", icon: userIcon },
     { label: "تسجيل الخروج", icon: userIcon },
@@ -173,8 +171,7 @@ const Profile = () => {
             setAuctions([]);
           }
         } catch (error) {
-          console.error("Error loading auctions:", error);
-        } finally {
+          } finally {
           setLoadingAuctions(false);
         }
       }
@@ -195,7 +192,6 @@ const Profile = () => {
 
       try {
         const { data: wonAuctions } = await getWonAuctionsByUser(user.uid);
-        console.log("✅ Won Auctions:", wonAuctions);
         if (!wonAuctions || wonAuctions.length === 0) {
           setPurchases([]);
         } else {
@@ -221,12 +217,9 @@ const Profile = () => {
           );
 
           setPurchases(purchasesList);
-          console.log("🎯 Final Purchases List:", purchasesList);
-          console.log("purchases state:", purchases);
-        }
+          }
       } catch (err) {
-        console.error("❌ Error fetching purchases:", err);
-      } finally {
+        } finally {
         setLoadingPurchases(false);
       }
     });
@@ -257,7 +250,6 @@ const Profile = () => {
             const auctionRef = ref(db, `auctions/${auctionId}`);
             const listener = onValue(auctionRef, (snapshot) => {
               const auction = snapshot.val();
-              console.log("🔥 auction data:", auction);
               if (!auction) return;
 
               const insurancePayment = userPayments.find(
@@ -299,7 +291,6 @@ const Profile = () => {
             listeners.forEach(({ auctionRef }) => off(auctionRef));
           };
         } catch (err) {
-          console.error("Error fetching activities:", err);
           setActivities([]);
         } finally {
           setLoadingActivities(false);
@@ -351,8 +342,7 @@ const Profile = () => {
 
         setStats({ total, active, pending, approved, ended });
       } catch (error) {
-        console.error("❌ Error fetching stats:", error);
-      } finally {
+        } finally {
         setLoadingStats(false);
       }
     };
@@ -366,8 +356,7 @@ const Profile = () => {
       await deleteAuction(auctionId);
       setAuctions((prev) => prev.filter((item) => item.id !== auctionId));
     } catch (err) {
-      console.error("❌ Error deleting auction:", err);
-    }
+      }
   };
 
   // إنهاء
@@ -382,7 +371,6 @@ const Profile = () => {
         )
       );
     } catch (error) {
-      console.error("❌ فشل في إنهاء المزاد:", error);
       alert("حدث خطأ أثناء إنهاء المزاد");
     }
   };
@@ -394,8 +382,7 @@ const Profile = () => {
       await signOut(auth);
       navigate("/login");
     } catch (error) {
-      console.error("فشل تسجيل الخروج:", error);
-    }
+      }
   };
 
   return (
@@ -518,3 +505,4 @@ const Profile = () => {
 };
 
 export default Profile;
+

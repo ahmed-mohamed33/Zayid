@@ -12,11 +12,9 @@ const NotificationPermissionBanner = () => {
     retryInitialization,
   } = useNotifications();
 
-
   if (permissionStatus.status === "granted" && !initializationError) {
     return null;
   }
-
 
   if (permissionStatus.status === "unsupported") {
     return null;
@@ -135,21 +133,15 @@ const NotificationPermissionBanner = () => {
     }
   };
 
-
   return (
     <>
- 
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={getToggleButtonStyles()}
         title="إعدادات الإشعارات"
       >
-        <div className="relative">
-          {getIcon()}
-     
-        </div>
+        <div className="relative">{getIcon()}</div>
       </button>
-
 
       {isOpen && (
         <div className={getMessageStyles()}>
@@ -213,7 +205,6 @@ const NotificationPermissionBanner = () => {
           </div>
         </div>
       )}
-
 
       {isOpen && (
         <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />

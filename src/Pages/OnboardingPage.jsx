@@ -23,13 +23,10 @@ export default function OnboardingPage() {
         });
 
         if (result.success) {
-          console.log("Categories saved successfully");
-        } else {
-          console.error("Failed to save categories:", result.error);
-        }
+          } else {
+          }
       } catch (error) {
-        console.error("Error saving categories:", error);
-      }
+        }
     }
 
     setCurrentStep(2); // Move to overview step
@@ -46,13 +43,10 @@ export default function OnboardingPage() {
       });
 
       if (result.success) {
-        console.log("Onboarding completed successfully");
-      } else {
-        console.error("Failed to complete onboarding:", result.error);
-      }
+        } else {
+        }
     } catch (error) {
-      console.error("Error completing onboarding:", error);
-    }
+      }
 
     navigate("/");
   };
@@ -89,3 +83,4 @@ export default function OnboardingPage() {
     </div>
   );
 }
+

@@ -401,7 +401,6 @@ export const getWonAuctionsByUser = async (userId) => {
       success: true,
     };
   } catch (error) {
-    console.error('❌ Error fetching won auctions:', error);
     return {
       error: error.message,
       success: false,

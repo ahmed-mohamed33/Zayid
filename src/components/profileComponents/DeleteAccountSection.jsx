@@ -26,7 +26,6 @@ export default function DeleteAccountSection({ onClose }) {
 
       navigate('/login');
     } catch (err) {
-      console.error('خطأ أثناء حذف الحساب:', err);
       setError('كلمة المرور غير صحيحة.');
     }
   };
@@ -61,3 +60,4 @@ export default function DeleteAccountSection({ onClose }) {
     </div>
   );
 }
+

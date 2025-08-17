@@ -74,7 +74,6 @@ export const usePaymentData = () => {
                     setLoading(false);
                 },
                 (error) => {
-                    console.error('Error fetching payments:', error);
                     setError(error.message || 'حدث خطأ في تحميل البيانات');
                     setLoading(false);
                 }
@@ -82,7 +81,6 @@ export const usePaymentData = () => {
 
             return () => unsubscribe();
         } catch (error) {
-            console.error('Error setting up payments listener:', error);
             setError(error.message || 'حدث خطأ في الاتصال بقاعدة البيانات');
             setLoading(false);
         }
@@ -259,7 +257,6 @@ export const usePaymentData = () => {
 
         return stats;
     }, [payments]);
-
 
     const getPaymentsByDateRange = useCallback((startDate, endDate) => {
         return payments.filter(payment => {

@@ -53,7 +53,6 @@ const DefaultTerms = () => {
         confirmButtonColor: "#FA6300",
       });
     } catch (error) {
-      console.error("Error saving default terms:", error);
       Swal.fire({
         icon: "error",
         title: "خطأ",
@@ -251,3 +250,4 @@ const DefaultTerms = () => {
 };
 
 export default DefaultTerms;
+

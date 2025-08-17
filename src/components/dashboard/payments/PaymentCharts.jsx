@@ -98,7 +98,6 @@ const PaymentCharts = memo(
           ],
         };
       } catch (error) {
-        console.error("Error creating status chart data:", error);
         return {
           labels: [],
           datasets: [
@@ -162,7 +161,6 @@ const PaymentCharts = memo(
           ],
         };
       } catch (error) {
-        console.error("Error creating method chart data:", error);
         return {
           labels: [],
           datasets: [
@@ -224,7 +222,6 @@ const PaymentCharts = memo(
           ],
         };
       } catch (error) {
-        console.error("Error creating type chart data:", error);
         return {
           labels: [],
           datasets: [
@@ -471,7 +468,6 @@ const PaymentCharts = memo(
 
     return (
       <div className="space-y-6">
-        
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -681,3 +677,4 @@ const PaymentCharts = memo(
 PaymentCharts.displayName = "PaymentCharts";
 
 export default PaymentCharts;
+

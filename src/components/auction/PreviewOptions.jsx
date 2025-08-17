@@ -262,8 +262,7 @@ function PreviewOptions() {
         `,
       });
     } catch (err) {
-      console.error("sendEmail error:", err);
-    }
+      }
 
     await set(
       // هيحدث الداتا في الداتابيس
@@ -391,3 +390,4 @@ function PreviewOptions() {
   );
 }
 export default PreviewOptions;
+
