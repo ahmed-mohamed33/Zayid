@@ -5,13 +5,15 @@ import Building from "../../assets/categry/مبنى.svg";
 import Clippathgroup from "../../assets/categry/Clippathgroup.svg";
 import Furniture from "../../assets/categry/اثاث.svg";
 import Laptop from "../../assets/categry/لاب.svg";
+import Car from "/src/assets/categry/car.svg";
+import Check from "../../assets/categry/صح.svg";
 export default function SelectCategory({
   onNext,
   selectedCategories,
   setSelectedCategories,
 }) {
   const categories = [
-    { id: "سيارات", name: "سيارات", icon: "/src/assets/categry/car.svg" },
+    { id: "سيارات", name: "سيارات", icon: Car },
     {
       id: "مجوهرات",
       name: "مجوهرات",
@@ -79,7 +81,7 @@ export default function SelectCategory({
 
             {selectedCategories.includes(cat.id) && (
               <img
-                src="/src/assets/categry/صح.svg"
+                src={Check}
                 alt="selected icon"
                 className="absolute top-2 right-2 w-5 h-5"
               />
