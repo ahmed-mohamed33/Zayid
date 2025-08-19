@@ -222,18 +222,29 @@ function TheauctionPage() {
       {/* Dynamic section */}
       {/**لو دفع الشروط  هيظهر ده */}
       {isAuctionLive ? (
-        <BiddingChat
-          auctionId={auctionId}
-          isAuctionLive={isAuctionLive}
-          endDate={auction.endDate}
-          startDate={auction.startDate}
-          hasPaidTerms={hasPaidTerms}
-          hasPaidInsurance={hasPaidInsurance}
-          setAuctionWinner={setAuctionWinner}
-          auctionWinner={auctionWinner}
-          setIsAuctionLive={setIsAuctionLive}
-          auction={auction}
-        ></BiddingChat>
+        <>
+          {hasPaidTerms && (
+            <CardsInfo
+              sellerName={auction?.seller?.name || ""}
+              insurancePrice={auction?.insurance?.amount || 0}
+              lowestBid={auction?.minIncrement || 0}
+              sellerLocation={auction?.inspection?.place || ""}
+              auctionId={auctionId}
+            />
+          )}
+          <BiddingChat
+            auctionId={auctionId}
+            isAuctionLive={isAuctionLive}
+            endDate={auction.endDate}
+            startDate={auction.startDate}
+            hasPaidTerms={hasPaidTerms}
+            hasPaidInsurance={hasPaidInsurance}
+            setAuctionWinner={setAuctionWinner}
+            auctionWinner={auctionWinner}
+            setIsAuctionLive={setIsAuctionLive}
+            auction={auction}
+          ></BiddingChat>
+        </>
       ) : user && auction.createdBy && user.uid === auction.createdBy ? (
         <BiddingChat
           auctionId={auctionId}
