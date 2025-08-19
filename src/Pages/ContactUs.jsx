@@ -6,47 +6,169 @@ import call from "../assets/contact/call.svg";
 import location from "../assets/contact/location.svg";
 import clock from "../assets/contact/clock.svg";
 import profile from "../assets/contact/profile.svg";
+import Swal from "sweetalert2";
+import { sendEmail } from "../config/Firebase";
 
 export default function ContactUs() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const sendContactEmail = async (data) => {
+    try {
+      const emailData = {
+        to: "ahmedselim33@protonmail.com",
+        subject: `رسالة جديدة من ${data.name}`,
+        text: `
+          اسم المرسل: ${data.name}
+          البريد الإلكتروني: ${data.email}
+          
+          الرسالة:
+          ${data.message}
+          
+          تم إرسال هذه الرسالة من صفحة التواصل في موقع زايد
+        `,
+        html: `
+          <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+            <div style="background-color: #FA6300; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h2 style="margin: 0;">رسالة جديدة من صفحة التواصل</h2>
+            </div>
+            <div style="background-color: white; padding: 20px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <div style="margin-bottom: 20px;">
+                <strong style="color: #FA6300;">اسم المرسل:</strong> ${data.name}
+              </div>
+              <div style="margin-bottom: 20px;">
+                <strong style="color: #FA6300;">البريد الإلكتروني:</strong> ${data.email}
+              </div>
+              <div style="margin-bottom: 20px;">
+                <strong style="color: #FA6300;">الرسالة:</strong>
+                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin-top: 10px; border-right: 4px solid #FA6300;">
+                  ${data.message}
+                </div>
+              </div>
+              <div style="text-align: center; margin-top: 30px; color: #666; font-size: 14px;">
+                تم إرسال هذه الرسالة من صفحة التواصل في موقع زايد
+              </div>
+            </div>
+          </div>
+        `,
+      };
+
+      await sendEmail(emailData);
+    } catch (error) {
+      console.error("Error in sendContactEmail:", error);
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.message.trim()
+    ) {
+      Swal.fire({
+        icon: "error",
+        title: "خطأ في البيانات",
+        text: "يرجى ملء جميع الحقول المطلوبة",
+        confirmButtonText: "حسناً",
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      Swal.fire({
+        icon: "error",
+        title: "خطأ في البريد الإلكتروني",
+        text: "يرجى إدخال بريد إلكتروني صحيح",
+        confirmButtonText: "حسناً",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await sendContactEmail(formData);
+
+      Swal.fire({
+        icon: "success",
+        title: "تم الإرسال بنجاح!",
+        text: "سنقوم بالرد على رسالتك في أقرب وقت ممكن",
+        confirmButtonText: "حسناً",
+      });
+
+      setFormData({
+        name: "",
+        email: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      Swal.fire({
+        icon: "error",
+        title: "خطأ في الإرسال",
+        text: "حدث خطأ أثناء إرسال الرسالة. يرجى المحاولة مرة أخرى",
+        confirmButtonText: "حسناً",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div  className="bg-[#F1F1F1] min-h-screen py-6 px-4 md:px-6 lg:px-14 ">
+    <div className="bg-[#F1F1F1] min-h-screen py-6 px-4 md:px-6 lg:px-14 ">
       <div className=" grid md:grid-cols-2 gap-6">
         {/* **** Right: Contact Form **** */}
-        <div
-      
-          className="py-6 px-4 md:px-6 bg-white rounded-3xl overflow-hidden  "
-        >
+        <div className="py-6 px-4 md:px-6 bg-white rounded-3xl overflow-hidden  ">
           <h2 className="font-bold text-[#2D3142] mb-4 text-4xl">تواصل معنا</h2>
           <p className="text-[#2D3142] mb-4">
             نحن هنا للرد على استفساراتك، دعمك، ومساعدتك بكل ترحيب.
           </p>
 
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <InputField
               label="الاسم"
               placeholder="ادخل اسمك"
               icon={profile}
+              value={formData.name}
+              onChange={(value) => handleInputChange("name", value)}
             />
             <InputField
               label="البريد الإلكتروني"
               placeholder="ادخل بريدك الإلكتروني"
               icon={smsBlack}
+              value={formData.email}
+              onChange={(value) => handleInputChange("email", value)}
             />
             <InputField
               label="رسالتك"
               placeholder="اكتب رسالتك"
               icon={messageText}
               textarea
+              value={formData.message}
+              onChange={(value) => handleInputChange("message", value)}
             />
             <button
               type="submit"
-              className="bg-[#FA6300] hover:bg-orange-600 transition-colors text-white w-full py-2 px-6 rounded-md font-bold"
+              disabled={isSubmitting}
+              className="bg-[#FA6300] hover:bg-orange-600 transition-colors text-white w-full py-2 px-6 rounded-md font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              إرسال رسالة
+              {isSubmitting ? "جاري الإرسال..." : "إرسال رسالة"}
             </button>
-            {/* <p className="text-[#2D3142] text-center">
-              سنقوم بالرد على استفسارك في أقرب وقت ممكن.
-            </p> */}
           </form>
         </div>
 
@@ -57,16 +179,8 @@ export default function ContactUs() {
             title="البريد الإلكتروني"
             value="support@zayed.com"
           />
-          <ContactCard
-            icon={call}
-            title="رقم الهاتف"
-            value="0100 123 4567"
-          />
-          <ContactCard
-            icon={location}
-            title="العنوان"
-            value="القاهرة، مصر"
-          />
+          <ContactCard icon={call} title="رقم الهاتف" value="0100 123 4567" />
+          <ContactCard icon={location} title="العنوان" value="القاهرة، مصر" />
           <ContactCard
             icon={clock}
             title="ساعات العمل"
@@ -106,13 +220,27 @@ function ContactCard({ icon, title, value }) {
 }
 
 // Input Field with custom placeholder
-function InputField({ label, placeholder, icon, textarea = false }) {
+function InputField({
+  label,
+  placeholder,
+  icon,
+  textarea = false,
+  value = "",
+  onChange,
+}) {
   const [isFocused, setIsFocused] = useState(false);
-  const [hasValue, setHasValue] = useState(false);
+  const [hasValue, setHasValue] = useState(!!value);
 
   const handleChange = (e) => {
-    setHasValue(!!e.target.value);
+    const newValue = e.target.value;
+    setHasValue(!!newValue);
+    onChange && onChange(newValue);
   };
+
+  // Update hasValue when value prop changes
+  React.useEffect(() => {
+    setHasValue(!!value);
+  }, [value]);
 
   return (
     <div className="text-right relative">
