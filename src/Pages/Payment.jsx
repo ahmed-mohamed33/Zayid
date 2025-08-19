@@ -5,6 +5,7 @@ import { sendNotification } from "../utils/notificationService";
 import { UserContext } from "../context/UserContext";
 import { useForm } from "react-hook-form";
 import { getFormConfig } from "../utils/formUtils";
+import { sendPaymentCompletionEmails } from "../utils/paymentUtils";
 
 // Import components
 import LoadingScreen from "../components/payment/LoadingScreen";
@@ -40,7 +41,7 @@ function Payment() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const { user, auctions } = useContext(UserContext);
+  const { user, userData, auctions } = useContext(UserContext);
   const { auctionId, type } = useParams();
   const navigate = useNavigate();
   const auction = auctions.find((a) => String(a.id) === String(auctionId));
@@ -226,15 +227,93 @@ function Payment() {
           await sendNotification(user.uid, {
             type: "payment",
             title: "تم دفع مبلغ الفوز بالمزاد 💳",
-            body: `تم تأكيد دفعك لمزاد "${auction?.title || ""}" بنجاح.`,
+            body: ` لاتمام عملية الا ستلام تم تأكيد دفعك لمزاد "${
+              auction?.title || ""
+            }" بنجاح. و ارسال معلومات البائع علي الايميل الخاص بك`,
             auctionId: auction.id,
             data: {
               auctionId: auction.id,
               action: "view_auction",
             },
           });
-        } catch (e) {
+        } catch (e) {}
+      }
+      // send email to buyer and seller
+      const sellerEmail = auction?.seller?.email;
+      const buyerEmail = user?.email;
+      const sellerName = auction?.seller?.name;
+      const buyerName =
+        userData?.fullName || user?.displayName || "مستخدم غير معروف";
+      const auctionTitle = auction?.title;
+      const auctionId = auction.id;
+
+
+      let auctionPrice = 0;
+      if (auction?.highestBid) {
+        auctionPrice = auction.highestBid;
+      } else if (auction?.winnerBid) {
+        auctionPrice = auction.winnerBid;
+      } else if (auction?.startPrice) {
+        auctionPrice = auction.startPrice;
+      }
+
+ 
+      const buyerPhone = userData?.phone || user?.phone || "غير متوفر";
+
+  
+      console.log(" Email Debug:", {
+        sellerEmail,
+        sellerName,
+        buyerEmail,
+        buyerName,
+        buyerPhone,
+        auctionTitle,
+        auctionId,
+        auctionPrice,
+        auctionSeller: auction?.seller,
+        userData: userData
+          ? { fullName: userData.fullName, phone: userData.phone }
+          : null,
+        user: user
+          ? { email: user.email, displayName: user.displayName }
+          : null,
+      });
+
+      // Send payment completion emails using utility function
+      if (type === "winner") {
+        try {
+          const emailResult = await sendPaymentCompletionEmails(
+            {
+              email: sellerEmail,
+              name: sellerName,
+            },
+            {
+              email: buyerEmail,
+              name: buyerName,
+              phone: buyerPhone,
+            },
+            {
+              title: auctionTitle,
+              id: auctionId,
+              price: auctionPrice,
+            },
+            type
+          );
+
+          if (emailResult.success) {
+            console.log(
+              "✅ Payment completion emails sent successfully:",
+              emailResult.message
+            );
+          } else {
+            console.error(
+              "❌ Failed to send payment completion emails:",
+              emailResult.error
+            );
           }
+        } catch (error) {
+          console.error("❌ Error sending payment completion emails:", error);
+        }
       }
 
       setStatus({ success: true, error: null, info: null });

@@ -42,23 +42,39 @@ export const endAuctionById = async (auctionId) => {
 export const getWonAuctionsByUser = async (userId) => {
     const db = getDatabase();
     const auctionsRef = ref(db, 'auctions');
+    const paymentsRef = ref(db, 'payments');
+    const [auctionsSnapshot, paymentsSnapshot] = await Promise.all([
+        get(auctionsRef),
+        get(paymentsRef)
+    ]);
 
-    const snapshot = await get(auctionsRef);
+    if (!auctionsSnapshot.exists()) return { data: [] };
 
-    if (!snapshot.exists()) return { data: [] };
-
-    const allAuctions = snapshot.val();
+    const allAuctions = auctionsSnapshot.val();
+    const allPayments = paymentsSnapshot.exists() ? paymentsSnapshot.val() : {};
 
     const wonAuctions = Object.entries(allAuctions)
         .filter(
             ([_, auction]) =>
                 auction?.highestBidderId === userId && auction?.status === 'ended'
         )
-        .map(([auctionId, auction]) => ({
-            auctionId,
-            finalBid: auction.highestBid || 0,
-            isPaid: auction?.payments?.[userId]?.isPaid || false,
-        }));
+        .map(([auctionId, auction]) => {
+
+            const paymentData = Object.values(allPayments).find(
+                payment =>
+                    payment.auctionId === auctionId &&
+                    payment.userId === userId &&
+                    payment.type === 'winner'
+            );
+
+            const isPaid = paymentData?.status === 'paid' || false;
+
+            return {
+                auctionId,
+                finalBid: auction.highestBid || 0,
+                isPaid,
+            };
+        });
 
     return { data: wonAuctions };
 };
