@@ -497,7 +497,7 @@ export const sendAuctionEndedNotification = async (userId, auctionData, winnerIn
             action = 'pay_winner';
         } else {
             title = 'انتهى المزاد! 🏁';
-            const finalPrice = auctionData.highestBid || winnerInfo?.finalBid || 'غير محدد';
+            const finalPrice = auctionData.finalPrice || auctionData.highestBid || winnerInfo?.finalBid || 'غير محدد';
             body = `انتهى مزاد "${auctionData.title || 'المزاد'}" - السعر النهائي: ${finalPrice} ج.م`;
         }
 
