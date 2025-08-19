@@ -138,7 +138,13 @@ const BiddingChat = ({
       if (data) {
         // بجيب عدد المشاركين
         const participants = data.participants || {};
-        setParticipantsCount(Object.keys(participants).length);
+        setParticipantsCount(
+          Object.keys(participants).filter(
+            (participant) =>
+              participants[participant].hasPaidInsurance === true &&
+              participants[participant].hasPurchasedShroot === true
+          ).length
+        );
 
         // بجيب البيدات
         const bidsData = data.bids || {};
@@ -235,7 +241,6 @@ const BiddingChat = ({
 
     try {
       if (winnerBid?.userId) {
-
         const paymentTrackingRef = dbRef(
           db,
           `payment_notifications/${auctionId}/winner_payment_request`
@@ -244,7 +249,6 @@ const BiddingChat = ({
 
         let alreadySent = false;
         if (trackingSnapshot.exists()) {
-
           const trackingData = trackingSnapshot.val();
           alreadySent = Object.values(trackingData).some(
             (entry) => entry?.sent === true
@@ -300,13 +304,12 @@ const BiddingChat = ({
     }
   };
 
-
   useEffect(() => {
     if (status === "ended") {
       console.log("🏁 Status changed to ended, calling finalizeAuction");
       finalizeAuction();
     }
-  }, [status]); 
+  }, [status]);
 
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
