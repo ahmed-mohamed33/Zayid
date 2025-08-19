@@ -61,6 +61,14 @@ function Payment() {
     reset();
   }, [selectedPayment, reset]);
 
+  // Helper function to check if auction is active (started)
+  const isAuctionActive = () => {
+    if (!auction?.startDate) return false;
+    const now = new Date();
+    const startDate = new Date(auction.startDate);
+    return now >= startDate;
+  };
+
   // Helper function to check if user has already paid
   const checkPaymentStatus = async () => {
     if (!user || !auction || !type) return false;
@@ -171,6 +179,17 @@ function Payment() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
+        // Check if auction has started for shroot payments
+        if (type === "shroot" && isAuctionActive()) {
+          setStatus({
+            error: "لا يمكن شراء الشروط بعد بدء المزاد. المزاد قد بدأ بالفعل.",
+            success: false,
+            info: null,
+          });
+          setLoading(false);
+          return;
+        }
+
         const hasPaid = await checkPaymentStatus();
         setAlreadyPaid(hasPaid);
       } catch (error) {
@@ -198,6 +217,18 @@ function Payment() {
         (type !== "shroot" && type !== "insurance" && type !== "winner")
       ) {
         throw new Error("نوع الدفع غير صحيح أو غير محدد في الرابط.");
+      }
+
+      // Check if auction is active for shroot payments
+      if (type === "shroot") {
+        const now = new Date();
+        const startDate = new Date(auction.startDate);
+
+        if (now >= startDate) {
+          throw new Error(
+            "لا يمكن شراء الشروط بعد بدء المزاد. المزاد قد بدأ بالفعل."
+          );
+        }
       }
 
       const hasPaid = await checkPaymentStatus();
@@ -393,6 +424,16 @@ function Payment() {
   };
 
   const onSubmit = async (values) => {
+    // Check if auction has started for shroot payments
+    if (type === "shroot" && isAuctionActive()) {
+      setStatus({
+        error: "لا يمكن شراء الشروط بعد بدء المزاد. المزاد قد بدأ بالفعل.",
+        success: false,
+        info: null,
+      });
+      return;
+    }
+
     if (selectedPayment === "vodafone") {
       setPhoneNumber(values.phoneNumber);
       setShowOTP(true);
@@ -415,6 +456,48 @@ function Payment() {
     return <LoadingScreen />;
   }
 
+  // Check if auction has started for shroot payments
+  if (type === "shroot" && isAuctionActive()) {
+    return (
+      <div
+        className="min-h-screen bg-gray-100 font-sans flex items-center justify-center"
+        dir="rtl"
+      >
+        <div className="max-w-md mx-auto text-center">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="text-red-600 mb-4">
+              <svg
+                className="mx-auto h-12 w-12"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-red-800 mb-2">
+              لا يمكن شراء الشروط
+            </h3>
+            <p className="text-red-700 mb-4">
+              لا يمكن شراء الشروط بعد بدء المزاد. المزاد قد بدأ بالفعل.
+            </p>
+            <button
+              onClick={() => navigate(`/auction/${auction.id}`)}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              العودة إلى المزاد
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (alreadyPaid) {
     return (
       <AlreadyPaidScreen
@@ -434,6 +517,76 @@ function Payment() {
           <p className="text-lg text-gray-700">
             اختر وسيلة الدفع لإكمال المزاد
           </p>
+
+          {/* Status Messages */}
+          {status.error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="text-red-600 mr-3">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-red-800 font-medium">{status.error}</p>
+              </div>
+            </div>
+          )}
+
+          {status.info && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="text-blue-600 mr-3">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-blue-800 font-medium">{status.info}</p>
+              </div>
+            </div>
+          )}
+
+          {status.success && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="text-green-600 mr-3">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-green-800 font-medium">{status.success}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
