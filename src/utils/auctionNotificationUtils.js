@@ -10,19 +10,45 @@ import {
     sendAuctionParticipantNotification,
     sendAuctionParticipantNotificationToAll,
     sendAuctionApprovedNotification,
-    getParticipantFCMTokens,
-    getParticipantNationalIDs
+
 } from './notificationService';
+import { database } from '../config/Firebase';
+import { ref, remove, get, set } from 'firebase/database';
 
 
 export const notifyNewAuctionApproved = async (auctionData) => {
     try {
+
+
+        const approvalTrackingRef = ref(database, `auction_notifications/${auctionData.id}/approval_notifications_sent`);
+        const trackingSnapshot = await get(approvalTrackingRef);
+
+        if (trackingSnapshot.exists() && trackingSnapshot.val()?.sent === true) {
+            console.log(`New auction approval notifications already sent for auction: ${auctionData.title}`);
+            return 0;
+        }
+
         const interestedUsers = await getUsersInterestedInCategory(auctionData.category);
 
         if (interestedUsers.length > 0) {
             await sendNewAuctionApprovedToInterestedUsers(auctionData, interestedUsers);
+
+
+            await set(approvalTrackingRef, {
+                sent: true,
+                timestamp: new Date().toISOString(),
+                notifiedUsers: interestedUsers.length
+            });
+
             console.log(`Notified ${interestedUsers.length} users about new auction: ${auctionData.title}`);
         } else {
+
+            await set(approvalTrackingRef, {
+                sent: true,
+                timestamp: new Date().toISOString(),
+                notifiedUsers: 0
+            });
+
             console.log('No interested users found for category:', auctionData.category);
         }
 
@@ -36,12 +62,37 @@ export const notifyNewAuctionApproved = async (auctionData) => {
 
 export const notifyAuctionStarted = async (auctionData) => {
     try {
+
+
+        const startTrackingRef = ref(database, `auction_notifications/${auctionData.id}/start_notifications_sent`);
+        const trackingSnapshot = await get(startTrackingRef);
+
+        if (trackingSnapshot.exists() && trackingSnapshot.val()?.sent === true) {
+            console.log(`Auction start notifications already sent for auction: ${auctionData.title}`);
+            return 0;
+        }
+
         const interestedUsers = await getUsersInterestedInCategory(auctionData.category);
 
         if (interestedUsers.length > 0) {
             await sendAuctionStartedToInterestedUsers(auctionData, interestedUsers);
+
+
+            await set(startTrackingRef, {
+                sent: true,
+                timestamp: new Date().toISOString(),
+                notifiedUsers: interestedUsers.length
+            });
+
             console.log(`Notified ${interestedUsers.length} users about auction start: ${auctionData.title}`);
         } else {
+
+            await set(startTrackingRef, {
+                sent: true,
+                timestamp: new Date().toISOString(),
+                notifiedUsers: 0
+            });
+
             console.log('No interested users found for category:', auctionData.category);
         }
 
@@ -55,26 +106,59 @@ export const notifyAuctionStarted = async (auctionData) => {
 
 export const notifyAuctionEnded = async (auctionData, winnerInfo = null) => {
     try {
+
+
+        const notificationTrackingRef = ref(database, `auction_notifications/${auctionData.id}/ended_notifications_sent`);
+        const trackingSnapshot = await get(notificationTrackingRef);
+
+        if (trackingSnapshot.exists() && trackingSnapshot.val()?.sent === true) {
+            console.log(`Auction ended notifications already sent for auction: ${auctionData.title}`);
+            return 0;
+        }
+
         const bidders = await getUsersWhoBidOnAuction(auctionData.id);
 
         if (bidders.length > 0) {
             const notifications = [];
 
-            for (const userId of bidders) {
+            for (const bidder of bidders) {
                 try {
-                    const isWinner = winnerInfo && winnerInfo.userId === userId;
+                    // Extract the national ID from the bidder object
+                    const userId = bidder.nationalID || bidder.firebaseUID;
+
+                    if (!userId) {
+                        console.warn('No valid user ID found for bidder:', bidder);
+                        continue;
+                    }
+
+                    const isWinner = winnerInfo && (winnerInfo.userId === userId || winnerInfo.userId === bidder.firebaseUID);
                     const userWinnerInfo = isWinner ? winnerInfo : null;
 
                     await sendAuctionEndedNotification(userId, auctionData, userWinnerInfo);
                     notifications.push(userId);
                 } catch (error) {
-                    console.error(`Error sending auction ended notification to user ${userId}:`, error);
+                    console.error(`Error sending auction ended notification to user ${bidder?.nationalID || bidder?.firebaseUID}:`, error);
                 }
             }
+
+            await set(notificationTrackingRef, {
+                sent: true,
+                timestamp: new Date().toISOString(),
+                notifiedUsers: notifications.length,
+                winnerInfo: winnerInfo
+            });
 
             console.log(`Notified ${notifications.length} users about auction end: ${auctionData.title}`);
             return notifications.length;
         } else {
+
+            await set(notificationTrackingRef, {
+                sent: true,
+                timestamp: new Date().toISOString(),
+                notifiedUsers: 0,
+                winnerInfo: winnerInfo
+            });
+
             console.log('No bidders found for auction:', auctionData.id);
             return 0;
         }
@@ -111,7 +195,25 @@ export const notifyUserAboutNewAuction = async (userId, auctionData) => {
 
 export const notifyUserAboutAuctionEnd = async (userId, auctionData, winnerInfo = null) => {
     try {
+
+
+        const userNotificationRef = ref(database, `auction_notifications/${auctionData.id}/user_notifications/${userId}`);
+        const userTrackingSnapshot = await get(userNotificationRef);
+
+        if (userTrackingSnapshot.exists() && userTrackingSnapshot.val()?.auction_ended === true) {
+            console.log(`User ${userId} already notified about auction end: ${auctionData.title}`);
+            return true;
+        }
+
         await sendAuctionEndedNotification(userId, auctionData, winnerInfo);
+
+
+        await set(userNotificationRef, {
+            auction_ended: true,
+            timestamp: new Date().toISOString(),
+            winnerInfo: winnerInfo
+        });
+
         console.log(`Notified user ${userId} about auction end: ${auctionData.title}`);
         return true;
     } catch (error) {
@@ -179,12 +281,39 @@ export const notifyAuctionParticipantsAboutEndingSoon = async (auctionData) => {
 
 export const notifyAuctionParticipantsAboutEnd = async (auctionData, winnerInfo = null) => {
     try {
+
+
+        const participantTrackingRef = ref(database, `auction_notifications/${auctionData.id}/participant_end_notifications_sent`);
+        const trackingSnapshot = await get(participantTrackingRef);
+
+        if (trackingSnapshot.exists() && trackingSnapshot.val()?.sent === true) {
+            console.log(`Auction participant end notifications already sent for auction: ${auctionData.title}`);
+            return 0;
+        }
+
         const participants = await getUsersWhoParticipatedInAuction(auctionData.id);
 
         if (participants.length > 0) {
             await sendAuctionParticipantNotificationToAll(auctionData, 'auction_ended');
+
+
+            await set(participantTrackingRef, {
+                sent: true,
+                timestamp: new Date().toISOString(),
+                notifiedParticipants: participants.length,
+                winnerInfo: winnerInfo
+            });
+
             console.log(`Notified ${participants.length} participants about auction end: ${auctionData.title}`);
         } else {
+
+            await set(participantTrackingRef, {
+                sent: true,
+                timestamp: new Date().toISOString(),
+                notifiedParticipants: 0,
+                winnerInfo: winnerInfo
+            });
+
             console.log('No participants found for auction:', auctionData.id);
         }
 
@@ -248,7 +377,7 @@ export const notifySpecificAuctionParticipant = async (userId, auctionData, noti
 
 export const notifyAuctionApproved = async (auctionData) => {
     try {
-        // Only notify the auction owner that their auction was approved
+
         await sendAuctionApprovedNotification(auctionData);
         console.log(`Notified auction owner about auction approval: ${auctionData.title}`);
         return true;
@@ -260,7 +389,6 @@ export const notifyAuctionApproved = async (auctionData) => {
 
 export const notifyNewAuctionToInterestedUsers = async (auctionData) => {
     try {
-        // This function is for when a genuinely NEW auction is approved and should notify interested users
         const interestedUsers = await getUsersInterestedInCategory(auctionData.category);
 
         if (interestedUsers.length > 0) {
@@ -350,5 +478,37 @@ export const handleCompleteAuctionLifecycle = async (auctionData, event, winnerI
             break;
         default:
             console.log('Unknown auction lifecycle event:', event);
+    }
+};
+
+export const resetAuctionNotificationTracking = async (auctionId) => {
+    try {
+
+
+        const trackingRef = ref(database, `auction_notifications/${auctionId}`);
+        await remove(trackingRef);
+
+        console.log(`Reset notification tracking for auction: ${auctionId}`);
+        return true;
+    } catch (error) {
+        console.error('Error resetting auction notification tracking:', error);
+        return false;
+    }
+};
+
+export const checkAuctionNotificationStatus = async (auctionId) => {
+    try {
+
+        const trackingRef = ref(database, `auction_notifications/${auctionId}`);
+        const snapshot = await get(trackingRef);
+
+        if (snapshot.exists()) {
+            return snapshot.val();
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error checking auction notification status:', error);
+        return null;
     }
 }; 

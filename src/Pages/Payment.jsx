@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getDatabase, ref, push, set, get } from "firebase/database";
-import { sendNotification } from "../utils/notificationService";
+import {
+  sendNotification,
+  sendPaymentCompletionNotifications,
+} from "../utils/notificationService";
 import { UserContext } from "../context/UserContext";
 import { useForm } from "react-hook-form";
 import { getFormConfig } from "../utils/formUtils";
@@ -223,20 +226,36 @@ function Payment() {
           paymentMethod: selectedPayment,
         });
 
+        // Send comprehensive notifications with spam prevention: in-app + push notifications + emails
         try {
-          await sendNotification(user.uid, {
-            type: "payment",
-            title: "تم دفع مبلغ الفوز بالمزاد 💳",
-            body: ` لاتمام عملية الا ستلام تم تأكيد دفعك لمزاد "${
-              auction?.title || ""
-            }" بنجاح. و ارسال معلومات البائع علي الايميل الخاص بك`,
-            auctionId: auction.id,
-            data: {
-              auctionId: auction.id,
-              action: "view_auction",
-            },
-          });
-        } catch (e) {}
+          const sellerUserId = auction?.seller?.id || auction?.seller?.userId;
+          const notificationResults = await sendPaymentCompletionNotifications(
+            auction.id,
+            user.uid,
+            sellerUserId,
+            auction,
+            amount
+          );
+
+          if (notificationResults.buyerNotification) {
+            console.log(
+              "✅ Buyer notification sent successfully:",
+              notificationResults.buyerNotification
+            );
+          }
+
+          if (notificationResults.sellerNotification) {
+            console.log(
+              "✅ Seller notification sent successfully:",
+              notificationResults.sellerNotification
+            );
+          }
+        } catch (e) {
+          console.error(
+            "❌ Failed to send payment completion notifications:",
+            e
+          );
+        }
       }
       // send email to buyer and seller
       const sellerEmail = auction?.seller?.email;
@@ -247,7 +266,6 @@ function Payment() {
       const auctionTitle = auction?.title;
       const auctionId = auction.id;
 
-
       let auctionPrice = 0;
       if (auction?.highestBid) {
         auctionPrice = auction.highestBid;
@@ -257,10 +275,8 @@ function Payment() {
         auctionPrice = auction.startPrice;
       }
 
- 
       const buyerPhone = userData?.phone || user?.phone || "غير متوفر";
 
-  
       console.log(" Email Debug:", {
         sellerEmail,
         sellerName,

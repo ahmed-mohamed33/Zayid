@@ -11,12 +11,12 @@ import {
   sendOutbidNotification,
   sendWinnerPaymentNotification,
 } from "../../utils/notificationService";
+import { ref as dbRef, get } from "firebase/database";
 import {
   handleNewBidWithParticipantNotification,
   handleAuctionEndWithParticipants,
 } from "../../utils/auctionNotificationUtils";
 import { RiMedal2Line } from "react-icons/ri";
-
 
 const BiddingChat = ({
   auctionId,
@@ -48,6 +48,7 @@ const BiddingChat = ({
   const bidsContainerRef = useRef(null);
   const db = getDatabase();
   const hasFinalizedRef = useRef(false);
+  const componentId = useRef(Math.random().toString(36).substr(2, 9)); // Unique component instance ID
 
   //هنا بحدث الوقت للانتهاء  و بدء المزاد
   useEffect(() => {
@@ -176,8 +177,16 @@ const BiddingChat = ({
   }, [bids]);
 
   const finalizeAuction = async () => {
-    if (hasFinalizedRef.current) return;
+    if (hasFinalizedRef.current) {
+      console.log(
+        ` finalizeAuction already called for component ${componentId.current}`
+      );
+      return;
+    }
     hasFinalizedRef.current = true;
+    console.log(
+      ` Starting finalizeAuction for auction ${auctionId} (component: ${componentId.current})`
+    );
     let winnerBid = null;
     if (bids.length > 0) {
       winnerBid = bids.reduce(
@@ -226,18 +235,51 @@ const BiddingChat = ({
 
     try {
       if (winnerBid?.userId) {
-        const auctionDataForWinner = {
-          id: auctionId,
-          title: auction?.title || "المزاد",
-        };
-        await sendWinnerPaymentNotification(
-          winnerBid.userId,
-          auctionDataForWinner,
-          Number(winnerBid.bidAmount)
+
+        const paymentTrackingRef = dbRef(
+          db,
+          `payment_notifications/${auctionId}/winner_payment_request`
         );
+        const trackingSnapshot = await get(paymentTrackingRef);
+
+        let alreadySent = false;
+        if (trackingSnapshot.exists()) {
+
+          const trackingData = trackingSnapshot.val();
+          alreadySent = Object.values(trackingData).some(
+            (entry) => entry?.sent === true
+          );
+        }
+
+        if (alreadySent) {
+          console.log(
+            " Winner payment notification already sent for this auction (pre-check)"
+          );
+        } else {
+          console.log(
+            " Attempting to send winner payment notification to:",
+            winnerBid.userId
+          );
+          const auctionDataForWinner = {
+            id: auctionId,
+            title: auction?.title || "المزاد",
+          };
+          const result = await sendWinnerPaymentNotification(
+            winnerBid.userId,
+            auctionDataForWinner,
+            Number(winnerBid.bidAmount)
+          );
+          if (result) {
+            console.log(" Winner payment notification sent successfully");
+          } else {
+            console.log(
+              "⏭️ Winner payment notification skipped (already sent)"
+            );
+          }
+        }
       }
     } catch (e) {
-      console.log(e, "error in sendWinnerPaymentNotification");
+      console.error(" Error in sendWinnerPaymentNotification:", e);
     }
 
     try {
@@ -258,12 +300,13 @@ const BiddingChat = ({
     }
   };
 
-  //winners
+
   useEffect(() => {
     if (status === "ended") {
+      console.log("🏁 Status changed to ended, calling finalizeAuction");
       finalizeAuction();
     }
-  }, [status, bids]);
+  }, [status]); 
 
   //  ببعت المزايدة للفايربيز لو الزاد اللايف شغال ومش أدمن
   const handleBidSubmit = async () => {
@@ -516,7 +559,7 @@ const BiddingChat = ({
                       {bid.userName || "مستخدم مجهول"}
                       {index === bids.length - 1 && (
                         <span className="inline-flex items-center mr-2 gap-1">
-                          <RiMedal2Line  className="text-orange-500 text-md font-semibold" />
+                          <RiMedal2Line className="text-orange-500 text-md font-semibold" />
                         </span>
                       )}
                     </div>
