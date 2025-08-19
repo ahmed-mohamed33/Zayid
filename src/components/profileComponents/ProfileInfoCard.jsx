@@ -9,13 +9,13 @@ export default function ProfileInfoCard() {
     user,
     setUserData,
     updateUserData,
-    updateUserDataInProfile,
   } = useContext(UserContext);
 
   useEffect(() => {
     if (user && userData) {
       setLoading(false);
-      }
+      console.log(' بيانات المستخدم:', user, userData?.fullName);
+    }
   }, [user, userData]);
 
   if (!user || !userData) return null;
@@ -26,16 +26,27 @@ export default function ProfileInfoCard() {
     formData.append('upload_preset', 'profile_pictures');
     formData.append('cloud_name', 'dtdqcxn9c');
 
-    const res = await fetch(
-      'https://api.cloudinary.com/v1_1/dtdqcxn9c/image/upload',
-      {
-        method: 'POST',
-        body: formData,
-      }
-    );
+    try {
+      const res = await fetch(
+        'https://api.cloudinary.com/v1_1/dtdqcxn9c/image/upload',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
-    const data = await res.json();
-    return data.secure_url;
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`فشل رفع الصورة: ${errorData.message || res.statusText}`);
+      }
+
+      const data = await res.json();
+      console.log('📸 رابط الصورة من Cloudinary:', data.secure_url);
+      return data.secure_url;
+    } catch (error) {
+      console.error(' خطأ أثناء رفع الصورة إلى Cloudinary:', error);
+      throw error;
+    }
   };
 
   const handleImageChange = async (e) => {
@@ -46,8 +57,13 @@ export default function ProfileInfoCard() {
       setLoading(true);
 
       const imageUrl = await uploadProfileImageToCloudinary(file);
+      console.log('🔄 جاري تحديث بيانات المستخدم بصورة جديدة:', imageUrl);
 
-      await updateUserDataInProfile(user.uid, {
+      if (typeof updateUserData !== 'function') {
+        throw new Error('دالة updateUserData غير موجودة في الـ Context');
+      }
+
+      await updateUserData({
         profileImage: imageUrl,
       });
 
@@ -56,9 +72,10 @@ export default function ProfileInfoCard() {
         profileImage: imageUrl,
       }));
 
-      alert(' تم تحديث صورة البروفايل بنجاح');
+      alert('تم تحديث صورة البروفايل بنجاح');
     } catch (error) {
-      alert('حدث خطأ أثناء رفع الصورة');
+      console.error('🚨 خطأ أثناء رفع أو تحديث الصورة:', error);
+      alert(`حدث خطأ أثناء رفع الصورة: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -68,7 +85,6 @@ export default function ProfileInfoCard() {
     <>
       <div className="bg-white rounded-xl shadow p-6 flex flex-row items-center justify-between">
         <div className="flex items-center gap-6">
-          {/* الصورة */}
           {loading ? (
             <div className="w-24 h-24 rounded-full bg-gray-200 animate-pulse" />
           ) : userData?.profileImage ? (
@@ -89,7 +105,6 @@ export default function ProfileInfoCard() {
             </div>
           )}
 
-          {/* البيانات */}
           <div>
             <h1 className="text-2xl font-bold mb-1">
               {loading ? (
@@ -102,26 +117,12 @@ export default function ProfileInfoCard() {
             <div className="flex items-center gap-2 mb-1">
               {loading ? (
                 <div className="w-20 h-4 bg-gray-200 rounded animate-pulse" />
-              ) : userData?.isVerified ? (
-                <>
-                  <span className="text-green-600 text-sm font-medium">
-                    موثق
-                  </span>
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="12" fill="#22C55E" />
-                    <path
-                      d="M8 12.5l2.5 2.5L16 9.5"
-                      stroke="#fff"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </>
               ) : (
-                <span className="text-gray-400 text-sm font-medium">
-                  غير موثق
-                </span>
+                <div className="text-sm text-gray-600 mt-1">
+                  {userData?.isActive ? 'موثق' : 'غير موثق'} |{' '}
+                  {userData?.isAdmin === 'أدمن' } |{' '}
+                  {userData?.isCompany === 'شركة'}
+                </div>
               )}
             </div>
 
@@ -136,7 +137,6 @@ export default function ProfileInfoCard() {
         </div>
 
         <div>
-          {/* زر تعديل الصورة */}
           <button
             onClick={() => inputRef.current.click()}
             className={`flex items-center gap-2 mb-12 bg-[#FA6300] hover:bg-[#e65a00] text-white px-6 py-2 rounded-lg font-semibold text-base transition ${
@@ -159,7 +159,6 @@ export default function ProfileInfoCard() {
             تعديل الصورة
           </button>
 
-          {/* الإنبوت المخفي */}
           <input
             type="file"
             accept="image/*"
