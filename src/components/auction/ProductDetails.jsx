@@ -57,13 +57,13 @@ function ProductDetails({
               <span>هذا المزاد الخاص بك</span>
             </button>
           ) : (
-            <button className="flex items-center justify-between bg-[#FFF0E6] cursor-pointer p-2 mt-6 w-full text-right border-r-4 border-amber-600 rounded text-sm">
+            <button className="flex items-center justify-between bg-[#FFF0E6] cursor-pointer p-2 mt-6 w-full text-right border-r-4 border-amber-600 rounded text-[14px] sm:text-[12px] md:text-[14px]">
               <a href="#korasetElShroot">
                 من اجل معاينة المنتج يجب عليك شراء كراسة الشروط
               </a>
               <a
                 href="#korasetElShroot"
-                className="text-green-500 cursor-pointer"
+                className="text-green-500 cursor-pointer text-[13px] sm:text-[11px] md:text-[13px]"
               >
                 اشتري الان
               </a>

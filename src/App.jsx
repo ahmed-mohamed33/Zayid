@@ -31,6 +31,7 @@ import ChatbotWidget from "./components/common/ChatbotWidget.jsx";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ScrollToTop from "./components/ScrollToTop.js";
 
 function App() {
   // Initialize service worker for notifications
@@ -54,6 +55,7 @@ function App() {
     <div dir="rtl">
       <UserProvider>
         <Router>
+          <ScrollToTop />
           <Navbar />
           <AllDataComponent />
           <TitleUpdater />

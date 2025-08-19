@@ -15,6 +15,8 @@ import {
   handleNewBidWithParticipantNotification,
   handleAuctionEndWithParticipants,
 } from "../../utils/auctionNotificationUtils";
+import { RiMedal2Line } from "react-icons/ri";
+
 
 const BiddingChat = ({
   auctionId,
@@ -327,6 +329,17 @@ const BiddingChat = ({
       return;
     }
 
+    if (bids.length > 0 && bids[bids.length - 1].userId === user.uid) {
+      Swal.fire({
+        title: "لا يمكنك المزايدة على نفسك!",
+        text: "يجب أن يقوم مستخدم آخر بمزايدة أولاً قبل أن تتمكن من إضافة سعر جديد.",
+        icon: "error",
+        confirmButtonText: "حسنًا",
+        confirmButtonColor: "#FA6300",
+      });
+      return;
+    }
+
     const bidId = `bid_${Date.now()}_${Math.random()
       .toString(36)
       .substr(2, 9)}`;
@@ -485,20 +498,31 @@ const BiddingChat = ({
               key={bid.bidTime}
               className={`flex items-center justify-between py-4 ${
                 index < bids.length - 1 ? "border-b border-[#E9E9E9]" : ""
+              } ${
+                index === bids.length - 1
+                  ? "bg-[rgba(68,164,111,0)] w-full"
+                  : ""
               }`}
             >
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-[#DDDDDD] rounded-full flex items-center justify-center">
-                  <span className="font-bold text-base text-[#2D3142]">
+                  <span className="font-bold text-base text-[#422d3b]">
                     {bid.userName?.[0] || "م"}
                   </span>
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-base text-[#2D3142]">
-                    {bid.userName || "مستخدم مجهول"}
-                  </div>
-                  <div className="font-normal text-sm text-[#666666]">
-                    {new Date(bid.bidTime).toLocaleTimeString()}
+                <div className="text-right flex items-center gap-2">
+                  <div>
+                    <div className="font-bold flex items-center text-base text-[#2D3142]">
+                      {bid.userName || "مستخدم مجهول"}
+                      {index === bids.length - 1 && (
+                        <span className="inline-flex items-center mr-2 gap-1">
+                          <RiMedal2Line  className="text-orange-500 text-md font-semibold" />
+                        </span>
+                      )}
+                    </div>
+                    <div className="font-normal text-sm text-[#666666]">
+                      {new Date(bid.bidTime).toLocaleTimeString()}
+                    </div>
                   </div>
                 </div>
               </div>
