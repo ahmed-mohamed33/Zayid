@@ -3,7 +3,6 @@ import { auth } from "../config/Firebase";
 import { sendWinnerPaymentNotification } from "../utils/notificationService";
 import Swal from 'sweetalert2';
 import {
-  handleAuctionStartWithParticipants,
   handleAuctionEndWithParticipants,
   notifyAuctionApproved,
   notifyNewAuctionToInterestedUsers,
@@ -224,47 +223,6 @@ export const useAuctionActions = () => {
     }
   };
 
-  const handleActivateAuction = async (auctionId) => {
-    try {
-      await update(ref(db, `auctions/${auctionId}`), {
-        status: "active",
-        actualStartDate: new Date().toISOString(),
-      });
-
-      try {
-        const auctionSnap = await get(ref(db, `auctions/${auctionId}`));
-        if (auctionSnap.exists()) {
-          const raw = auctionSnap.val();
-          const auctionData = {
-            id: auctionId,
-            ...raw,
-            category: raw.category || raw.categoryId,
-          };
-          await handleAuctionStartWithParticipants(auctionData);
-        }
-      } catch (err) {
-        console.error("Error sending start notifications:", err);
-      }
-      await Swal.fire({
-        title: 'تم التفعيل!',
-        text: 'تم تفعيل المزاد بنجاح',
-        icon: 'success',
-        confirmButtonText: 'موافق',
-        confirmButtonColor: '#10b981'
-      });
-      return { success: true };
-    } catch (err) {
-      await Swal.fire({
-        title: 'خطأ!',
-        text: 'حدث خطأ أثناء تفعيل المزاد',
-        icon: 'error',
-        confirmButtonText: 'موافق',
-        confirmButtonColor: '#ef4444'
-      });
-      return { success: false, error: err };
-    }
-  };
-
   const handleRejectAuction = async (auctionId) => {
     const result = await Swal.fire({
       title: 'تأكيد الرفض',
@@ -333,7 +291,6 @@ export const useAuctionActions = () => {
     handleEndAuction,
     handleRemoveAuction,
     handleApproveAuction,
-    handleActivateAuction,
     handleRejectAuction,
   };
 };

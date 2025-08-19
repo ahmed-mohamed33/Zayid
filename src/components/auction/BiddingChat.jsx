@@ -6,12 +6,7 @@ import participantsIcon from "../../assets/icons/participants.svg";
 import noOfBidsIcon from "../../assets/icons/noOfBids.svg";
 import { getDatabase, ref, onValue, update, set } from "firebase/database";
 import { UserContext } from "../../context/UserContext";
-import { updateAuctionStatus } from "../../utils/firebaseUtils";
-import {
-  getUsersInterestedInCategory,
-  sendAuctionStartedToInterestedUsers,
-  sendAuctionParticipantNotificationToAll,
-} from "../../utils/notificationService";
+
 import {
   sendOutbidNotification,
   sendWinnerPaymentNotification,

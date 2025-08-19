@@ -9,7 +9,9 @@ import {
     getUsersWhoParticipatedInAuction,
     sendAuctionParticipantNotification,
     sendAuctionParticipantNotificationToAll,
-    sendAuctionApprovedNotification
+    sendAuctionApprovedNotification,
+    getParticipantFCMTokens,
+    getParticipantNationalIDs
 } from './notificationService';
 
 
@@ -118,6 +120,24 @@ export const notifyUserAboutAuctionEnd = async (userId, auctionData, winnerInfo 
     }
 };
 
+
+export const notifyAuctionParticipantsAboutStartingSoon = async (auctionData) => {
+    try {
+        const participants = await getUsersWhoParticipatedInAuction(auctionData.id);
+
+        if (participants.length > 0) {
+            await sendAuctionParticipantNotificationToAll(auctionData, 'auction_starting_soon');
+            console.log(`Notified ${participants.length} participants about auction starting soon: ${auctionData.title}`);
+        } else {
+            console.log('No participants found for auction:', auctionData.id);
+        }
+
+        return participants.length;
+    } catch (error) {
+        console.error('Error notifying auction participants about starting soon:', error);
+        throw error;
+    }
+};
 
 export const notifyAuctionParticipantsAboutStart = async (auctionData) => {
     try {

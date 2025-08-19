@@ -1,4 +1,8 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+} from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
   getDatabase,
@@ -9,21 +13,13 @@ import {
   equalTo,
   set,
   get,
-  child,
   update,
 } from "firebase/database";
 import { auth } from "../config/Firebase";
 import { registerUser, loginUser, logoutUser } from "../utils/firebaseUtils";
-import {
-  uploadToCloudinary,
-  uploadMultipleImages as cloudinaryUploadMultiple,
-} from "../utils/cloudinaryUtils";
+import { uploadMultipleImages as cloudinaryUploadMultiple } from "../utils/cloudinaryUtils";
 import { v4 as uuidv4 } from "uuid";
-import {
-  getUsersInterestedInCategory,
-  sendAuctionStartedToInterestedUsers,
-  sendAuctionParticipantNotificationToAll,
-} from "../utils/notificationService";
+
 
 // Create Context
 export const UserContext = createContext();
@@ -188,132 +184,7 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    const checkAuctionStatuses = async () => {
-      if (auctions.length === 0) return;
 
-      //     const db = getDatabase();
-      //     const now = new Date();
-
-      for (const auction of auctions) {
-        const startDate = new Date(auction.startDate);
-        const endDate = new Date(auction.endDate);
-        const currentStatus = auction.status;
-        const notificationsSent = auction.notificationsSent || {};
-
-        if (
-          now >= startDate &&
-          now <= endDate &&
-          currentStatus === "approved" &&
-          !notificationsSent.started
-        ) {
-          try {
-            const auctionData = {
-              id: auction.id,
-              title: auction.title,
-              category: auction.category || auction.categoryId,
-            };
-            const interested = await getUsersInterestedInCategory(
-              auctionData.category
-            );
-            if (Array.isArray(interested) && interested.length > 0) {
-              await sendAuctionStartedToInterestedUsers(
-                auctionData,
-                interested
-              );
-            }
-            await sendAuctionParticipantNotificationToAll(
-              auctionData,
-              "auction_started"
-            );
-            await update(ref(db, `auctions/${auction.id}/notificationsSent`), {
-              started: true,
-            });
-          } catch (e) {
-            }
-        }
-
-        // Send "auction starting soon" notification if auction is approved and about to start
-        if (
-          now < startDate &&
-          currentStatus === "approved" &&
-          !notificationsSent.startingSoon
-        ) {
-          const msToStart = startDate - now;
-          if (msToStart > 0 && msToStart <= 2 * 60 * 1000) {
-            try {
-              const auctionData = {
-                id: auction.id,
-                title: auction.title,
-                category: auction.category || auction.categoryId,
-              };
-              await sendAuctionParticipantNotificationToAll(
-                auctionData,
-                "auction_starting_soon"
-              );
-              await update(
-                ref(db, `auctions/${auction.id}/notificationsSent`),
-                { startingSoon: true }
-              );
-            } catch (e) {
-              }
-          }
-        }
-
-        // Send "auction ended" notifications if auction has ended and status is "ended"
-        if (
-          now > endDate &&
-          currentStatus === "ended" &&
-          !notificationsSent.ended
-        ) {
-          try {
-            const auctionData = {
-              id: auction.id,
-              title: auction.title,
-              category: auction.category || auction.categoryId,
-            };
-            await sendAuctionParticipantNotificationToAll(
-              auctionData,
-              "auction_ended"
-            );
-            await update(ref(db, `auctions/${auction.id}/notificationsSent`), {
-              ended: true,
-            });
-          } catch (e) {
-            }
-        }
-        if (
-          now < endDate &&
-          currentStatus === "active" &&
-          !notificationsSent.endingSoon
-        ) {
-          const msToEnd = endDate - now;
-          if (msToEnd > 0 && msToEnd <= 2 * 60 * 1000) {
-            try {
-              const auctionData = {
-                id: auction.id,
-                title: auction.title,
-                category: auction.category || auction.categoryId,
-              };
-              await sendAuctionParticipantNotificationToAll(
-                auctionData,
-                "auction_ending_soon"
-              );
-              await update(
-                ref(db, `auctions/${auction.id}/notificationsSent`),
-                { endingSoon: true }
-              );
-            } catch (e) {
-              }
-          }
-        }
-      }
-    };
-
-    const interval = setInterval(checkAuctionStatuses, 60000);
-
-    return () => clearInterval(interval);
-  }, [auctions]);
 
   // Get Auction that user participated in
   useEffect(() => {
@@ -669,4 +540,3 @@ export const UserProvider = ({ children }) => {
     </UserContext.Provider>
   );
 };
-

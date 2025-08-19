@@ -52,27 +52,27 @@ const AuctionModal = ({
   const [hasChanges, setHasChanges] = useState(false);
   const [originalAuction, setOriginalAuction] = useState(null);
 
-  // Helper function to convert database date to local datetime-local format
+
   const convertDbDateToLocal = (dbDate) => {
     if (!dbDate) return "";
     const dateLocal = new Date(dbDate);
-    // Adjust for timezone offset to get local time
+
     const dateAdjusted = new Date(
       dateLocal.getTime() - dateLocal.getTimezoneOffset() * 60000
     );
     return dateAdjusted.toISOString().slice(0, 16);
   };
 
-  // Helper function to convert local datetime-local format to database ISO string
+
   const convertLocalToDbDate = (localDate) => {
     if (!localDate) return null;
     return new Date(localDate).toISOString();
   };
 
-  // Initialize original auction data when modal opens
+
   useEffect(() => {
     if (selectedAuction) {
-      // Store the original values from the database
+
       const originalStartDate = selectedAuction.startDate;
       const originalEndDate = selectedAuction.endDate;
 
@@ -83,22 +83,22 @@ const AuctionModal = ({
       });
       setHasChanges(false);
 
-      // Reset form values to current auction data from database
+
       setStartPrice(selectedAuction.startPrice || "");
 
-      // Convert database dates to local datetime-local format
+
       setStartDate(convertDbDateToLocal(originalStartDate));
       setEndDate(convertDbDateToLocal(originalEndDate));
     }
   }, [selectedAuction]);
 
-  // Check for changes
+
   useEffect(() => {
     if (originalAuction) {
       const priceChanged =
         Number(startPrice) !== Number(originalAuction.startPrice);
 
-      // Convert original dates to the same format for comparison
+
       const originalStartDateFormatted = convertDbDateToLocal(
         originalAuction.startDate
       );
@@ -113,29 +113,50 @@ const AuctionModal = ({
     }
   }, [startPrice, startDate, endDate, originalAuction]);
 
-  // Check if auction is active (prevent changes)
+
   const isAuctionActive = () => {
     if (!selectedAuction) return false;
 
-    // Check if auction has started and not ended
+
     const now = new Date();
     const currentStartDate = startDate ? new Date(startDate) : null;
     const currentEndDate = endDate ? new Date(endDate) : null;
 
-    // Auction is active if it has started and not ended
+
     if (currentStartDate && currentEndDate) {
       return now >= currentStartDate && now <= currentEndDate;
     }
 
-    // If no dates set, check status
+
     return selectedAuction.status === "active";
+  };
+
+
+  const hasAuctionStarted = () => {
+    if (!selectedAuction) return false;
+
+    const now = new Date();
+    const currentStartDate = startDate ? new Date(startDate) : null;
+
+
+    if (currentStartDate) {
+      return now >= currentStartDate;
+    }
+
+
+    return selectedAuction.status === "active";
+  };
+
+
+  const canEditAuction = () => {
+    return !hasAuctionStarted() && !isAuctionActive();
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {});
   };
 
-  // Function to cancel editing and reset values
+
   const cancelEditing = (fieldType) => {
     if (originalAuction) {
       switch (fieldType) {
@@ -157,12 +178,12 @@ const AuctionModal = ({
     }
   };
 
-  // Function to send notifications to auction participants
+
   const sendAuctionEditNotifications = async () => {
     try {
       if (!hasChanges) return;
 
-      // Get participants who have bought insurance or terms (shroot) for this auction
+
       const participants = await getUsersWhoParticipatedInAuction(
         selectedAuction.id
       );
@@ -181,7 +202,7 @@ const AuctionModal = ({
         );
       }
 
-      // Convert original dates to the same format for comparison
+
       const originalStartDateFormatted = convertDbDateToLocal(
         originalAuction.startDate
       );
@@ -210,7 +231,7 @@ const AuctionModal = ({
 
       const changesText = changes.join("، ");
 
-      // Send notifications to all participants
+
       const notificationPromises = participants.map((userId) =>
         sendAuctionEditNotification(userId, selectedAuction, changesText)
       );
@@ -220,7 +241,7 @@ const AuctionModal = ({
         `Sent auction edit notifications to ${participants.length} insurance/terms participants`
       );
 
-      // Show success message
+
       Swal.fire({
         icon: "success",
         title: "تم إرسال الإشعارات!",
@@ -232,23 +253,37 @@ const AuctionModal = ({
       });
     } catch (error) {
       console.error("Error sending auction edit notifications:", error);
-      // Don't show error to user, just log it
+
     }
   };
 
-  // Enhanced close function that saves changes and sends notifications
+
   const handleCloseModal = async () => {
     if (hasChanges) {
-      // First, save all pending changes to the database
+
+      if (!canEditAuction()) {
+        Swal.fire({
+          icon: "error",
+          title: "غير مسموح بالتعديل!",
+          text: "لا يمكن حفظ التغييرات لأن المزاد قد بدأ بالفعل!",
+          confirmButtonText: "حسنًا",
+          customClass: {
+            confirmButton: "bg-red-500 text-white hover:bg-red-600",
+          },
+        });
+        return;
+      }
+
+
       try {
         const updates = {};
 
-        // Check what has changed and prepare updates
+
         if (Number(startPrice) !== Number(originalAuction.startPrice)) {
           updates.startPrice = Number(startPrice);
         }
 
-        // Convert original dates to the same format for comparison
+
         const originalStartDateFormatted = convertDbDateToLocal(
           originalAuction.startDate
         );
@@ -263,25 +298,25 @@ const AuctionModal = ({
           updates.endDate = convertLocalToDbDate(endDate);
         }
 
-        // Save to database
+
         if (Object.keys(updates).length > 0) {
           const auctionRef = ref(db, `auctions/${selectedAuction.id}`);
           await update(auctionRef, updates);
 
-          // Update local auctions array
+
           const updatedSelectedAuction = { ...selectedAuction, ...updates };
           const updatedAuctions = auctions.map((auction) =>
             auction.id === selectedAuction.id ? updatedSelectedAuction : auction
           );
           setAuctions(updatedAuctions);
 
-          // Notify parent component
+
           if (onAuctionUpdate) {
             onAuctionUpdate(updatedSelectedAuction);
           }
         }
 
-        // Check if there are participants before showing the prompt
+
         const participants = await getUsersWhoParticipatedInAuction(
           selectedAuction.id
         );
@@ -304,7 +339,7 @@ const AuctionModal = ({
             await sendAuctionEditNotifications();
           }
         } else {
-          // No participants, just show info and close
+
           await Swal.fire({
             icon: "info",
             title: "لا يوجد مشتركون",
@@ -326,11 +361,11 @@ const AuctionModal = ({
             confirmButton: "bg-red-500 text-white hover:bg-red-600",
           },
         });
-        return; // Don't close if save failed
+        return; 
       }
     }
 
-    // Reset state and close modal
+
     setHasChanges(false);
     setOriginalAuction(null);
     setShowModal(false);
@@ -339,12 +374,12 @@ const AuctionModal = ({
   const handlePriceUpdate = async (e) => {
     e.preventDefault();
 
-    // Check if auction is active
-    if (isAuctionActive()) {
+
+    if (!canEditAuction()) {
       Swal.fire({
         icon: "error",
         title: "غير مسموح بالتعديل!",
-        text: "لا يمكن تعديل المزاد أثناء نشاطه!",
+        text: "لا يمكن تعديل المزاد بعد بدايته!",
         confirmButtonText: "حسنًا",
         customClass: {
           confirmButton: "bg-red-500 text-white hover:bg-red-600",
@@ -367,7 +402,6 @@ const AuctionModal = ({
       return;
     }
 
-    // Just update local state - database save happens on close
     setStartPrice(newPrice);
     setIsEditingPrice(false);
 
@@ -385,12 +419,12 @@ const AuctionModal = ({
   const handleStartDateUpdate = async (e) => {
     e.preventDefault();
 
-    // Check if auction is active
-    if (isAuctionActive()) {
+
+    if (!canEditAuction()) {
       Swal.fire({
         icon: "error",
         title: "غير مسموح بالتعديل!",
-        text: "لا يمكن تعديل المزاد أثناء نشاطه!",
+        text: "لا يمكن تعديل المزاد بعد بدايته!",
         confirmButtonText: "حسنًا",
         customClass: {
           confirmButton: "bg-red-500 text-white hover:bg-red-600",
@@ -426,7 +460,7 @@ const AuctionModal = ({
       return;
     }
 
-    // Just update local state - database save happens on close
+
     setStartDate(startDate);
     setIsEditingStartDate(false);
 
@@ -444,12 +478,12 @@ const AuctionModal = ({
   const handleEndDateUpdate = async (e) => {
     e.preventDefault();
 
-    // Check if auction is active
-    if (isAuctionActive()) {
+
+    if (!canEditAuction()) {
       Swal.fire({
         icon: "error",
         title: "غير مسموح بالتعديل!",
-        text: "لا يمكن تعديل المزاد أثناء نشاطه!",
+        text: "لا يمكن تعديل المزاد بعد بدايته!",
         confirmButtonText: "حسنًا",
         customClass: {
           confirmButton: "bg-red-500 text-white hover:bg-red-600",
@@ -472,7 +506,7 @@ const AuctionModal = ({
       return;
     }
 
-    // Just update local state - database save happens on close
+
     setEndDate(endDate);
     setIsEditingEndDate(false);
 
@@ -497,6 +531,11 @@ const AuctionModal = ({
               {isAuctionActive() && (
                 <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
                   مزاد نشط
+                </span>
+              )}
+              {hasAuctionStarted() && !isAuctionActive() && (
+                <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded-full">
+                  بدأ المزاد
                 </span>
               )}
               {hasChanges && (
@@ -647,15 +686,25 @@ const AuctionModal = ({
                         type="number"
                         value={startPrice}
                         onChange={(e) => setStartPrice(e.target.value)}
-                        className="w-32 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className={`w-32 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                          canEditAuction()
+                            ? "border-gray-300"
+                            : "border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed"
+                        }`}
                         min="0"
                         step="0.01"
                         placeholder="أدخل السعر"
+                        disabled={!canEditAuction()}
                       />
                       <button
                         type="submit"
-                        className="ml-2 p-2 text-green-500 hover:text-green-700"
+                        className={`ml-2 p-2 ${
+                          canEditAuction()
+                            ? "text-green-500 hover:text-green-700"
+                            : "text-gray-400 cursor-not-allowed"
+                        }`}
                         title="حفظ"
+                        disabled={!canEditAuction()}
                       >
                         <FaCheck />
                       </button>
@@ -673,7 +722,7 @@ const AuctionModal = ({
                       <p className="text-gray-900">
                         {Number(startPrice).toLocaleString()} جنيه
                       </p>
-                      {!isAuctionActive() ? (
+                      {canEditAuction() ? (
                         <button
                           onClick={() => setIsEditingPrice(true)}
                           className="ml-2 p-2 text-gray-500 hover:text-gray-700"
@@ -743,12 +792,22 @@ const AuctionModal = ({
                         type="datetime-local"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className={`p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                          canEditAuction()
+                            ? "border-gray-300"
+                            : "border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed"
+                        }`}
+                        disabled={!canEditAuction()}
                       />
                       <button
                         type="submit"
-                        className="ml-2 p-2 text-green-500 hover:text-green-700"
+                        className={`ml-2 p-2 ${
+                          canEditAuction()
+                            ? "text-green-500 hover:text-green-700"
+                            : "text-gray-400 cursor-not-allowed"
+                        }`}
                         title="حفظ"
+                        disabled={!canEditAuction()}
                       >
                         <FaCheck />
                       </button>
@@ -770,7 +829,7 @@ const AuctionModal = ({
                             })
                           : "غير محدد"}
                       </p>
-                      {!isAuctionActive() ? (
+                      {canEditAuction() ? (
                         <button
                           onClick={() => setIsEditingStartDate(true)}
                           className="ml-2 p-2 text-gray-500 hover:text-gray-700"
@@ -799,12 +858,22 @@ const AuctionModal = ({
                         type="datetime-local"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className={`p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                          canEditAuction()
+                            ? "border-gray-300"
+                            : "border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed"
+                        }`}
+                        disabled={!canEditAuction()}
                       />
                       <button
                         type="submit"
-                        className="ml-2 p-2 text-green-500 hover:text-green-700"
+                        className={`ml-2 p-2 ${
+                          canEditAuction()
+                            ? "text-green-500 hover:text-green-700"
+                            : "text-gray-400 cursor-not-allowed"
+                        }`}
                         title="حفظ"
+                        disabled={!canEditAuction()}
                       >
                         <FaCheck />
                       </button>
@@ -826,7 +895,7 @@ const AuctionModal = ({
                             })
                           : "غير محدد"}
                       </p>
-                      {!isAuctionActive() ? (
+                      {canEditAuction() ? (
                         <button
                           onClick={() => setIsEditingEndDate(true)}
                           className="ml-2 p-2 text-gray-500 hover:text-gray-700"

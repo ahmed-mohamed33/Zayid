@@ -3,6 +3,73 @@ import { getToken, onMessage } from 'firebase/messaging';
 import { ref, set, get, push, update } from 'firebase/database';
 import { database } from '../config/Firebase';
 
+// Utility functions for consistent user ID handling
+const normalizeUserId = async (userId) => {
+    try {
+        // If userId is already a national ID (numeric), return as is
+        if (/^\d+$/.test(userId)) {
+            return { nationalID: userId, firebaseUID: null };
+        }
+
+        // If userId is a Firebase UID, find the corresponding national ID
+        // This conversion is essential for accessing FCM tokens and user storage
+        const usersRef = ref(database, 'users');
+        const snapshot = await get(usersRef);
+
+        if (snapshot.exists()) {
+            let nationalID = null;
+            snapshot.forEach((childSnapshot) => {
+                const userData = childSnapshot.val();
+                if (userData.userId === userId) {
+                    nationalID = childSnapshot.key;
+                }
+            });
+
+            if (nationalID) {
+                return { nationalID, firebaseUID: userId };
+            }
+        }
+
+        // If no match found, assume it's a national ID
+        return { nationalID: userId, firebaseUID: null };
+    } catch (error) {
+        console.error('Error normalizing user ID:', error);
+        return { nationalID: userId, firebaseUID: null };
+    }
+};
+
+const getNormalizedUserData = async (userId) => {
+    try {
+        const { nationalID, firebaseUID } = await normalizeUserId(userId);
+
+        if (!nationalID) {
+            console.warn('No national ID found for user:', userId);
+            return null;
+        }
+
+        // Get user data using national ID for easier FCM token and storage access
+        const userRef = ref(database, `users/${nationalID}`);
+        const userSnapshot = await get(userRef);
+
+        if (userSnapshot.exists()) {
+            const userData = userSnapshot.val();
+            return {
+                nationalID,
+                firebaseUID: userData.userId || firebaseUID,
+                userData,
+                // Include FCM token and other notification-related data
+                fcmToken: userData.fcmToken || null,
+                notificationSettings: userData.notificationSettings || {}
+            };
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error getting normalized user data:', error);
+        return null;
+    }
+};
+
 
 const FCM_CONFIG = {
     vapidKey: 'BFxskOBTpKt7ahmR0c_dSqkrCzs-Wz9zzjfVZgkWo4ox44_nIvU2dyl4Vds3byN1KNLa-unmUeB_WJZD7RSMESk', // get from Firebase Console
@@ -177,57 +244,24 @@ export const saveFCMToken = async (userId, token, platform = 'web') => {
 
 export const getUserFCMToken = async (userId, platform = 'web') => {
     try {
-        // First try to get token using the provided userId as national ID
-        let tokenRef = ref(database, `users/${userId}/fcmTokens/${platform}`);
-        let snapshot = await get(tokenRef);
+        // Get normalized user data to ensure we have the correct national ID
+        const normalizedUser = await getNormalizedUserData(userId);
+        if (!normalizedUser) {
+            console.log(`No normalized user data found for user ${userId}`);
+            return null;
+        }
 
-        // If token found, return it
+        const { nationalID } = normalizedUser;
+
+        // Get FCM token using the normalized national ID
+        const tokenRef = ref(database, `users/${nationalID}/fcmTokens/${platform}`);
+        const snapshot = await get(tokenRef);
+
         if (snapshot.exists()) {
             return snapshot.val().token;
         }
 
-        // If no token found, check if this is a Firebase UID
-        const userRef = ref(database, `users/${userId}`);
-        const userSnapshot = await get(userRef);
-
-        if (userSnapshot.exists()) {
-            const userData = userSnapshot.val();
-            // If this user has a national ID, try that
-            if (userData.nationalID) {
-                tokenRef = ref(database, `users/${userData.nationalID}/fcmTokens/${platform}`);
-                snapshot = await get(tokenRef);
-                if (snapshot.exists()) {
-                    console.log(`Found FCM token using national ID ${userData.nationalID}`);
-                    return snapshot.val().token;
-                }
-            }
-        }
-
-        // If still no token found, search all users for a matching Firebase UID
-        const usersRef = ref(database, 'users');
-        const usersSnapshot = await get(usersRef);
-
-        if (usersSnapshot.exists()) {
-            let nationalID = null;
-            usersSnapshot.forEach((childSnapshot) => {
-                const userData = childSnapshot.val();
-                if (userData.userId === userId) {
-                    nationalID = childSnapshot.key;
-                }
-            });
-
-            // If national ID found, try to get token using that
-            if (nationalID) {
-                tokenRef = ref(database, `users/${nationalID}/fcmTokens/${platform}`);
-                snapshot = await get(tokenRef);
-                if (snapshot.exists()) {
-                    console.log(`Found FCM token using national ID ${nationalID} for Firebase UID ${userId}`);
-                    return snapshot.val().token;
-                }
-            }
-        }
-
-        console.log(`No FCM token found for user ${userId} (checked as national ID and Firebase UID)`);
+        console.log(`No FCM token found for user ${nationalID} on platform ${platform}`);
         return null;
     } catch (error) {
         console.error('Error getting user FCM token:', error);
@@ -340,36 +374,23 @@ export const getAllUserFCMTokens = async (userId) => {
 
 export const sendOutbidNotification = async (userId, auctionData, newBidAmount) => {
     try {
-        // Get user's national ID and Firebase UID
-        let nationalID = userId;
-        let firebaseUID = userId;
 
-        try {
-            const userRef = ref(database, `users/${userId}`);
-            const userSnapshot = await get(userRef);
-            if (userSnapshot.exists()) {
-                const userData = userSnapshot.val();
-                if (userData.nationalID) {
-                    nationalID = userData.nationalID;
-                    console.log(`Found nationalID for user ${userId}: ${nationalID}`);
-                }
-                if (userData.userId) {
-                    firebaseUID = userData.userId;
-                    console.log(`Found Firebase UID for user ${userId}: ${firebaseUID}`);
-                }
-            }
-        } catch (userFetchError) {
-            console.warn('Could not fetch user data, using provided userId for notifications:', userFetchError);
+        const normalizedUser = await getNormalizedUserData(userId);
+        if (!normalizedUser) {
+            console.warn('Could not get normalized user data for:', userId);
+            return null;
         }
 
-        // Get FCM token using national ID
+        const { nationalID, firebaseUID } = normalizedUser;
+
+
         const userToken = await getUserFCMToken(nationalID);
         if (!userToken) {
             console.log('No FCM token found for user:', nationalID);
-            return;
+            return null;
         }
 
-        // Create notification in database under national ID
+
         const notificationRef = ref(database, `notifications/${nationalID}`);
         const newNotificationRef = push(notificationRef);
 
@@ -395,7 +416,7 @@ export const sendOutbidNotification = async (userId, auctionData, newBidAmount) 
 
         await sendFCMNotification(userToken, notificationData);
 
-        console.log('Outbid notification sent to user:', userId);
+        console.log('Outbid notification sent to user:', nationalID, 'Firebase UID:', firebaseUID);
         return notificationData;
     } catch (error) {
         console.error('Error sending outbid notification:', error);
@@ -406,36 +427,23 @@ export const sendOutbidNotification = async (userId, auctionData, newBidAmount) 
 
 export const sendAuctionStartedNotification = async (userId, auctionData) => {
     try {
-        // Get user's national ID and Firebase UID
-        let nationalID = userId;
-        let firebaseUID = userId;
 
-        try {
-            const userRef = ref(database, `users/${userId}`);
-            const userSnapshot = await get(userRef);
-            if (userSnapshot.exists()) {
-                const userData = userSnapshot.val();
-                if (userData.nationalID) {
-                    nationalID = userData.nationalID;
-                    console.log(`Found nationalID for user ${userId}: ${nationalID}`);
-                }
-                if (userData.userId) {
-                    firebaseUID = userData.userId;
-                    console.log(`Found Firebase UID for user ${userId}: ${firebaseUID}`);
-                }
-            }
-        } catch (userFetchError) {
-            console.warn('Could not fetch user data, using provided userId for notifications:', userFetchError);
+        const normalizedUser = await getNormalizedUserData(userId);
+        if (!normalizedUser) {
+            console.warn('Could not get normalized user data for:', userId);
+            return null;
         }
 
-        // Get FCM token using national ID
+        const { nationalID, firebaseUID } = normalizedUser;
+
+
         const userToken = await getUserFCMToken(nationalID);
         if (!userToken) {
             console.log('No FCM token found for user:', nationalID);
-            return;
+            return null;
         }
 
-        // Create notification in database under national ID
+
         const notificationRef = ref(database, `notifications/${nationalID}`);
         const newNotificationRef = push(notificationRef);
 
@@ -454,13 +462,10 @@ export const sendAuctionStartedNotification = async (userId, auctionData) => {
             }
         };
 
-
         await set(newNotificationRef, notificationData);
-
-
         await sendFCMNotification(userToken, notificationData);
 
-        console.log('Auction started notification sent to user:', userId);
+        console.log('Auction started notification sent to user:', nationalID, 'Firebase UID:', firebaseUID);
         return notificationData;
     } catch (error) {
         console.error('Error sending auction started notification:', error);
@@ -471,36 +476,23 @@ export const sendAuctionStartedNotification = async (userId, auctionData) => {
 
 export const sendAuctionEndedNotification = async (userId, auctionData, winnerInfo = null) => {
     try {
-        // Get user's national ID and Firebase UID
-        let nationalID = userId;
-        let firebaseUID = userId;
 
-        try {
-            const userRef = ref(database, `users/${userId}`);
-            const userSnapshot = await get(userRef);
-            if (userSnapshot.exists()) {
-                const userData = userSnapshot.val();
-                if (userData.nationalID) {
-                    nationalID = userData.nationalID;
-                    console.log(`Found nationalID for user ${userId}: ${nationalID}`);
-                }
-                if (userData.userId) {
-                    firebaseUID = userData.userId;
-                    console.log(`Found Firebase UID for user ${userId}: ${firebaseUID}`);
-                }
-            }
-        } catch (userFetchError) {
-            console.warn('Could not fetch user data, using provided userId for notifications:', userFetchError);
+        const normalizedUser = await getNormalizedUserData(userId);
+        if (!normalizedUser) {
+            console.warn('Could not get normalized user data for:', userId);
+            return null;
         }
 
-        // Get FCM token using national ID
+        const { nationalID, firebaseUID } = normalizedUser;
+
+
         const userToken = await getUserFCMToken(nationalID);
         if (!userToken) {
             console.log('No FCM token found for user:', nationalID);
-            return;
+            return null;
         }
 
-        // Create notification in database under national ID
+
         const notificationRef = ref(database, `notifications/${nationalID}`);
         const newNotificationRef = push(notificationRef);
 
@@ -549,26 +541,13 @@ export const sendAuctionEndedNotification = async (userId, auctionData, winnerIn
 export const sendNewAuctionApprovedNotification = async (userId, auctionData) => {
     try {
 
-        let nationalID = userId;
-        let firebaseUID = userId;
-
-        try {
-            const userRef = ref(database, `users/${userId}`);
-            const userSnapshot = await get(userRef);
-            if (userSnapshot.exists()) {
-                const userData = userSnapshot.val();
-                if (userData.nationalID) {
-                    nationalID = userData.nationalID;
-                    console.log(`Found nationalID for user ${userId}: ${nationalID}`);
-                }
-                if (userData.userId) {
-                    firebaseUID = userData.userId;
-                    console.log(`Found Firebase UID for user ${userId}: ${firebaseUID}`);
-                }
-            }
-        } catch (userFetchError) {
-            console.warn('Could not fetch user data, using provided userId for notifications:', userFetchError);
+        const normalizedUser = await getNormalizedUserData(userId);
+        if (!normalizedUser) {
+            console.warn('Could not get normalized user data for:', userId);
+            return null;
         }
+
+        const { nationalID, firebaseUID } = normalizedUser;
 
 
         const notificationRef = ref(database, `notifications/${nationalID}`);
@@ -620,16 +599,17 @@ export const sendNewAuctionApprovedNotification = async (userId, auctionData) =>
 };
 
 
-export const sendNewAuctionApprovedToInterestedUsers = async (auctionData, interestedUserIds) => {
+export const sendNewAuctionApprovedToInterestedUsers = async (auctionData, interestedUsers) => {
     try {
         const notifications = [];
 
-        for (const userId of interestedUserIds) {
+        for (const user of interestedUsers) {
             try {
-                const notification = await sendNewAuctionApprovedNotification(userId, auctionData);
+
+                const notification = await sendNewAuctionApprovedNotification(user.nationalID, auctionData);
                 notifications.push(notification);
             } catch (error) {
-                console.error(`Error sending notification to user ${userId}:`, error);
+                console.error(`Error sending notification to user ${user.nationalID}:`, error);
             }
         }
 
@@ -641,16 +621,17 @@ export const sendNewAuctionApprovedToInterestedUsers = async (auctionData, inter
     }
 };
 
-export const sendAuctionStartedToInterestedUsers = async (auctionData, interestedUserIds) => {
+export const sendAuctionStartedToInterestedUsers = async (auctionData, interestedUsers) => {
     try {
         const notifications = [];
 
-        for (const userId of interestedUserIds) {
+        for (const user of interestedUsers) {
             try {
-                const notification = await sendAuctionStartedNotification(userId, auctionData);
+
+                const notification = await sendAuctionStartedNotification(user.nationalID, auctionData);
                 notifications.push(notification);
             } catch (error) {
-                console.error(`Error sending auction started notification to user ${userId}:`, error);
+                console.error(`Error sending auction started notification to user ${user.nationalID}:`, error);
             }
         }
 
@@ -698,7 +679,11 @@ export const getUsersInterestedInCategory = async (category) => {
             );
 
             if ((matchesInterest || hasBidOnCategory) && !interestedUsers.includes(nationalID)) {
-                interestedUsers.push(nationalID);
+                interestedUsers.push({
+                    nationalID,
+                    firebaseUID,
+                    userData
+                });
             }
         });
 
@@ -719,16 +704,111 @@ export const getUsersWhoBidOnAuction = async (auctionId) => {
         }
 
         const userIds = new Set();
+        const userDataMap = new Map();
+
         snapshot.forEach((childSnapshot) => {
             const bidData = childSnapshot.val();
             if (bidData.userId) {
                 userIds.add(bidData.userId);
+
+                if (!userDataMap.has(bidData.userId)) {
+                    userDataMap.set(bidData.userId, {
+                        firebaseUID: bidData.userId,
+                        bidAmount: bidData.bidAmount,
+                        bidTime: bidData.timestamp
+                    });
+                }
             }
         });
 
-        return Array.from(userIds);
+
+        const users = [];
+        for (const firebaseUID of userIds) {
+            const normalizedData = await getNormalizedUserData(firebaseUID);
+            if (normalizedData) {
+                users.push({
+                    ...normalizedData,
+                    bidData: userDataMap.get(firebaseUID)
+                });
+            }
+        }
+
+        return users;
     } catch (error) {
         console.error('Error getting users who bid on auction:', error);
+        return [];
+    }
+};
+
+export const getUsersWhoParticipatedInAuction = async (auctionId) => {
+    try {
+        const participantsRef = ref(database, `auctions/${auctionId}/participants`);
+        const snapshot = await get(participantsRef);
+
+        if (!snapshot.exists()) {
+            return [];
+        }
+
+        const participants = [];
+        snapshot.forEach((childSnapshot) => {
+            const participantData = childSnapshot.val();
+            // The key is the firebase UID, and participantData contains the participation details
+            const firebaseUID = childSnapshot.key;
+
+            participants.push({
+                firebaseUID: firebaseUID,
+                joinedAt: participantData.joinedAt,
+                hasPaidInsurance: participantData.hasPaidInsurance || false,
+                hasPurchasedShroot: participantData.hasPurchasedShroot || false,
+                paidInsuranceAt: participantData.paidInsuranceAt || null
+            });
+        });
+
+        const users = [];
+        for (const participant of participants) {
+            // Convert firebase.uid to national ID for easier FCM token and storage access
+            const normalizedData = await getNormalizedUserData(participant.firebaseUID);
+            if (normalizedData) {
+                users.push({
+                    ...normalizedData,
+                    participationData: participant
+                });
+            }
+        }
+
+        return users;
+    } catch (error) {
+        console.error('Error getting users who participated in auction:', error);
+        return [];
+    }
+};
+
+// Helper function to get FCM tokens for auction participants
+export const getParticipantFCMTokens = async (auctionId) => {
+    try {
+        const participants = await getUsersWhoParticipatedInAuction(auctionId);
+        const fcmTokens = participants
+            .map(participant => participant.fcmToken)
+            .filter(token => token && token.trim() !== '');
+
+        return fcmTokens;
+    } catch (error) {
+        console.error('Error getting participant FCM tokens:', error);
+        return [];
+    }
+};
+
+// Helper function to get participant data with national IDs for easier storage access
+export const getParticipantNationalIDs = async (auctionId) => {
+    try {
+        const participants = await getUsersWhoParticipatedInAuction(auctionId);
+        const nationalIDs = participants
+            .map(participant => participant.nationalID)
+            .filter(id => id && id.toString().trim() !== '');
+
+        return nationalIDs;
+    } catch (error) {
+        console.error('Error getting participant national IDs:', error);
         return [];
     }
 };
@@ -777,12 +857,12 @@ const sendFCMNotification = async (token, notificationData) => {
             return false;
         }
 
-        // Handle Expo tokens
+
         if (token.startsWith('ExponentPushToken[')) {
             return await sendExpoNotification(token, notificationData);
         }
 
-        // For FCM tokens, send through Firebase Cloud Messaging
+
         try {
             const message = {
                 token: token,
@@ -832,7 +912,6 @@ const sendFCMNotification = async (token, notificationData) => {
         } catch (fcmError) {
             console.error('Error sending FCM notification:', fcmError);
 
-            // Fallback to browser notification if FCM fails and we're in a browser
             if ('Notification' in window && Notification.permission === 'granted') {
                 const notification = new Notification(notificationData.title, {
                     body: notificationData.body,
@@ -889,7 +968,7 @@ const sendFCMNotificationToAllDevices = async (userId, notificationData) => {
 
 export const sendNotification = async (userId, notificationData) => {
     try {
-        // Get user's national ID and Firebase UID
+
         let nationalID = userId;
         let firebaseUID = userId;
 
@@ -911,7 +990,7 @@ export const sendNotification = async (userId, notificationData) => {
             console.warn('Could not fetch user data, using provided userId for notifications:', userFetchError);
         }
 
-        // Create notification in database under national ID
+
         const notificationRef = ref(database, `notifications/${nationalID}`);
         const newNotificationRef = push(notificationRef);
 
@@ -922,10 +1001,9 @@ export const sendNotification = async (userId, notificationData) => {
             read: false
         };
 
-        // Save notification to database
         await set(newNotificationRef, fullNotificationData);
 
-        // Get user's FCM token and send push notification
+
         const userToken = await getUserFCMToken(nationalID);
         if (userToken) {
             await sendFCMNotification(userToken, fullNotificationData);
@@ -949,7 +1027,7 @@ export const sendNotification = async (userId, notificationData) => {
 
 export const sendUserActivationNotification = async (userId) => {
     try {
-        // Get user's national ID and Firebase UID
+
         let nationalID = userId;
         let firebaseUID = userId;
 
@@ -971,7 +1049,7 @@ export const sendUserActivationNotification = async (userId) => {
             console.warn('Could not fetch user data, using provided userId for notifications:', userFetchError);
         }
 
-        // Create notification in database under national ID
+
         const notificationRef = ref(database, `notifications/${nationalID}`);
         const newNotificationRef = push(notificationRef);
 
@@ -1021,6 +1099,15 @@ export const sendUserActivationNotification = async (userId) => {
 
 export const sendWinnerPaymentNotification = async (userId, auctionData, finalBidAmount) => {
     try {
+        // Get normalized user data
+        const normalizedUser = await getNormalizedUserData(userId);
+        if (!normalizedUser) {
+            console.warn('Could not get normalized user data for:', userId);
+            return null;
+        }
+
+        const { nationalID, firebaseUID } = normalizedUser;
+
         const notificationData = {
             type: 'payment',
             title: 'الرجاء إتمام الدفع للفوز بالمزاد 💳',
@@ -1031,88 +1118,31 @@ export const sendWinnerPaymentNotification = async (userId, auctionData, finalBi
                 action: 'pay_winner'
             }
         };
-        return await sendNotification(userId, notificationData);
+        return await sendNotification(nationalID, notificationData);
     } catch (error) {
         console.error('Error sending winner payment notification:', error);
         throw error;
     }
 };
 
-export const getUsersWhoParticipatedInAuction = async (auctionId) => {
-    try {
-        const paymentsRef = ref(database, 'payments');
-        const snapshot = await get(paymentsRef);
 
-        if (!snapshot.exists()) {
-            return [];
-        }
-
-        // First get all Firebase UIDs from payments
-        const firebaseUids = new Set();
-        snapshot.forEach((childSnapshot) => {
-            const paymentData = childSnapshot.val();
-            if (paymentData.auctionId === auctionId &&
-                ['insurance', 'shroot'].includes(paymentData.type) &&
-                paymentData.userId) {
-                firebaseUids.add(paymentData.userId);
-            }
-        });
-
-        if (firebaseUids.size === 0) {
-            return [];
-        }
-
-        // Now get national IDs for these Firebase UIDs
-        const usersRef = ref(database, 'users');
-        const usersSnapshot = await get(usersRef);
-        const nationalIds = new Set();
-
-        if (usersSnapshot.exists()) {
-            usersSnapshot.forEach((childSnapshot) => {
-                const userData = childSnapshot.val();
-                const nationalID = childSnapshot.key;
-                if (userData.userId && firebaseUids.has(userData.userId)) {
-                    nationalIds.add(nationalID);
-                }
-            });
-        }
-
-        return Array.from(nationalIds);
-    } catch (error) {
-        console.error('Error getting users who participated in auction:', error);
-        return [];
-    }
-};
 
 export const sendAuctionParticipantNotification = async (userId, auctionData, notificationType) => {
     try {
-        // Get user's national ID and Firebase UID
-        let nationalID = userId;
-        let firebaseUID = userId;
-
-        try {
-            const userRef = ref(database, `users/${userId}`);
-            const userSnapshot = await get(userRef);
-            if (userSnapshot.exists()) {
-                const userData = userSnapshot.val();
-                if (userData.nationalID) {
-                    nationalID = userData.nationalID;
-                    console.log(`Found nationalID for user ${userId}: ${nationalID}`);
-                }
-                if (userData.userId) {
-                    firebaseUID = userData.userId;
-                    console.log(`Found Firebase UID for user ${userId}: ${firebaseUID}`);
-                }
-            }
-        } catch (userFetchError) {
-            console.warn('Could not fetch user data, using provided userId for notifications:', userFetchError);
+        // Get normalized user data
+        const normalizedUser = await getNormalizedUserData(userId);
+        if (!normalizedUser) {
+            console.warn('Could not get normalized user data for:', userId);
+            return null;
         }
+
+        const { nationalID, firebaseUID } = normalizedUser;
 
         // Get FCM token using national ID
         const userToken = await getUserFCMToken(nationalID);
         if (!userToken) {
             console.log('No FCM token found for user:', nationalID);
-            return;
+            return null;
         }
 
         // Create notification in database under national ID
@@ -1187,12 +1217,13 @@ export const sendAuctionParticipantNotificationToAll = async (auctionData, notif
         if (participants.length > 0) {
             const notifications = [];
 
-            for (const userId of participants) {
+            for (const participant of participants) {
                 try {
-                    const notification = await sendAuctionParticipantNotification(userId, auctionData, notificationType);
+                    // Use nationalID for notifications
+                    const notification = await sendAuctionParticipantNotification(participant.nationalID, auctionData, notificationType);
                     notifications.push(notification);
                 } catch (error) {
-                    console.error(`Error sending participant notification to user ${userId}:`, error);
+                    console.error(`Error sending participant notification to user ${participant.nationalID}:`, error);
                 }
             }
 
@@ -1217,26 +1248,14 @@ export const sendAuctionApprovedNotification = async (auctionData) => {
             return null;
         }
 
-        let nationalID = ownerId;
-        let firebaseUID = ownerId;
-
-        try {
-            const userRef = ref(database, `users/${ownerId}`);
-            const userSnapshot = await get(userRef);
-            if (userSnapshot.exists()) {
-                const userData = userSnapshot.val();
-                if (userData.nationalID) {
-                    nationalID = userData.nationalID;
-                    console.log(`Found nationalID for auction owner ${ownerId}: ${nationalID}`);
-                }
-                if (userData.userId) {
-                    firebaseUID = userData.userId;
-                    console.log(`Found Firebase UID for auction owner ${ownerId}: ${firebaseUID}`);
-                }
-            }
-        } catch (userFetchError) {
-            console.warn('Could not fetch auction owner data, using provided ownerId for notifications:', userFetchError);
+        // Get normalized user data for the owner
+        const normalizedUser = await getNormalizedUserData(ownerId);
+        if (!normalizedUser) {
+            console.warn('Could not get normalized user data for auction owner:', ownerId);
+            return null;
         }
+
+        const { nationalID, firebaseUID } = normalizedUser;
 
         // Create notification for the auction owner
         const notificationRef = ref(database, `notifications/${nationalID}`);

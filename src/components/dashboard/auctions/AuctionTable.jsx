@@ -4,7 +4,6 @@ import {
   FaTrash,
   FaCheck,
   FaTimes,
-  FaPlay,
   FaStop,
   FaImage,
   FaSort,
@@ -24,7 +23,6 @@ const AuctionTable = ({
   handleViewDetails,
   handleApproveAuction,
   handleRejectAuction,
-  handleActivateAuction,
   handleEndAuction,
   handleRemoveAuction,
 }) => {
@@ -193,16 +191,6 @@ const AuctionTable = ({
                         </>
                       )}
 
-                      {auction.status === "approved" && (
-                        <button
-                          onClick={() => handleActivateAuction(auction.id)}
-                          className="text-blue-600 hover:text-blue-800 p-1 rounded"
-                          title="تفعيل المزاد"
-                        >
-                          <FaPlay />
-                        </button>
-                      )}
-
                       {auction.status === "active" && (
                         <button
                           onClick={() => handleEndAuction(auction.id)}
@@ -221,6 +209,11 @@ const AuctionTable = ({
                       >
                         <FaTrash />
                       </button>
+                      {auction.status === "approved" && (
+                        <span className="text-gray-400 text-xs">
+                          في انتظار التفعيل التلقائي
+                        </span>
+                      )}
                     </div>
                   </td>
                 </tr>
