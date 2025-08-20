@@ -13,16 +13,25 @@ const firebaseConfig = {
     measurementId: "G-7GLVZKTM4X",
 };
 
-// Initialize Firebase
+
+const vapidKey = "BFxskOBTpKt7ahmR0c_dSqkrCzs-Wz9zzjfVZgkWo4ox44_nIvU2dyl4Vds3byN1KNLa-unmUeB_WJZD7RSMESk";
+
+
 firebase.initializeApp(firebaseConfig);
 
-// Initialize Firebase Cloud Messaging
+
 const messaging = firebase.messaging();
+
+
+messaging.usePublicVapidKey = messaging.usePublicVapidKey || messaging.usePublicVapidKey || function (key) {
+
+};
+
+
+messaging.usePublicVapidKey(vapidKey);
 
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
-    console.log('[firebase-messaging-sw.js] Received background message ', payload);
-
     const notificationTitle = payload.notification?.title || payload.data?.title || 'Zayid Notification';
     const notificationBody = payload.notification?.body || payload.data?.body || 'You have a new notification';
 
@@ -47,26 +56,24 @@ messaging.onBackgroundMessage((payload) => {
         ]
     };
 
-    // Show notification
+
     return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Handle notification click
-self.addEventListener('notificationclick', (event) => {
-    console.log('[firebase-messaging-sw.js] Notification click received.');
 
+self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
     if (event.action === 'view' && event.notification.data?.auctionId) {
-        // Open the auction page
+        
         event.waitUntil(
             clients.openWindow(`/auction/${event.notification.data.auctionId}`)
         );
     } else if (event.action === 'dismiss') {
-        // Just close the notification
+   
         event.notification.close();
     } else {
-        // Default action - open the main app
+      
         event.waitUntil(
             clients.openWindow('/')
         );
@@ -75,25 +82,20 @@ self.addEventListener('notificationclick', (event) => {
 
 // Handle notification close
 self.addEventListener('notificationclose', (event) => {
-    console.log('[firebase-messaging-sw.js] Notification closed.');
 });
 
-// Handle service worker installation
+
 self.addEventListener('install', (event) => {
-    console.log('[firebase-messaging-sw.js] Service Worker installing...');
     self.skipWaiting();
 });
 
-// Handle service worker activation
+
 self.addEventListener('activate', (event) => {
-    console.log('[firebase-messaging-sw.js] Service Worker activating...');
     event.waitUntil(self.clients.claim());
 });
 
-// Handle push events (fallback for older browsers)
-self.addEventListener('push', (event) => {
-    console.log('[firebase-messaging-sw.js] Push event received.');
 
+self.addEventListener('push', (event) => {
     if (event.data) {
         try {
             const payload = event.data.json();

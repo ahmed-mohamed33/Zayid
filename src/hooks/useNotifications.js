@@ -1,20 +1,19 @@
 import { useState, useEffect, useContext } from 'react';
 import { UserContext } from '../context/UserContext';
 import {
-    initializeNotifications,
     getPermissionStatus,
     isPermissionBlocked,
+    initializeNotifications,
     saveFCMToken,
-    setupForegroundMessageListener,
     getUserNotifications,
     markNotificationAsRead,
-    deleteNotification
+    deleteNotification,
 } from '../utils/notificationService';
 import { ref, onValue, off } from 'firebase/database';
 import { database } from '../config/Firebase';
 
 export const useNotifications = () => {
-    const { user, userData } = useContext(UserContext);
+    const { user, userData, loading: userLoading } = useContext(UserContext);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -25,15 +24,35 @@ export const useNotifications = () => {
     // Initialize notifications when user is authenticated
     useEffect(() => {
         if (user?.uid && userData) {
-            initializeNotificationsForUser();
-            const cleanup = setupRealTimeNotificationsListener();
+         
+            const shouldInitialize = async () => {
+              
+                if (permissionStatus.status !== 'granted') {
+                    return true;
+                }
 
-            // Cleanup function
-            return () => {
-                if (cleanup) cleanup();
+          
+                if (permissionStatus.status === 'granted' && permissionStatus.initialized) {
+ 
+                    return false; 
+                }
+
+                return false; 
             };
+
+            shouldInitialize().then(needsInit => {
+                if (needsInit) {
+                    initializeNotificationsForUser();
+                    const cleanup = setupRealTimeNotificationsListener();
+
+                   
+                    return () => {
+                        if (cleanup) cleanup();
+                    };
+                }
+            });
         }
-    }, [user, userData]);
+    }, [user, userData, userLoading, permissionStatus.initialized, permissionStatus.status]);
 
 
     const setupRealTimeNotificationsListener = () => {
@@ -53,24 +72,22 @@ export const useNotifications = () => {
                     });
                 });
 
-                // Sort by timestamp (newest first)
                 const sortedNotifications = notificationsData.sort(
                     (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
                 );
 
-                // Check if there are new notifications
+         
                 const previousUnreadCount = unreadCount;
                 const newUnreadCount = sortedNotifications.filter(notification => !notification.read).length;
 
                 setNotifications(sortedNotifications);
                 setUnreadCount(newUnreadCount);
 
-                // If there are new unread notifications, show visual feedback
+               
                 if (newUnreadCount > previousUnreadCount) {
-                    // Set flag for visual animation
+        
                     setHasNewNotifications(true);
 
-                    // Reset animation after 3 seconds
                     setTimeout(() => {
                         setHasNewNotifications(false);
                     }, 3000);
@@ -108,13 +125,20 @@ export const useNotifications = () => {
 
             // Check if notifications are already initialized
             if (permissionStatus.status === 'granted') {
+                // Even if permission is granted, we still need to ensure FCM token exists
+                const nationalID = userData.nationalID || user.uid;
+                // For production, assume if permission is granted, we're good
+                const newStatus = { ...permissionStatus, initialized: true };
+                setPermissionStatus(newStatus);
                 console.log('Notifications already initialized');
                 return;
             }
 
             // Check if permission is blocked
             if (isPermissionBlocked()) {
-                setPermissionStatus(getPermissionStatus());
+                const newStatus = getPermissionStatus();
+                newStatus.initialized = true;
+                setPermissionStatus(newStatus);
                 return;
             }
 
@@ -125,7 +149,12 @@ export const useNotifications = () => {
                 // Use national ID for saving FCM token
                 const nationalID = userData.nationalID || user.uid;
                 await saveFCMToken(nationalID, result.token);
-                setPermissionStatus(getPermissionStatus());
+
+                // Set permission status with initialized flag
+                const newStatus = getPermissionStatus();
+                newStatus.initialized = true;
+                setPermissionStatus(newStatus);
+
                 console.log('Notifications initialized successfully for user:', nationalID);
             } else {
                 setInitializationError(result.error);

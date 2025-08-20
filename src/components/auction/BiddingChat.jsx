@@ -423,11 +423,26 @@ const BiddingChat = ({
             image: auction.imageUrls?.[0] || "",
           };
 
-          await sendOutbidNotification(
-            previousHighestBid.userId,
-            auctionData,
-            newBidAmount
+          console.log(
+            `Sending outbid notification to user: ${
+              previousHighestBid.userId
+            } (type: ${typeof previousHighestBid.userId})`
           );
+          console.log(`Previous highest bid data:`, previousHighestBid);
+
+          try {
+            await sendOutbidNotification(
+              previousHighestBid.userId,
+              auctionData,
+              newBidAmount
+            );
+            console.log("Outbid notification sent successfully");
+          } catch (notificationError) {
+            console.error(
+              "Failed to send outbid notification:",
+              notificationError
+            );
+          }
         }
       }
 

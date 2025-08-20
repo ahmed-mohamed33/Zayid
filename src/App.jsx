@@ -33,8 +33,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ScrollToTop from "./components/ScrollToTop.js";
 
+
 function App() {
-  // Initialize service worker for notifications
+
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
@@ -103,6 +104,7 @@ function App() {
             />
           </Routes>
           <NotificationPermissionBanner />
+
           <Footer />
           <ChatbotWidget />
           <ToastContainer position="top-center" autoClose={3000} />

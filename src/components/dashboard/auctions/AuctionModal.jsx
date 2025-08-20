@@ -52,7 +52,6 @@ const AuctionModal = ({
   const [hasChanges, setHasChanges] = useState(false);
   const [originalAuction, setOriginalAuction] = useState(null);
 
-
   const convertDbDateToLocal = (dbDate) => {
     if (!dbDate) return "";
     const dateLocal = new Date(dbDate);
@@ -63,16 +62,13 @@ const AuctionModal = ({
     return dateAdjusted.toISOString().slice(0, 16);
   };
 
-
   const convertLocalToDbDate = (localDate) => {
     if (!localDate) return null;
     return new Date(localDate).toISOString();
   };
 
-
   useEffect(() => {
     if (selectedAuction) {
-
       const originalStartDate = selectedAuction.startDate;
       const originalEndDate = selectedAuction.endDate;
 
@@ -83,21 +79,17 @@ const AuctionModal = ({
       });
       setHasChanges(false);
 
-
       setStartPrice(selectedAuction.startPrice || "");
-
 
       setStartDate(convertDbDateToLocal(originalStartDate));
       setEndDate(convertDbDateToLocal(originalEndDate));
     }
   }, [selectedAuction]);
 
-
   useEffect(() => {
     if (originalAuction) {
       const priceChanged =
         Number(startPrice) !== Number(originalAuction.startPrice);
-
 
       const originalStartDateFormatted = convertDbDateToLocal(
         originalAuction.startDate
@@ -113,24 +105,19 @@ const AuctionModal = ({
     }
   }, [startPrice, startDate, endDate, originalAuction]);
 
-
   const isAuctionActive = () => {
     if (!selectedAuction) return false;
-
 
     const now = new Date();
     const currentStartDate = startDate ? new Date(startDate) : null;
     const currentEndDate = endDate ? new Date(endDate) : null;
 
-
     if (currentStartDate && currentEndDate) {
       return now >= currentStartDate && now <= currentEndDate;
     }
 
-
     return selectedAuction.status === "active";
   };
-
 
   const hasAuctionStarted = () => {
     if (!selectedAuction) return false;
@@ -138,15 +125,12 @@ const AuctionModal = ({
     const now = new Date();
     const currentStartDate = startDate ? new Date(startDate) : null;
 
-
     if (currentStartDate) {
       return now >= currentStartDate;
     }
 
-
     return selectedAuction.status === "active";
   };
-
 
   const canEditAuction = () => {
     return !hasAuctionStarted() && !isAuctionActive();
@@ -155,7 +139,6 @@ const AuctionModal = ({
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {});
   };
-
 
   const cancelEditing = (fieldType) => {
     if (originalAuction) {
@@ -178,11 +161,9 @@ const AuctionModal = ({
     }
   };
 
-
   const sendAuctionEditNotifications = async () => {
     try {
       if (!hasChanges) return;
-
 
       const participants = await getUsersWhoParticipatedInAuction(
         selectedAuction.id
@@ -201,7 +182,6 @@ const AuctionModal = ({
           ).toLocaleString()} إلى ${Number(startPrice).toLocaleString()} جنيه`
         );
       }
-
 
       const originalStartDateFormatted = convertDbDateToLocal(
         originalAuction.startDate
@@ -231,16 +211,18 @@ const AuctionModal = ({
 
       const changesText = changes.join("، ");
 
-
-      const notificationPromises = participants.map((userId) =>
-        sendAuctionEditNotification(userId, selectedAuction, changesText)
+      const notificationPromises = participants.map((participant) =>
+        sendAuctionEditNotification(
+          participant.nationalID,
+          selectedAuction,
+          changesText
+        )
       );
 
       await Promise.all(notificationPromises);
       console.log(
         `Sent auction edit notifications to ${participants.length} insurance/terms participants`
       );
-
 
       Swal.fire({
         icon: "success",
@@ -253,14 +235,11 @@ const AuctionModal = ({
       });
     } catch (error) {
       console.error("Error sending auction edit notifications:", error);
-
     }
   };
 
-
   const handleCloseModal = async () => {
     if (hasChanges) {
-
       if (!canEditAuction()) {
         Swal.fire({
           icon: "error",
@@ -274,15 +253,12 @@ const AuctionModal = ({
         return;
       }
 
-
       try {
         const updates = {};
-
 
         if (Number(startPrice) !== Number(originalAuction.startPrice)) {
           updates.startPrice = Number(startPrice);
         }
-
 
         const originalStartDateFormatted = convertDbDateToLocal(
           originalAuction.startDate
@@ -298,11 +274,9 @@ const AuctionModal = ({
           updates.endDate = convertLocalToDbDate(endDate);
         }
 
-
         if (Object.keys(updates).length > 0) {
           const auctionRef = ref(db, `auctions/${selectedAuction.id}`);
           await update(auctionRef, updates);
-
 
           const updatedSelectedAuction = { ...selectedAuction, ...updates };
           const updatedAuctions = auctions.map((auction) =>
@@ -310,12 +284,10 @@ const AuctionModal = ({
           );
           setAuctions(updatedAuctions);
 
-
           if (onAuctionUpdate) {
             onAuctionUpdate(updatedSelectedAuction);
           }
         }
-
 
         const participants = await getUsersWhoParticipatedInAuction(
           selectedAuction.id
@@ -339,7 +311,6 @@ const AuctionModal = ({
             await sendAuctionEditNotifications();
           }
         } else {
-
           await Swal.fire({
             icon: "info",
             title: "لا يوجد مشتركون",
@@ -361,10 +332,9 @@ const AuctionModal = ({
             confirmButton: "bg-red-500 text-white hover:bg-red-600",
           },
         });
-        return; 
+        return;
       }
     }
-
 
     setHasChanges(false);
     setOriginalAuction(null);
@@ -373,7 +343,6 @@ const AuctionModal = ({
 
   const handlePriceUpdate = async (e) => {
     e.preventDefault();
-
 
     if (!canEditAuction()) {
       Swal.fire({
@@ -419,7 +388,6 @@ const AuctionModal = ({
   const handleStartDateUpdate = async (e) => {
     e.preventDefault();
 
-
     if (!canEditAuction()) {
       Swal.fire({
         icon: "error",
@@ -460,7 +428,6 @@ const AuctionModal = ({
       return;
     }
 
-
     setStartDate(startDate);
     setIsEditingStartDate(false);
 
@@ -477,7 +444,6 @@ const AuctionModal = ({
 
   const handleEndDateUpdate = async (e) => {
     e.preventDefault();
-
 
     if (!canEditAuction()) {
       Swal.fire({
@@ -505,7 +471,6 @@ const AuctionModal = ({
       });
       return;
     }
-
 
     setEndDate(endDate);
     setIsEditingEndDate(false);
