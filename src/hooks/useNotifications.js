@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { UserContext } from '../context/UserContext';
 import {
     getPermissionStatus,
@@ -21,6 +21,9 @@ export const useNotifications = () => {
     const [permissionStatus, setPermissionStatus] = useState(getPermissionStatus());
     const [initializationError, setInitializationError] = useState(null);
     const [hasNewNotifications, setHasNewNotifications] = useState(false);
+    const [listenerSetup, setListenerSetup] = useState(false);
+    const [hasInitialFetch, setHasInitialFetch] = useState(false);
+    const cleanupRef = useRef(null);
 
     // Helper function to get the correct user ID for notifications
     const getNotificationUserId = () => {
@@ -53,11 +56,6 @@ export const useNotifications = () => {
             shouldInitialize().then(needsInit => {
                 if (needsInit) {
                     initializeNotificationsForUser();
-                    const cleanup = setupRealTimeNotificationsListener();
-
-                    return () => {
-                        if (cleanup) cleanup();
-                    };
                 }
             });
         }
@@ -65,18 +63,53 @@ export const useNotifications = () => {
 
     // Set up real-time notifications listener when user data is available
     useEffect(() => {
-        if (user?.uid && userData) {
+        // Clean up previous listener if it exists
+        if (cleanupRef.current) {
+            console.log('Cleaning up previous notifications listener');
+            cleanupRef.current();
+            cleanupRef.current = null;
+            setListenerSetup(false);
+            setHasInitialFetch(false);
+        }
+
+        if (user?.uid && userData && !listenerSetup) {
             console.log('User data available, setting up notifications listener');
             const cleanup = setupRealTimeNotificationsListener();
+            cleanupRef.current = cleanup;
+            setListenerSetup(true);
 
-            // Also fetch notifications immediately
-            fetchNotifications();
-
-            return () => {
-                if (cleanup) cleanup();
-            };
+            // Also fetch notifications immediately (only once)
+            if (!hasInitialFetch) {
+                fetchNotifications();
+                setHasInitialFetch(true);
+            }
         }
-    }, [user, userData]);
+
+        return () => {
+            if (cleanupRef.current) {
+                console.log('Cleaning up notifications listener on unmount');
+                cleanupRef.current();
+                cleanupRef.current = null;
+                setListenerSetup(false);
+                setHasInitialFetch(false);
+            }
+        };
+    }, [user?.uid, userData?.nationalID]); // Remove the flags from dependencies to prevent loops
+
+    // Clean up when user changes
+    useEffect(() => {
+        if (!user?.uid) {
+            if (cleanupRef.current) {
+                cleanupRef.current();
+                cleanupRef.current = null;
+            }
+            setListenerSetup(false);
+            setHasInitialFetch(false);
+            setNotifications([]);
+            setUnreadCount(0);
+            setHasNewNotifications(false);
+        }
+    }, [user?.uid]);
 
     const setupRealTimeNotificationsListener = () => {
         if (!user?.uid || !userData) return null;
@@ -104,35 +137,46 @@ export const useNotifications = () => {
                     (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
                 );
 
-                const previousUnreadCount = unreadCount;
-                const newUnreadCount = sortedNotifications.filter(notification => !notification.read).length;
+                // Only update if the notifications have actually changed
+                const currentNotificationIds = notifications.map(n => n.id).join(',');
+                const newNotificationIds = sortedNotifications.map(n => n.id).join(',');
 
-                setNotifications(sortedNotifications);
-                setUnreadCount(newUnreadCount);
+                if (currentNotificationIds !== newNotificationIds) {
+                    console.log(`Updating notifications: ${sortedNotifications.length} total, ${sortedNotifications.filter(n => !n.read).length} unread`);
 
-                if (newUnreadCount > previousUnreadCount) {
-                    setHasNewNotifications(true);
+                    const previousUnreadCount = unreadCount;
+                    const newUnreadCount = sortedNotifications.filter(notification => !notification.read).length;
 
-                    setTimeout(() => {
-                        setHasNewNotifications(false);
-                    }, 3000);
+                    setNotifications(sortedNotifications);
+                    setUnreadCount(newUnreadCount);
 
-                    // Show browser notification if app is in background
-                    if (document.hidden && Notification.permission === 'granted') {
-                        const latestNotification = sortedNotifications.find(n => !n.read);
-                        if (latestNotification) {
-                            new Notification(latestNotification.title, {
-                                body: latestNotification.body,
-                                icon: '/logo-zayid.png',
-                                badge: '/logo-zayid.png',
-                                tag: latestNotification.data?.auctionId || 'zayid-notification'
-                            });
+                    if (newUnreadCount > previousUnreadCount) {
+                        setHasNewNotifications(true);
+
+                        setTimeout(() => {
+                            setHasNewNotifications(false);
+                        }, 3000);
+
+                        // Show browser notification if app is in background
+                        if (document.hidden && Notification.permission === 'granted') {
+                            const latestNotification = sortedNotifications.find(n => !n.read);
+                            if (latestNotification) {
+                                new Notification(latestNotification.title, {
+                                    body: latestNotification.body,
+                                    icon: '/logo-zayid.png',
+                                    badge: '/logo-zayid.png',
+                                    tag: latestNotification.data?.auctionId || 'zayid-notification'
+                                });
+                            }
                         }
                     }
                 }
             } else {
-                setNotifications([]);
-                setUnreadCount(0);
+                if (notifications.length > 0) {
+                    console.log('No notifications found, clearing state');
+                    setNotifications([]);
+                    setUnreadCount(0);
+                }
             }
         }, (error) => {
             console.error('Error listening to notifications:', error);
@@ -281,7 +325,16 @@ export const useNotifications = () => {
 
     // Manual fetch notifications function
     const fetchNotifications = async () => {
-        if (!user?.uid) return;
+        if (!user?.uid || isLoading) {
+            console.log('Skipping fetch - user not ready or already loading');
+            return;
+        }
+
+        // Prevent duplicate fetches
+        if (hasInitialFetch && notifications.length > 0) {
+            console.log('Skipping fetch - already have notifications');
+            return;
+        }
 
         try {
             setIsLoading(true);
@@ -296,7 +349,7 @@ export const useNotifications = () => {
             const fetchedNotifications = await getUserNotifications(notificationUserId);
 
             if (fetchedNotifications && fetchedNotifications.length > 0) {
-                console.log('Fetched notifications:', fetchedNotifications);
+                console.log(`Fetched ${fetchedNotifications.length} notifications for user:`, notificationUserId);
                 setNotifications(fetchedNotifications);
                 setUnreadCount(fetchedNotifications.filter(n => !n.read).length);
             } else {
@@ -311,25 +364,41 @@ export const useNotifications = () => {
         }
     };
 
+    // Manual refresh notifications
+    const refreshNotifications = async () => {
+        console.log('Manual refresh requested');
+        setHasInitialFetch(false);
+        await fetchNotifications();
+    };
+
     // Debug function to check notification path
     const debugNotificationPath = () => {
         const notificationUserId = getNotificationUserId();
-        console.log('Debug - User ID for notifications:', notificationUserId);
-        console.log('Debug - User data:', userData);
-        console.log('Debug - Firebase UID:', user?.uid);
-        console.log('Debug - Expected notification path:', `notifications/${notificationUserId}`);
+        console.log('=== NOTIFICATION DEBUG INFO ===');
+        console.log('User ID for notifications:', notificationUserId);
+        console.log('User data:', userData);
+        console.log('Firebase UID:', user?.uid);
+        console.log('Expected notification path:', `notifications/${notificationUserId}`);
+        console.log('Current notifications count:', notifications.length);
+        console.log('Unread count:', unreadCount);
+        console.log('Listener setup:', listenerSetup);
+        console.log('Has initial fetch:', hasInitialFetch);
+        console.log('Loading state:', isLoading);
+        console.log('================================');
 
         if (notificationUserId) {
             // Check if the path exists in database
             const notificationsRef = ref(database, `notifications/${notificationUserId}`);
             get(notificationsRef).then((snapshot) => {
                 if (snapshot.exists()) {
-                    console.log('Debug - Notifications path exists with data:', snapshot.val());
+                    const data = snapshot.val();
+                    console.log('Database path exists with data:', data);
+                    console.log('Number of notifications in DB:', Object.keys(data).length);
                 } else {
-                    console.log('Debug - Notifications path does not exist');
+                    console.log('Database path does not exist');
                 }
             }).catch((error) => {
-                console.error('Debug - Error checking notifications path:', error);
+                console.error('Error checking database path:', error);
             });
         }
     };
@@ -370,6 +439,7 @@ export const useNotifications = () => {
         markAllAsRead,
         retryInitialization,
         fetchNotifications,
+        refreshNotifications,
         debugNotificationPath
     };
 }; 

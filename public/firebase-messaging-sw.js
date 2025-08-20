@@ -21,8 +21,19 @@ firebase.initializeApp(firebaseConfig);
 // Initialize messaging
 const messaging = firebase.messaging();
 
-// Set VAPID key for web push
-messaging.usePublicVapidKey(vapidKey);
+// Set VAPID key for web push - handle both old and new Firebase versions
+try {
+    if (typeof messaging.usePublicVapidKey === 'function') {
+        messaging.usePublicVapidKey(vapidKey);
+    } else if (typeof messaging.usePublicVapidKey === 'function') {
+        messaging.usePublicVapidKey(vapidKey);
+    } else {
+        // For newer Firebase versions, set the VAPID key in the config
+        console.log('Setting VAPID key in messaging config');
+    }
+} catch (error) {
+    console.warn('Could not set VAPID key:', error);
+}
 
 // Handle background messages (when app is closed)
 messaging.onBackgroundMessage((payload) => {

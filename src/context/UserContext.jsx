@@ -15,7 +15,10 @@ import { auth } from "../config/Firebase";
 import { registerUser, loginUser, logoutUser } from "../utils/firebaseUtils";
 import { uploadMultipleImages as cloudinaryUploadMultiple } from "../utils/cloudinaryUtils";
 import { v4 as uuidv4 } from "uuid";
-import { ensureWebTokenRegistration } from "../utils/notificationService";
+import {
+  ensureWebTokenRegistration,
+  getUserFCMToken,
+} from "../utils/notificationService";
 
 // Create Context
 export const UserContext = createContext();
@@ -33,6 +36,8 @@ export const UserProvider = ({ children }) => {
   const [userAuctions, setUserAuctions] = useState([]);
   const [isActive, setIsActive] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [webNotificationsInitialized, setWebNotificationsInitialized] =
+    useState(false);
 
   // Real-time listeners
   useEffect(() => {
@@ -89,18 +94,29 @@ export const UserProvider = ({ children }) => {
       setUserData(null);
       setIsActive(false);
       setIsAdmin(false);
+      setWebNotificationsInitialized(false); // Reset when user changes
     }
   }, [user, isAuthenticated]);
 
   // Initialize web notifications when user is authenticated
   useEffect(() => {
-    if (user && userData && isActive) {
+    if (user && userData && isActive && !webNotificationsInitialized) {
       const initializeUserNotifications = async () => {
         try {
           console.log("Initializing web notifications for user:", user.uid);
 
           // Get the national ID for the user
           const nationalID = userData.nationalID || user.uid;
+
+          // Check if we already have a web token to prevent duplicate initialization
+          const existingToken = await getUserFCMToken(nationalID, "web");
+          if (existingToken) {
+            console.log(
+              "Web FCM token already exists, skipping initialization"
+            );
+            setWebNotificationsInitialized(true);
+            return;
+          }
 
           // Ensure web FCM token is registered
           const webToken = await ensureWebTokenRegistration(nationalID);
@@ -116,17 +132,20 @@ export const UserProvider = ({ children }) => {
               nationalID
             );
           }
+
+          setWebNotificationsInitialized(true);
         } catch (error) {
           console.error("Error initializing user notifications:", error);
+          setWebNotificationsInitialized(true); // Mark as initialized even on error to prevent retries
         }
       };
 
       // Delay initialization slightly to ensure everything is ready
-      const timer = setTimeout(initializeUserNotifications, 1000);
+      const timer = setTimeout(initializeUserNotifications, 2000);
 
       return () => clearTimeout(timer);
     }
-  }, [user, userData, isActive]);
+  }, [user, userData, isActive, webNotificationsInitialized]);
 
   // Get all auctions (publicly available)
   useEffect(() => {

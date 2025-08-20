@@ -1,5 +1,3 @@
-
-
 import { messaging } from '../config/Firebase';
 import { getToken, onMessage } from 'firebase/messaging';
 import { ref, set, get, push, update, remove } from 'firebase/database';
@@ -387,7 +385,6 @@ export const getUserFCMToken = async (userId, platform = 'web') => {
     try {
         let nationalID = userId;
 
-
         if (userId && userId.length > 20) {
             try {
                 const usersRef = ref(database, 'users');
@@ -406,13 +403,44 @@ export const getUserFCMToken = async (userId, platform = 'web') => {
             }
         }
 
-
-        const tokenRef = ref(database, `users/${nationalID}/fcmTokens/${platform}`);
-        const snapshot = await get(tokenRef);
+        // First try to get token with the original platform parameter
+        let tokenRef = ref(database, `users/${nationalID}/fcmTokens/${platform}`);
+        let snapshot = await get(tokenRef);
 
         if (snapshot.exists()) {
             const token = snapshot.val().token;
+            console.log(`Found FCM token for user ${nationalID} on platform ${platform}`);
             return token;
+        }
+
+        // If not found, try to find tokens under different platform names
+        // This handles the case where saveFCMToken saved with detectedPlatform
+        const tokensRef = ref(database, `users/${nationalID}/fcmTokens`);
+        const tokensSnapshot = await get(tokensRef);
+
+        if (tokensSnapshot.exists()) {
+            // Look for any token that matches the device type or has the original platform
+            tokensSnapshot.forEach((childSnapshot) => {
+                const tokenData = childSnapshot.val();
+                if (tokenData.token) {
+                    // Check if this token is for the web platform
+                    if (platform === 'web' &&
+                        (tokenData.deviceType === 'web' ||
+                            tokenData.originalPlatform === 'web' ||
+                            tokenData.platform === 'web')) {
+                        console.log(`Found web FCM token for user ${nationalID} under platform ${childSnapshot.key}`);
+                        return tokenData.token;
+                    }
+                    // Check if this token is for the mobile platform
+                    else if (platform === 'mobile' &&
+                        (tokenData.deviceType === 'mobile' ||
+                            tokenData.originalPlatform === 'mobile' ||
+                            tokenData.platform === 'mobile')) {
+                        console.log(`Found mobile FCM token for user ${nationalID} under platform ${childSnapshot.key}`);
+                        return tokenData.token;
+                    }
+                }
+            });
         }
 
         console.log(`No FCM token found for user ${nationalID} on platform ${platform}`);
@@ -550,105 +578,102 @@ const withNotificationErrorHandling = async (operationName, operation, userId, .
 
 // Enhanced outbid notification with better error handling
 export const sendOutbidNotification = async (userId, auctionData, newBidAmount) => {
-    return withNotificationErrorHandling(
-        'sendOutbidNotification',
-        async (userId, auctionData, newBidAmount) => {
-            console.log(`Attempting to send outbid notification to user: ${userId}`);
+    try {
+        console.log(`Attempting to send outbid notification to user: ${userId}`);
 
-            const normalizedUser = await getNormalizedUserData(userId);
-            if (!normalizedUser) {
-                console.warn('Could not get normalized user data for:', userId);
+        const normalizedUser = await getNormalizedUserData(userId);
+        if (!normalizedUser) {
+            console.warn('Could not get normalized user data for:', userId);
 
-                // Fallback: try to find user data directly
-                try {
-                    const usersRef = ref(database, 'users');
-                    const snapshot = await get(usersRef);
+            // Fallback: try to find user data directly
+            try {
+                const usersRef = ref(database, 'users');
+                const snapshot = await get(usersRef);
 
-                    if (snapshot.exists()) {
-                        let nationalID = null;
-                        snapshot.forEach((childSnapshot) => {
-                            const userData = childSnapshot.val();
-                            if (userData && userData.userId === userId) {
-                                nationalID = childSnapshot.key;
-                            }
-                        });
+                if (snapshot.exists()) {
+                    let nationalID = null;
+                    snapshot.forEach((childSnapshot) => {
+                        const userData = childSnapshot.val();
+                        if (userData && userData.userId === userId) {
+                            nationalID = childSnapshot.key;
+                        }
+                    });
 
-                        if (nationalID) {
-                            console.log(`Fallback: Found national ID ${nationalID} for Firebase UID ${userId}`);
-                            // Try to send notification with the found national ID
-                            const userToken = await getUserFCMToken(nationalID);
-                            if (userToken) {
-                                const notificationRef = ref(database, `notifications/${nationalID}`);
-                                const newNotificationRef = push(notificationRef);
+                    if (nationalID) {
+                        console.log(`Fallback: Found national ID ${nationalID} for Firebase UID ${userId}`);
+                        // Try to send notification with the found national ID
+                        const userToken = await getUserFCMToken(nationalID);
+                        if (userToken) {
+                            const notificationRef = ref(database, `notifications/${nationalID}`);
+                            const newNotificationRef = push(notificationRef);
 
-                                const notificationData = {
-                                    id: newNotificationRef.key,
-                                    type: 'outbid',
-                                    title: 'تم تجاوز مزايدتك!',
-                                    body: `تم تجاوز مزايدتك في ${auctionData.title || 'المزاد'} بسعر ${newBidAmount} ج.م`,
+                            const notificationData = {
+                                id: newNotificationRef.key,
+                                type: 'outbid',
+                                title: 'تم تجاوز مزايدتك!',
+                                body: `تم تجاوز مزايدتك في ${auctionData.title || 'المزاد'} بسعر ${newBidAmount} ج.م`,
+                                auctionId: auctionData.id,
+                                auctionTitle: auctionData.title || 'المزاد',
+                                newBidAmount: newBidAmount || 0,
+                                timestamp: new Date().toISOString(),
+                                read: false,
+                                data: {
                                     auctionId: auctionData.id,
-                                    auctionTitle: auctionData.title || 'المزاد',
-                                    newBidAmount: newBidAmount || 0,
-                                    timestamp: new Date().toISOString(),
-                                    read: false,
-                                    data: {
-                                        auctionId: auctionData.id,
-                                        action: 'view_auction'
-                                    }
-                                };
+                                    action: 'view_auction'
+                                }
+                            };
 
-                                await set(newNotificationRef, notificationData);
-                                await sendFCMNotification(userToken, notificationData);
+                            await set(newNotificationRef, notificationData);
+                            await sendFCMNotification(userToken, notificationData);
 
-                                console.log('Outbid notification sent via fallback method to user:', nationalID);
-                                return notificationData;
-                            }
+                            console.log('Outbid notification sent via fallback method to user:', nationalID);
+                            return notificationData;
                         }
                     }
-                } catch (fallbackError) {
-                    console.error('Fallback method also failed:', fallbackError);
                 }
-
-                return null;
+            } catch (fallbackError) {
+                console.error('Fallback method also failed:', fallbackError);
             }
 
-            const { nationalID, firebaseUID } = normalizedUser;
+            return null;
+        }
 
-            const userToken = await getUserFCMToken(nationalID);
-            if (!userToken) {
-                console.log('No FCM token found for user:', nationalID);
-                return null;
-            }
+        const { nationalID, firebaseUID } = normalizedUser;
 
-            const notificationRef = ref(database, `notifications/${nationalID}`);
-            const newNotificationRef = push(notificationRef);
+        const userToken = await getUserFCMToken(nationalID);
+        if (!userToken) {
+            console.log('No FCM token found for user:', nationalID);
+            return null;
+        }
 
-            const notificationData = {
-                id: newNotificationRef.key,
-                type: 'outbid',
-                title: 'تم تجاوز مزايدتك!',
-                body: `تم تجاوز مزايدتك في ${auctionData.title || 'المزاد'} بسعر ${newBidAmount} ج.م`,
+        const notificationRef = ref(database, `notifications/${nationalID}`);
+        const newNotificationRef = push(notificationRef);
+
+        const notificationData = {
+            id: newNotificationRef.key,
+            type: 'outbid',
+            title: 'تم تجاوز مزايدتك!',
+            body: `تم تجاوز مزايدتك في ${auctionData.title || 'المزاد'} بسعر ${newBidAmount} ج.م`,
+            auctionId: auctionData.id,
+            auctionTitle: auctionData.title || 'المزاد',
+            newBidAmount: newBidAmount || 0,
+            timestamp: new Date().toISOString(),
+            read: false,
+            data: {
                 auctionId: auctionData.id,
-                auctionTitle: auctionData.title || 'المزاد',
-                newBidAmount: newBidAmount || 0,
-                timestamp: new Date().toISOString(),
-                read: false,
-                data: {
-                    auctionId: auctionData.id,
-                    action: 'view_auction'
-                }
-            };
+                action: 'view_auction'
+            }
+        };
 
-            await set(newNotificationRef, notificationData);
-            await sendFCMNotification(userToken, notificationData);
+        await set(newNotificationRef, notificationData);
+        await sendFCMNotification(userToken, notificationData);
 
-            console.log('Outbid notification sent to user:', nationalID, 'Firebase UID:', firebaseUID);
-            return notificationData;
-        },
-        userId,
-        auctionData,
-        newBidAmount
-    );
+        console.log('Outbid notification sent to user:', nationalID, 'Firebase UID:', firebaseUID);
+        return notificationData;
+    } catch (error) {
+        console.error('Error sending outbid notification:', error);
+        throw error;
+    }
 };
 
 export const sendAuctionStartedNotification = async (userId, auctionData) => {
