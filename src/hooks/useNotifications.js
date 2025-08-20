@@ -8,8 +8,9 @@ import {
     getUserNotifications,
     markNotificationAsRead,
     deleteNotification,
+    findNationalIDFromFirebaseUID,
 } from '../utils/notificationService';
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue, off, get } from 'firebase/database';
 import { database } from '../config/Firebase';
 
 export const useNotifications = () => {
@@ -21,23 +22,32 @@ export const useNotifications = () => {
     const [initializationError, setInitializationError] = useState(null);
     const [hasNewNotifications, setHasNewNotifications] = useState(false);
 
+    // Helper function to get the correct user ID for notifications
+    const getNotificationUserId = () => {
+        if (!user?.uid) return null;
+
+        // If userData has nationalID, use that
+        if (userData?.nationalID) {
+            return userData.nationalID;
+        }
+
+        // Otherwise, use the Firebase UID
+        return user.uid;
+    };
+
     // Initialize notifications when user is authenticated
     useEffect(() => {
         if (user?.uid && userData) {
-         
             const shouldInitialize = async () => {
-              
                 if (permissionStatus.status !== 'granted') {
                     return true;
                 }
 
-          
                 if (permissionStatus.status === 'granted' && permissionStatus.initialized) {
- 
-                    return false; 
+                    return false;
                 }
 
-                return false; 
+                return false;
             };
 
             shouldInitialize().then(needsInit => {
@@ -45,7 +55,6 @@ export const useNotifications = () => {
                     initializeNotificationsForUser();
                     const cleanup = setupRealTimeNotificationsListener();
 
-                   
                     return () => {
                         if (cleanup) cleanup();
                     };
@@ -54,13 +63,32 @@ export const useNotifications = () => {
         }
     }, [user, userData, userLoading, permissionStatus.initialized, permissionStatus.status]);
 
+    // Set up real-time notifications listener when user data is available
+    useEffect(() => {
+        if (user?.uid && userData) {
+            console.log('User data available, setting up notifications listener');
+            const cleanup = setupRealTimeNotificationsListener();
+
+            // Also fetch notifications immediately
+            fetchNotifications();
+
+            return () => {
+                if (cleanup) cleanup();
+            };
+        }
+    }, [user, userData]);
 
     const setupRealTimeNotificationsListener = () => {
         if (!user?.uid || !userData) return null;
 
+        const notificationUserId = getNotificationUserId();
+        if (!notificationUserId) {
+            console.warn('Could not determine notification user ID');
+            return null;
+        }
 
-        const nationalID = userData.nationalID || user.uid;
-        const notificationsRef = ref(database, `notifications/${nationalID}`);
+        console.log('Setting up notifications listener for user:', notificationUserId);
+        const notificationsRef = ref(database, `notifications/${notificationUserId}`);
 
         const unsubscribe = onValue(notificationsRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -76,16 +104,13 @@ export const useNotifications = () => {
                     (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
                 );
 
-         
                 const previousUnreadCount = unreadCount;
                 const newUnreadCount = sortedNotifications.filter(notification => !notification.read).length;
 
                 setNotifications(sortedNotifications);
                 setUnreadCount(newUnreadCount);
 
-               
                 if (newUnreadCount > previousUnreadCount) {
-        
                     setHasNewNotifications(true);
 
                     setTimeout(() => {
@@ -125,13 +150,13 @@ export const useNotifications = () => {
 
             // Check if notifications are already initialized
             if (permissionStatus.status === 'granted') {
-                // Even if permission is granted, we still need to ensure FCM token exists
-                const nationalID = userData.nationalID || user.uid;
-                // For production, assume if permission is granted, we're good
-                const newStatus = { ...permissionStatus, initialized: true };
-                setPermissionStatus(newStatus);
-                console.log('Notifications already initialized');
-                return;
+                const notificationUserId = getNotificationUserId();
+                if (notificationUserId) {
+                    const newStatus = { ...permissionStatus, initialized: true };
+                    setPermissionStatus(newStatus);
+                    console.log('Notifications already initialized for user:', notificationUserId);
+                    return;
+                }
             }
 
             // Check if permission is blocked
@@ -146,27 +171,20 @@ export const useNotifications = () => {
             const result = await initializeNotifications();
 
             if (result.success && result.token && user?.uid && userData) {
-                // Use national ID for saving FCM token
-                const nationalID = userData.nationalID || user.uid;
-                await saveFCMToken(nationalID, result.token);
+                const notificationUserId = getNotificationUserId();
+                if (notificationUserId) {
+                    await saveFCMToken(notificationUserId, result.token);
 
-                // Set permission status with initialized flag
-                const newStatus = getPermissionStatus();
-                newStatus.initialized = true;
-                setPermissionStatus(newStatus);
+                    const newStatus = getPermissionStatus();
+                    newStatus.initialized = true;
+                    setPermissionStatus(newStatus);
 
-                console.log('Notifications initialized successfully for user:', nationalID);
+                    console.log('Notifications initialized successfully for user:', notificationUserId);
+                }
             } else {
-                setInitializationError(result.error);
-                console.error('Failed to initialize notifications:', result.error);
+                console.log('Failed to initialize notifications:', result);
+                setInitializationError(result.error || 'Unknown error');
             }
-
-            // Setup foreground message listener
-            setupForegroundMessageListener((payload) => {
-                console.log('Foreground message received:', payload);
-                // The real-time listener will automatically update the notifications
-            });
-
         } catch (error) {
             console.error('Error initializing notifications:', error);
             setInitializationError(error.message);
@@ -261,6 +279,61 @@ export const useNotifications = () => {
         await initializeNotificationsForUser();
     };
 
+    // Manual fetch notifications function
+    const fetchNotifications = async () => {
+        if (!user?.uid) return;
+
+        try {
+            setIsLoading(true);
+            const notificationUserId = getNotificationUserId();
+
+            if (!notificationUserId) {
+                console.warn('Could not determine notification user ID for fetching');
+                return;
+            }
+
+            console.log('Manually fetching notifications for user:', notificationUserId);
+            const fetchedNotifications = await getUserNotifications(notificationUserId);
+
+            if (fetchedNotifications && fetchedNotifications.length > 0) {
+                console.log('Fetched notifications:', fetchedNotifications);
+                setNotifications(fetchedNotifications);
+                setUnreadCount(fetchedNotifications.filter(n => !n.read).length);
+            } else {
+                console.log('No notifications found for user:', notificationUserId);
+                setNotifications([]);
+                setUnreadCount(0);
+            }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Debug function to check notification path
+    const debugNotificationPath = () => {
+        const notificationUserId = getNotificationUserId();
+        console.log('Debug - User ID for notifications:', notificationUserId);
+        console.log('Debug - User data:', userData);
+        console.log('Debug - Firebase UID:', user?.uid);
+        console.log('Debug - Expected notification path:', `notifications/${notificationUserId}`);
+
+        if (notificationUserId) {
+            // Check if the path exists in database
+            const notificationsRef = ref(database, `notifications/${notificationUserId}`);
+            get(notificationsRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    console.log('Debug - Notifications path exists with data:', snapshot.val());
+                } else {
+                    console.log('Debug - Notifications path does not exist');
+                }
+            }).catch((error) => {
+                console.error('Debug - Error checking notifications path:', error);
+            });
+        }
+    };
+
     // Get error message for display
     const getErrorMessage = () => {
         switch (initializationError) {
@@ -295,6 +368,8 @@ export const useNotifications = () => {
         markAsRead,
         removeNotification,
         markAllAsRead,
-        retryInitialization
+        retryInitialization,
+        fetchNotifications,
+        debugNotificationPath
     };
 }; 

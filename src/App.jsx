@@ -33,23 +33,80 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ScrollToTop from "./components/ScrollToTop.js";
 
+// Import notification utilities
+import {
+  initializeNotifications,
+  saveFCMToken,
+} from "./utils/notificationService";
 
 function App() {
-
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/firebase-messaging-sw.js")
-        .then((registration) => {
-          console.log(
-            "Service Worker registered with scope:",
-            registration.scope
-          );
-        })
-        .catch((error) => {
-          console.error("Service Worker registration failed:", error);
-        });
-    }
+    const initializeServiceWorker = async () => {
+      if ("serviceWorker" in navigator) {
+        try {
+          // Wait for the page to load completely
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", async () => {
+              await registerServiceWorker();
+            });
+          } else {
+            await registerServiceWorker();
+          }
+        } catch (error) {
+          console.error("Service Worker initialization failed:", error);
+        }
+      }
+    };
+
+    const registerServiceWorker = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register(
+          "/firebase-messaging-sw.js"
+        );
+        console.log(
+          "Service Worker registered with scope:",
+          registration.scope
+        );
+
+        // Wait for the service worker to be ready
+        await navigator.serviceWorker.ready;
+        console.log("Service Worker is ready");
+
+        // Initialize notifications after service worker is ready
+        await initializeWebNotifications();
+      } catch (error) {
+        console.error("Service Worker registration failed:", error);
+      }
+    };
+
+    const initializeWebNotifications = async () => {
+      try {
+        // Check if notifications are supported
+        if (!("Notification" in window)) {
+          console.log("Notifications not supported");
+          return;
+        }
+
+        // Check if permission is already granted
+        if (Notification.permission === "granted") {
+          console.log("Notification permission already granted");
+          // Initialize notifications for web
+          const result = await initializeNotifications();
+          if (result.success && result.token) {
+            console.log("Web FCM token obtained:", result.token);
+            // Save the web token to database (this will be done in the context)
+          }
+        } else if (Notification.permission === "default") {
+          console.log("Notification permission not yet requested");
+        } else {
+          console.log("Notification permission denied");
+        }
+      } catch (error) {
+        console.error("Error initializing web notifications:", error);
+      }
+    };
+
+    initializeServiceWorker();
   }, []);
 
   return (

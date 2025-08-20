@@ -8,13 +8,13 @@ import { database } from '../config/Firebase';
 // Utility functions for consistent user ID handling
 const normalizeUserId = async (userId) => {
     try {
-        
+
         if (/^\d+$/.test(userId)) {
             return { nationalID: userId, firebaseUID: null };
         }
 
-     
-        if (userId && userId.length > 20) { 
+
+        if (userId && userId.length > 20) {
             const usersRef = ref(database, 'users');
             const snapshot = await get(usersRef);
 
@@ -132,7 +132,7 @@ const getNormalizedUserData = async (userId) => {
             return null;
         }
 
-    
+
         const userRef = ref(database, `users/${nationalID}`);
         const userSnapshot = await get(userRef);
 
@@ -142,7 +142,7 @@ const getNormalizedUserData = async (userId) => {
                 nationalID,
                 firebaseUID: userData.userId || firebaseUID,
                 userData,
-           
+
                 fcmToken: userData.fcmToken || null,
                 notificationSettings: userData.notificationSettings || {}
             };
@@ -286,12 +286,24 @@ export const requestNotificationPermission = async () => {
 
 export const getFCMToken = async () => {
     try {
+        // Check if messaging is available
+        if (!messaging) {
+            console.error('Firebase messaging not initialized');
+            return null;
+        }
+
+        // Check if service worker is ready
+        if ('serviceWorker' in navigator) {
+            const registration = await navigator.serviceWorker.ready;
+            console.log('Service Worker ready for FCM token generation');
+        }
+
         const token = await getToken(messaging, {
             vapidKey: FCM_CONFIG.vapidKey
         });
 
         if (token) {
-            console.log('FCM Token obtained successfully');
+            console.log('FCM Token obtained successfully for web platform');
             return token;
         } else {
             console.log('No registration token available');
@@ -299,6 +311,18 @@ export const getFCMToken = async () => {
         }
     } catch (error) {
         console.error('Error getting FCM token:', error);
+
+        // Provide specific error messages for common issues
+        if (error.code === 'messaging/permission-blocked') {
+            console.error('Notification permission is blocked. User needs to enable it in browser settings.');
+        } else if (error.code === 'messaging/permission-default') {
+            console.error('Notification permission not yet granted. Request permission first.');
+        } else if (error.code === 'messaging/unsupported-browser') {
+            console.error('This browser does not support FCM.');
+        } else if (error.code === 'messaging/registration-token-not-registered') {
+            console.error('FCM registration token not registered.');
+        }
+
         return null;
     }
 };
@@ -306,26 +330,55 @@ export const getFCMToken = async () => {
 
 export const saveFCMToken = async (userId, token, platform = 'web') => {
     try {
-
         if (!token || typeof token !== 'string') {
             console.warn('Invalid token format, not saving:', token);
             return;
         }
 
+        // Detect platform more accurately
+        let detectedPlatform = platform;
+        let deviceType = 'web';
 
-        const tokenRef = ref(database, `users/${userId}/fcmTokens/${platform}`);
+        if (token.startsWith('ExponentPushToken[')) {
+            detectedPlatform = 'expo';
+            deviceType = 'mobile';
+        } else if (token.startsWith('fMEP')) {
+            detectedPlatform = 'web';
+            deviceType = 'web';
+        } else if (token.length > 100) {
+            // FCM tokens are typically long
+            detectedPlatform = 'fcm';
+            deviceType = platform === 'web' ? 'web' : 'mobile';
+        }
+
+        console.log(`Saving ${detectedPlatform} token for user ${userId} on platform ${platform}, device type: ${deviceType}`);
+
+        const tokenRef = ref(database, `users/${userId}/fcmTokens/${detectedPlatform}`);
         await set(tokenRef, {
             token: token,
             timestamp: new Date().toISOString(),
-            platform: platform,
-            deviceType: platform === 'web' ? 'web' : 'mobile',
-            tokenType: token.startsWith('ExponentPushToken[') ? 'expo' : 'fcm'
+            platform: detectedPlatform,
+            deviceType: deviceType,
+            tokenType: token.startsWith('ExponentPushToken[') ? 'expo' : 'fcm',
+            originalPlatform: platform, // Keep track of the original platform parameter
+            userAgent: navigator.userAgent, // Add user agent for debugging
+            lastUpdated: new Date().toISOString()
         });
 
-        const tokenType = token.startsWith('ExponentPushToken[') ? 'Expo' : 'FCM';
-        console.log(`${tokenType} token saved for user ${userId} on platform ${platform}`);
+        console.log(`${detectedPlatform.toUpperCase()} token saved successfully for user ${userId}`);
+
+        // Also save a reference in a separate location for easier querying
+        const webTokenRef = ref(database, `fcm_tokens/${detectedPlatform}/${token}`);
+        await set(webTokenRef, {
+            userId: userId,
+            platform: detectedPlatform,
+            deviceType: deviceType,
+            timestamp: new Date().toISOString()
+        });
+
     } catch (error) {
         console.error('Error saving FCM token:', error);
+        throw error;
     }
 };
 
@@ -334,8 +387,8 @@ export const getUserFCMToken = async (userId, platform = 'web') => {
     try {
         let nationalID = userId;
 
-      
-        if (userId && userId.length > 20) { 
+
+        if (userId && userId.length > 20) {
             try {
                 const usersRef = ref(database, 'users');
                 const snapshot = await get(usersRef);
@@ -344,7 +397,7 @@ export const getUserFCMToken = async (userId, platform = 'web') => {
                     snapshot.forEach((childSnapshot) => {
                         const userData = childSnapshot.val();
                         if (userData.userId === userId) {
-                            nationalID = childSnapshot.key; 
+                            nationalID = childSnapshot.key;
                         }
                     });
                 }
@@ -2026,3 +2079,55 @@ export const getNotificationInstructions = () => {
 
 // Note: For comprehensive testing of all notification types, use the NotificationTester component
 // This provides a user-friendly interface to test notifications with real user IDs 
+
+export const ensureWebTokenRegistration = async (userId) => {
+    try {
+        console.log('Ensuring web FCM token registration for user:', userId);
+
+        // Check if we already have a valid web token
+        const existingToken = await getUserFCMToken(userId, 'web');
+        if (existingToken) {
+            console.log('Web FCM token already exists for user:', userId);
+            return existingToken;
+        }
+
+        // Check if notifications are supported and permission is granted
+        if (!('Notification' in window)) {
+            console.log('Notifications not supported in this browser');
+            return null;
+        }
+
+        if (Notification.permission !== 'granted') {
+            console.log('Notification permission not granted');
+            return null;
+        }
+
+        // Check if service worker is ready
+        if (!('serviceWorker' in navigator)) {
+            console.log('Service Worker not supported');
+            return null;
+        }
+
+        try {
+            await navigator.serviceWorker.ready;
+        } catch (error) {
+            console.error('Service Worker not ready:', error);
+            return null;
+        }
+
+        // Get a new FCM token
+        const token = await getFCMToken();
+        if (token) {
+            // Save the web token
+            await saveFCMToken(userId, token, 'web');
+            console.log('Web FCM token registered and saved for user:', userId);
+            return token;
+        } else {
+            console.log('Failed to get FCM token for web');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error ensuring web token registration:', error);
+        return null;
+    }
+}; 

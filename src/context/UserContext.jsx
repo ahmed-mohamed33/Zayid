@@ -1,8 +1,4 @@
-import React, {
-  createContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import {
   getDatabase,
@@ -19,7 +15,7 @@ import { auth } from "../config/Firebase";
 import { registerUser, loginUser, logoutUser } from "../utils/firebaseUtils";
 import { uploadMultipleImages as cloudinaryUploadMultiple } from "../utils/cloudinaryUtils";
 import { v4 as uuidv4 } from "uuid";
-
+import { ensureWebTokenRegistration } from "../utils/notificationService";
 
 // Create Context
 export const UserContext = createContext();
@@ -95,6 +91,43 @@ export const UserProvider = ({ children }) => {
       setIsAdmin(false);
     }
   }, [user, isAuthenticated]);
+
+  // Initialize web notifications when user is authenticated
+  useEffect(() => {
+    if (user && userData && isActive) {
+      const initializeUserNotifications = async () => {
+        try {
+          console.log("Initializing web notifications for user:", user.uid);
+
+          // Get the national ID for the user
+          const nationalID = userData.nationalID || user.uid;
+
+          // Ensure web FCM token is registered
+          const webToken = await ensureWebTokenRegistration(nationalID);
+
+          if (webToken) {
+            console.log(
+              "Web FCM token successfully registered for user:",
+              nationalID
+            );
+          } else {
+            console.log(
+              "Web FCM token registration failed for user:",
+              nationalID
+            );
+          }
+        } catch (error) {
+          console.error("Error initializing user notifications:", error);
+        }
+      };
+
+      // Delay initialization slightly to ensure everything is ready
+      const timer = setTimeout(initializeUserNotifications, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [user, userData, isActive]);
+
   // Get all auctions (publicly available)
   useEffect(() => {
     const db = getDatabase();
@@ -183,8 +216,6 @@ export const UserProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
-
-
 
   // Get Auction that user participated in
   useEffect(() => {
